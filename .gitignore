@@ -1,0 +1,39 @@
+# === Private Configuration / App Secrets ===
+.env
+.env.local
+.env.*
+secrets.json
+run_local.bat
+
+# === Python Virtual Environments ===
+venv/
+.venv/
+env/
+ENV/
+pyvenv.cfg
+.Python
+
+# === Computer Vision / Temporary Media ===
+# Ignore raw source videos, test uploads, or output frames stored locally
+*.mp4
+*.mov
+*.avi
+*.jpg
+*.jpeg
+*.png
+!test_resources/   # Allow tracking a specific small test folder if needed
+
+# === Machine Learning / Cache Frameworks ===
+# Prevents large downloaded PyTorch model weight weights from syncing
+.cache/
+.torch/
+.torchvision/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# === Operating System Noise ===
+.DS_Store
+Thumbs.db
