@@ -5,6 +5,8 @@
 
 ## Run Locally
 ```
+$ pip install -r requirements.txt
+
 # Only necessary once
 $ python -m venv venv
 
