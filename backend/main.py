@@ -34,9 +34,14 @@ def get_supabase_client() -> Client:
     return _supabase_instance
 
 # ========================================================
-# MACHINE LEARNING ENGINE INITIALIZATION
+# MACHINE LEARNING ENGINE INITIALIZATION (UPDATED)
 # ========================================================
 device = torch.device("cpu")
+
+# Re-direct the framework to point inside our local packaged directory path
+local_weights_dir = os.path.join(os.getcwd(), "weights")
+os.environ["TORCH_HOME"] = local_weights_dir
+
 resnet_model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
 resnet_model = torch.nn.Sequential(*list(resnet_model.children())[:-1])
 resnet_model.eval()

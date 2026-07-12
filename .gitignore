@@ -33,6 +33,7 @@ __pycache__/
 *.pyo
 *.pyd
 .pytest_cache/
+backend/weights/
 
 # === Operating System Noise ===
 .DS_Store

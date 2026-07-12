@@ -31,6 +31,12 @@ jobs:
         cd backend
         pip install -r requirements.txt
 
+    # NEW: Fetch model parameters on GitHub's fast runners to skip underwater cloud timeouts
+    - name: Download and Bundle Model Weights Natively
+      run: |
+        cd backend
+        python download_weights.py
+
 #    - name: Run Automated Quality Matrix Verification Checks
 #      run: |
 #        cd backend
@@ -47,7 +53,7 @@ jobs:
       with:
         name: coral-upload-pipeline
         runtime: python312
-        memory_mb: 512MiB
+        memory_mb: 1024
         source_dir: ./backend
         entry_point: process_coral_upload
         region: us-central1
