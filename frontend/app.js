@@ -1,4 +1,7 @@
-const API_BASE = "http://localhost:8080";
+const API_BASE = window.location.protocol === "file:" || window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "http://localhost:8080"
+    : "https://us-central1-coral-matcher.cloudfunctions.net/coral-upload-pipeline";
+
 let currentFilePayload = null;
 const imageInput = document.getElementById('imageInput');
 const imagePreview = document.getElementById('imagePreview');

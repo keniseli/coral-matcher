@@ -1,10 +1,10 @@
 import pytest
 import numpy as np
 import cv2
-from main import apply_underwater_corrections
+from backend.main import apply_underwater_corrections
 import pytest
 import numpy as np
-from main import generate_vector_embedding
+from backend.main import generate_vector_embedding
 
 def test_resnet_feature_vector_dimensions():
     """
