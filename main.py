@@ -124,7 +124,7 @@ def process_coral_upload(request):
             blob_filename = f"processed/{site_name}/{coral_id}_{uploaded_file.filename}"
             blob = bucket.blob(blob_filename)
             blob.upload_from_string(processed_bytes, content_type="image/jpeg")
-            public_url = f"https://googleapis.com{BUCKET_NAME}/{blob_filename}"
+            public_url = f"https://storage.googleapis.com/{BUCKET_NAME}/{blob_filename}"
 
             # 4. Save record to monitoring_sessions
             session_payload = {"coral_id": coral_id, "site_name": site_name, "storage_url": public_url}
@@ -172,6 +172,7 @@ def process_coral_upload(request):
             db_call = supabase_client.rpc("match_coral_vectors", {
                 "query_embedding": query_vector,
                 "filter_site": site_name,
+                "match_threshold": 0.85,
                 "match_count": 3
             }).execute()
 
