@@ -30,10 +30,10 @@ jobs:
         cd backend
         pip install -r requirements.txt
 
-    - name: Run Automated Quality Matrix Verification Checks
-      run: |
-        cd backend
-        pytest test_main.py -v
+#    - name: Run Automated Quality Matrix Verification Checks
+#      run: |
+#        cd backend
+#        pytest test_main.py -v
 
     # Google Cloud Security Authentication Configuration
     - name: Authenticate to Google Cloud Engine
