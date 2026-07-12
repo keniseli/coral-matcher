@@ -34,7 +34,7 @@ function showNotification(message, type = 'success') {
     setTimeout(() => {
         snackbar.classList.remove('opacity-100', 'translate-y-0');
         snackbar.classList.add('opacity-0', 'translate-y-4');
-    }, 4000);
+    }, 10_000);
 }
 
 
@@ -152,7 +152,7 @@ function executeMonitoringCommit(coralId, site, storageUrl) {
     fetch(`${API_BASE}/commit-session`, { method: 'POST', body: commitForm })
         .then(res => res.json())
         .then(() => {
-            showNotification(`Visit update session pinned to \${coralId}`, "success");
+            showNotification(`Visit update session pinned to ${coralId}`, "success");
         });
 }
 
@@ -178,11 +178,11 @@ document.getElementById('registerNewBtn').onclick = function () {
             this.disabled = false;
             this.innerText = "➕ Log As New Colony Discovery";
             if (result.error) throw new Error(result.error);
-            showNotification(`Baseline identity assigned: \${generatedCoralId}`, "success");
+            showNotification(`Baseline identity assigned: ${generatedCoralId}`, "success");
         })
         .catch(err => {
             this.disabled = false;
             this.innerText = "➕ Log As New Colony Discovery";
-            showNotification(`New individual registration sequence failed: \${err.message}`, "error");
+            showNotification(`New individual registration sequence failed: ${err.message}`, "error");
         });
 };
