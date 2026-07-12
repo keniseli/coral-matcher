@@ -47,7 +47,7 @@ jobs:
       with:
         name: coral-upload-pipeline
         runtime: python312
-        memory: 512MiB
+        memory_mb: 512MiB
         source_dir: ./backend
         entry_point: process_coral_upload
         region: us-central1
