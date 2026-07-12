@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -45,9 +46,10 @@
     <!-- Main Operational Workspace Grid (Configured for equal 50/50 Desktop Split) -->
     <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-start relative">
 
-        <!-- Left Panel: Input Parameters (Sticky Column - Locks and scrolls with the user screen) -->
+        <!-- Left Panel: Input Parameters (Sticky-Bottom Column - Locks via lower bounds) -->
         <div
-            class="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-2xl space-y-5 md:sticky md:top-6 self-start">
+            class="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-2xl space-y-5 md:sticky md:bottom-6 self-end w-full">
+
             <div class="flex items-center space-x-2 border-b border-slate-800 pb-3">
                 <span
                     class="flex items-center justify-center w-6 h-6 rounded-lg bg-emerald-500/10 text-emerald-400 font-mono text-xs font-bold">1</span>
@@ -70,31 +72,31 @@
             <div class="space-y-1.5">
                 <label class="block text-xs font-bold uppercase tracking-widest text-slate-400">Monitoring Photo
                     Asset</label>
-                <div
-                    class="group border-2 border-dashed border-slate-700 hover:border-emerald-500/70 transition-all rounded-xl p-6 text-center bg-slate-950 cursor-pointer h-32 flex flex-col justify-center items-center shadow-inner relative">
+                <div id="uploadDropZone"
+                    class="group border-2 border-dashed border-slate-700 hover:border-emerald-500/70 transition-all rounded-2xl bg-slate-950 cursor-pointer w-full aspect-[4/3] flex flex-col justify-center items-center shadow-inner relative overflow-hidden">
                     <input type="file" id="imageInput" accept="image/*"
-                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
-                    <div class="space-y-1 z-0 pointer-events-none">
-                        <p class="text-sm font-semibold text-slate-300 group-hover:text-emerald-400 transition-colors">
-                            Select Target File</p>
-                        <p class="text-xs text-slate-500">Click to browse or drop items</p>
+                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20">
+
+                    <div id="uploadPrompt"
+                        class="space-y-2 text-center p-6 z-10 pointer-events-none transition-all duration-200">
+                        <div
+                            class="mx-auto w-10 h-10 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 group-hover:text-emerald-400 transition-colors">
+                            📸</div>
+                        <div>
+                            <p class="text-sm font-bold text-slate-300 group-hover:text-emerald-400 transition-colors">
+                                Select Monitoring File</p>
+                            <p class="text-xs text-slate-500 mt-0.5">Click to browse or drop items here</p>
+                        </div>
                     </div>
+
+                    <img id="imagePreview" src=""
+                        class="hidden absolute inset-0 w-full h-full object-cover object-center z-0 transition-transform duration-300 group-hover:scale-[1.01]">
+                    <button id="clearImageBtn"
+                        class="hidden absolute top-3 right-3 z-30 bg-slate-900/90 hover:bg-red-950 border border-slate-800 hover:border-red-500/50 text-slate-400 hover:text-red-400 font-mono text-[10px] uppercase font-bold px-2.5 py-1.5 rounded-lg shadow-xl backdrop-blur-xs transition-colors">✕
+                        Replace</button>
                 </div>
             </div>
 
-            <!-- Influx File Image Live Preview Element Canvas Container (Scaled to 4:3) -->
-            <div id="previewContainer" class="hidden border-t border-slate-800 pt-5 animate-fadeIn">
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2.5">Selected Sample Upload:</p>
-                <div
-                    class="relative aspect-[4/3] rounded-xl overflow-hidden border border-slate-800 bg-slate-950 shadow-inner group">
-                    <img id="imagePreview" src=""
-                        class="w-full h-full object-cover object-center group-hover:scale-[1.02] transition-transform duration-300">
-                    <div
-                        class="absolute top-2 right-2 bg-slate-950/80 backdrop-blur-md text-[10px] font-mono px-2 py-0.5 rounded border border-slate-800 text-slate-400">
-                        Influx Buffer
-                    </div>
-                </div>
-            </div>
         </div>
 
         <!-- Right Panel: Match Array Comparisons Box Viewer Container (Scrollable Stack) -->

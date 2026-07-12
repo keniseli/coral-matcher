@@ -1,12 +1,29 @@
 const API_BASE = "http://localhost:8080";
 let currentFilePayload = null;
+const imageInput = document.getElementById('imageInput');
+const imagePreview = document.getElementById('imagePreview');
+const uploadPrompt = document.getElementById('uploadPrompt');
+const uploadDropZone = document.getElementById('uploadDropZone');
+const clearImageBtn = document.getElementById('clearImageBtn');
 
 function resetDashboardState() {
     document.getElementById('statusPlaceholder').classList.remove('hidden');
     document.getElementById('matchDisplayArea').classList.add('hidden');
     document.getElementById('newCoralActionPanel').classList.add('hidden');
     document.getElementById('cardsList').innerHTML = '';
+    imagePreview.src = '';
+    imagePreview.classList.add('hidden');
+    uploadPrompt.classList.remove('hidden');
+    clearImageBtn.classList.add('hidden');
+    uploadDropZone.className = "group border-2 border-dashed border-slate-700 hover:border-emerald-500/70 transition-all rounded-2xl bg-slate-950 cursor-pointer w-full aspect-[4/3] flex flex-col justify-center items-center shadow-inner relative overflow-hidden";
+    imageInput.value = "";
+    currentFilePayload = null;
 }
+
+clearImageBtn.onclick = function (e) {
+    e.stopPropagation(); // Prevents launching OS file chooser modal loop window
+    resetDashboardState();
+};
 
 document.getElementById('imageInput').onchange = function (e) {
     const file = e.target.files[0];
@@ -15,15 +32,19 @@ document.getElementById('imageInput').onchange = function (e) {
     if (!file) return;
     if (!site) {
         alert("Please populate or select a Dive Site before selecting files.");
-        document.getElementById('imageInput').value = "";
+        resetDashboardState();
         return;
     }
 
     currentFilePayload = file;
 
     // Trigger preview container and visibility classes
-    document.getElementById('imagePreview').src = URL.createObjectURL(file);
-    document.getElementById('previewContainer').classList.remove('hidden');
+    imagePreview.src = URL.createObjectURL(file);
+    imagePreview.classList.remove('hidden');
+    uploadPrompt.classList.add('hidden');
+    clearImageBtn.classList.remove('hidden');
+    uploadDropZone.className = "group border border-slate-800 transition-all rounded-2xl bg-slate-950 cursor-pointer w-full aspect-[4/3] flex flex-col justify-center items-center shadow-2xl relative overflow-hidden";
+    
     document.getElementById('statusPlaceholder').classList.add('hidden');
     document.getElementById('loader').classList.remove('hidden');
     document.getElementById('matchDisplayArea').classList.add('hidden');
@@ -42,7 +63,7 @@ document.getElementById('imageInput').onchange = function (e) {
             document.getElementById('loader').classList.add('hidden');
             document.getElementById('matchDisplayArea').classList.remove('hidden');
             document.getElementById('newCoralActionPanel').classList.remove('hidden');
-            
+
             const listContainer = document.getElementById('cardsList');
             listContainer.innerHTML = '';
 
@@ -59,7 +80,7 @@ document.getElementById('imageInput').onchange = function (e) {
                 const pct = (match.similarity * 100).toFixed(1);
                 const card = document.createElement('div');
                 card.className = "bg-slate-950 rounded-xl p-4 border border-slate-850 flex flex-col shadow-lg space-y-4 w-full";
-                
+
                 card.innerHTML = `
                     <div class="space-y-3 w-full">
                         <div class="flex justify-between items-center border-b border-slate-900 pb-2">
@@ -104,7 +125,7 @@ function executeMonitoringCommit(coralId, site, storageUrl) {
         });
 }
 
-document.getElementById('registerNewBtn').onclick = function() {
+document.getElementById('registerNewBtn').onclick = function () {
     const site = document.getElementById('siteName').value.trim();
     if (!currentFilePayload || !site) return;
 
