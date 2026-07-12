@@ -61,12 +61,18 @@ jobs:
         region: us-central1
         # TODO: fix this at some point eg. to allow only for authenticated users?
         ingress_settings: ALLOW_ALL
-        all_users_invoker: true
         environment_variables: |
           SUPABASE_URL=${{ vars.SUPABASE_URL }}
           SUPABASE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           BUCKET_NAME=${{ vars.GCP_BUCKET_NAME }}
           GOOGLE_CLOUD_PROJECT=${{ vars.GCP_PROJECT_ID }}
+    
+    - name: Configure Public Invocations IAM Permissions
+      run: |
+        gcloud run services add-iam-policy-binding coral-upload-pipeline \
+          --region=us-central1 \
+          --member="allUsers" \
+          --role="roles/run.invoker"
 
   # ==========================================
   # JOB 2: SHIP STATIC WORKSPACE FRONTEND
