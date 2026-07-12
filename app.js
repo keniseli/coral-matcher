@@ -5,6 +5,38 @@ const imagePreview = document.getElementById('imagePreview');
 const uploadPrompt = document.getElementById('uploadPrompt');
 const uploadDropZone = document.getElementById('uploadDropZone');
 const clearImageBtn = document.getElementById('clearImageBtn');
+const snackbar = document.getElementById('snackbar');
+
+// Lightweight Native In-App Notification Snackbar Engine
+function showNotification(message, type = 'success') {
+    
+    // Theme color dictionary mapping
+    const styles = {
+        success: ['border-emerald-500/30', 'text-emerald-400', 'bg-emerald-950/80', 'backdrop-blur-md'],
+        error: ['border-red-500/30', 'text-red-400', 'bg-red-950/80', 'backdrop-blur-md'],
+        info: ['border-blue-500/30', 'text-blue-400', 'bg-blue-950/80', 'backdrop-blur-md']
+    };
+
+    // Reset styles cleanly
+    snackbar.className = "fixed bottom-6 right-6 z-50 pointer-events-none p-4 rounded-xl border font-mono text-sm font-semibold shadow-2xl transition-all duration-300 opacity-0 translate-y-4";
+    
+    // Inject correct theme modifiers
+    snackbar.classList.add(...styles[type]);
+    snackbar.innerText = message;
+
+    // Trigger slide-up and fade-in animations
+    setTimeout(() => {
+        snackbar.classList.remove('opacity-0', 'translate-y-4');
+        snackbar.classList.add('opacity-100', 'translate-y-0');
+    }, 50);
+
+    // Fade-out decay sequence after 4 seconds
+    setTimeout(() => {
+        snackbar.classList.remove('opacity-100', 'translate-y-0');
+        snackbar.classList.add('opacity-0', 'translate-y-4');
+    }, 4000);
+}
+
 
 function resetDashboardState() {
     document.getElementById('statusPlaceholder').classList.remove('hidden');
@@ -31,7 +63,7 @@ document.getElementById('imageInput').onchange = function (e) {
 
     if (!file) return;
     if (!site) {
-        alert("Please populate or select a Dive Site before selecting files.");
+        showNotification("Please select a target dive site location first.", "error");
         resetDashboardState();
         return;
     }
@@ -107,7 +139,7 @@ document.getElementById('imageInput').onchange = function (e) {
         .catch(() => {
             document.getElementById('loader').classList.add('hidden');
             resetDashboardState();
-            alert("Error running similarity arrays check against cloud engine endpoints.");
+            showNotification("Pattern match extraction pipeline broken.", "error");
         });
 };
 
@@ -120,8 +152,7 @@ function executeMonitoringCommit(coralId, site, storageUrl) {
     fetch(`${API_BASE}/commit-session`, { method: 'POST', body: commitForm })
         .then(res => res.json())
         .then(() => {
-            alert(`Success! Entry tracked against individual profile registry index: ${coralId}`);
-            location.reload();
+            showNotification(`Visit update session pinned to \${coralId}`, "success");
         });
 }
 
@@ -147,12 +178,11 @@ document.getElementById('registerNewBtn').onclick = function () {
             this.disabled = false;
             this.innerText = "➕ Log As New Colony Discovery";
             if (result.error) throw new Error(result.error);
-            alert(`Success! Profile individual cataloged under structural tag reference identifier: ${generatedCoralId}`);
-            location.reload();
+            showNotification(`Baseline identity assigned: \${generatedCoralId}`, "success");
         })
         .catch(err => {
             this.disabled = false;
             this.innerText = "➕ Log As New Colony Discovery";
-            alert(`Registration Error context details: ${err.message}`);
+            showNotification(`New individual registration sequence failed: \${err.message}`, "error");
         });
 };
