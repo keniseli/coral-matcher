@@ -1,27 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Coral Registry Workspace Dashboard</title>
-    <!-- Tailwind Play CDN Engine -->
-    <script src="https://tailwindcss.com"></script>
+    <script src="https://unpkg.com/tailwindcss-cdn@3.4.10/tailwindcss.js"></script>
 </head>
+
 <body class="bg-slate-900 min-h-screen text-slate-100 p-6">
 
     <!-- Header Section -->
     <div class="max-w-6xl mx-auto mb-6 border-b border-slate-700 pb-4">
         <h1 class="text-2xl font-bold text-emerald-400">Coral Ingestion & Matching Workspace</h1>
-        <p class="text-xs text-slate-400 mt-1">Upload monitoring assets to query physical similarity embeddings instantly.</p>
+        <p class="text-xs text-slate-400 mt-1">Upload monitoring assets to query physical similarity embeddings
+            instantly.</p>
     </div>
 
     <!-- Main Entry Controls -->
     <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        
+
         <!-- Left Column: Input Parameter Panel (1 Part Size) -->
         <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-xl space-y-4">
             <h2 class="text-lg font-bold text-slate-200">1. Target Parameters</h2>
-            
+
             <!-- Native HTML5 Combobox Implementation -->
             <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Dive Site</label>
@@ -35,9 +37,12 @@
 
             <!-- Image Selection Target Boundary Box -->
             <div>
-                <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Monitoring Photo</label>
-                <div class="border-2 border-dashed border-slate-600 rounded-xl p-5 text-center hover:border-emerald-500 transition relative bg-slate-900 cursor-pointer h-28 flex flex-col justify-center items-center">
-                    <input type="file" id="imageInput" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Monitoring
+                    Photo</label>
+                <div
+                    class="border-2 border-dashed border-slate-600 rounded-xl p-5 text-center hover:border-emerald-500 transition relative bg-slate-900 cursor-pointer h-28 flex flex-col justify-center items-center">
+                    <input type="file" id="imageInput" accept="image/*"
+                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                     <p class="text-xs text-slate-400">Click or Drag Photo Here</p>
                 </div>
             </div>
@@ -50,17 +55,20 @@
         </div>
 
         <!-- Right Column: Verification Results Container Panel (2 Parts Size) -->
-        <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-xl lg:col-span-2 min-h-[300px] flex flex-col justify-between">
+        <div
+            class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-xl lg:col-span-2 min-h-[300px] flex flex-col justify-between">
             <div class="w-full">
                 <h2 class="text-lg font-bold mb-4 text-slate-200">2. Embedded Match Comparisons</h2>
-                
+
                 <!-- Server Processing Async Progress Animation Spinner -->
-                <div id="loader" class="hidden p-4 bg-slate-900 rounded-lg border border-blue-500/30 text-blue-400 mb-4 animate-pulse text-xs font-mono">
+                <div id="loader"
+                    class="hidden p-4 bg-slate-900 rounded-lg border border-blue-500/30 text-blue-400 mb-4 animate-pulse text-xs font-mono">
                     Extracting structural dimensions & calculating spatial cluster patterns...
                 </div>
 
                 <!-- Idle Initial App State -->
-                <div id="statusPlaceholder" class="text-sm text-slate-500 italic p-4 text-center border border-slate-700/50 rounded-lg">
+                <div id="statusPlaceholder"
+                    class="text-sm text-slate-500 italic p-4 text-center border border-slate-700/50 rounded-lg">
                     Populate dive site and select a local file asset above to trigger similarity check matrices.
                 </div>
 
@@ -73,9 +81,12 @@
             </div>
 
             <!-- New Coral Unmatched Fallback Controller Registration Action Trigger Banner -->
-            <div id="newCoralActionPanel" class="hidden mt-6 pt-4 border-t border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <p class="text-xs text-slate-400 font-mono">No matching individual profiles align with this coral sample?</p>
-                <button id="registerNewBtn" class="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold py-2.5 px-5 text-sm rounded-lg shadow-md transition duration-150 active:scale-95 font-mono">
+            <div id="newCoralActionPanel"
+                class="hidden mt-6 pt-4 border-t border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <p class="text-xs text-slate-400 font-mono">No matching individual profiles align with this coral
+                    sample?</p>
+                <button id="registerNewBtn"
+                    class="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold py-2.5 px-5 text-sm rounded-lg shadow-md transition duration-150 active:scale-95 font-mono">
                     ➕ Record As New Discovered Colony
                 </button>
             </div>
@@ -86,4 +97,5 @@
     <!-- Script Resource Hook -->
     <script src="app.js"></script>
 </body>
+
 </html>
