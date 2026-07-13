@@ -13,8 +13,6 @@ load_dotenv()
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
-BUCKET_NAME = os.environ.get("BUCKET_NAME", "coral-mvp-media")
-GCP_PROJECT = os.environ.get("GOOGLE_CLOUD_PROJECT", BUCKET_NAME)
 
 _supabase_instance = None
 

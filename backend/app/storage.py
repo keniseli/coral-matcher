@@ -4,7 +4,7 @@ import numpy as np
 from google.cloud import storage
 
 BUCKET_NAME = os.environ.get("BUCKET_NAME", "coral-mvp-media")
-GCP_PROJECT = os.environ.get("GOOGLE_CLOUD_PROJECT", BUCKET_NAME)
+GCP_PROJECT = os.environ.get("GOOGLE_CLOUD_PROJECT", "coral-matcher")
 
 def get_storage_client() -> storage.Client:
     return storage.Client(project=GCP_PROJECT)
