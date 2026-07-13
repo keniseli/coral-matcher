@@ -15,8 +15,8 @@ $ conda activate coral-matcher
 # Run tests
 $ pytest -s test_vision.py
 
-# Run app
-$ functions-framework --target=process_coral_upload --debug
+# Run app (from backend/)
+$ functions-framework --target process_coral_upload --debug
 
 # Example image upload
 $ curl --location 'http://127.0.0.1:8080/' \

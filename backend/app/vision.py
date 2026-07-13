@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-def apply_underwater_corrections(img_matrix):
+def apply_underwater_corrections(img_matrix: np.ndarray):
     """
     Applies CLAHE local contrast enhancement and Gray World color balancing
     to recover lost red channel data signatures underwater.
@@ -32,106 +32,52 @@ def apply_underwater_corrections(img_matrix):
     
     return cv2.merge((b_bal, g_bal, r_bal))
 
-def crop_primary_coral(img_matrix, padding_ratio=0.15):
-    """
-    Attempts to isolate the primary coral colony.
+import cv2
+import numpy as np
 
-    Assumptions:
-    - Coral occupies roughly 60-90% of the image.
-    - Coral is near the center.
-    - If no suitable contour is found, returns the original image.
+
+def crop_primary_coral(
+    img_matrix: np.ndarray,
+    masks: list,
+    padding_ratio: float = 0.15,
+):
+    """
+    Crops the highest-confidence coral detected by CoralSCOP.
+
+    Steps:
+      1. Select mask with highest predicted IoU
+      2. Expand bounding box with padding
+      3. Crop original image
+      4. Remove background using the segmentation mask
+      5. Pad to a square canvas
     """
 
     if img_matrix is None or img_matrix.size == 0:
-        return img_matrix
+        return None
+
+    if not masks:
+        return {
+            "crop": img_matrix,
+            "square_crop": img_matrix,
+            "bounding_box": None,
+            "mask": None,
+        }
+
+    #
+    # Select best CoralSCOP mask by finding highest intersection over union (iou).
+    # Basically this is CoralSCOP's estimate of 'If a human drew the perfect mask,
+    # how much would this mask overlap with it?
+    #
+    best_mask = max(masks, key=lambda m: (m["predicted_iou"]))
+
+    segmentation = best_mask["segmentation"]
+    x, y, w, h = map(int, best_mask["bbox"])
 
     height, width = img_matrix.shape[:2]
-    image_center = np.array([width / 2, height / 2])
 
-    # Remove small underwater particles
-    blurred = cv2.GaussianBlur(img_matrix, (5, 5), 0)
-
-    gray = cv2.cvtColor(blurred, cv2.COLOR_BGR2GRAY)
-
-    edges = cv2.Canny(gray, 40, 120)
-
-    kernel = np.ones((7, 7), np.uint8)
-    closed = cv2.morphologyEx(
-        edges,
-        cv2.MORPH_CLOSE,
-        kernel,
-        iterations=2
-    )
-
-    contours, _ = cv2.findContours(
-        closed,
-        cv2.RETR_EXTERNAL,
-        cv2.CHAIN_APPROX_SIMPLE
-    )
-
-    if len(contours) == 0:
-        return {
-            "crop": img_matrix,
-            "edges": edges,
-            "closed": closed,
-            "contours": img_matrix.copy(),
-            "bounding_box": None
-        }
-
-    best_score = -1
-    best_rect = None
-
-    image_area = width * height
-
-    for contour in contours:
-        area = cv2.contourArea(contour)
-        # print(f"Contour {len(contour)} points, area = {area:.0f}")
-        if area < image_area * 0.02:
-            continue
-        x, y, w, h = cv2.boundingRect(contour)
-        contour_center = np.array([
-            x + w / 2,
-            y + h / 2
-        ])
-
-        distance = np.linalg.norm(contour_center - image_center)
-
-        distance_score = 1.0 - (
-            distance /
-            np.linalg.norm(image_center)
-        )
-
-        area_score = area / image_area
-
-        score = (
-            area_score * 0.7 +
-            distance_score * 0.3
-        )
-
-        if score > best_score:
-            best_score = score
-            best_rect = (x, y, w, h)
-
-    contour_debug = img_matrix.copy()
-    cv2.drawContours(
-        contour_debug,
-        contours,
-        -1,
-        (0, 255, 0),
-        2
-    )
-
-    if best_rect is None:
-        return {
-            "crop": img_matrix,
-            "edges": edges,
-            "closed": closed,
-            "contours": contour_debug,
-            "bounding_box": None
-        }
-
-    x, y, w, h = best_rect
-
+    #
+    # Apply padding
+    #
     pad_x = int(w * padding_ratio)
     pad_y = int(h * padding_ratio)
 
@@ -139,22 +85,46 @@ def crop_primary_coral(img_matrix, padding_ratio=0.15):
     y1 = max(0, y - pad_y)
     x2 = min(width, x + w + pad_x)
     y2 = min(height, y + h + pad_y)
-    cv2.rectangle(
-        contour_debug,
-        (x1, y1),
-        (x2, y2),
-        (0, 0, 255),
-        3
+
+    #
+    # Crop image
+    #
+    crop = img_matrix[y1:y2, x1:x2].copy()
+
+    #
+    # Crop mask
+    #
+    crop_mask = segmentation[y1:y2, x1:x2]
+
+    #
+    # Remove background
+    #
+    crop[~crop_mask] = 0
+
+    #
+    # Pad to square
+    #
+    crop_h, crop_w = crop.shape[:2]
+    side = max(crop_h, crop_w)
+
+    square_crop = np.zeros(
+        (side, side, 3),
+        dtype=crop.dtype,
     )
 
-    crop = img_matrix[y1:y2, x1:x2]
+    offset_y = (side - crop_h) // 2
+    offset_x = (side - crop_w) // 2
+
+    square_crop[
+        offset_y:offset_y + crop_h,
+        offset_x:offset_x + crop_w,
+    ] = crop
 
     return {
         "crop": crop,
-        "edges": edges,
-        "closed": closed,
-        "contours": contour_debug,
-        "bounding_box": (x1, y1, x2, y2)
+        "square_crop": square_crop,
+        "bounding_box": (x1, y1, x2, y2),
+        "mask": best_mask,
     }
 
 def create_debug_collage(original, corrected, edges, contour_debug, crop):

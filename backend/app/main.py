@@ -2,21 +2,22 @@ import os
 import functions_framework
 from dotenv import load_dotenv
 from supabase import create_client, Client
-from vision import apply_underwater_corrections
-from vision import crop_primary_coral
-from embedding import generate_vector_embedding
-from storage import decode_image_stream, save_debug_image, upload_image
+from app.vision import apply_underwater_corrections
+from app.vision import crop_primary_coral
+from app.embedding import generate_vector_embedding
+from app.storage import decode_image_stream, save_debug_image, upload_image
+from app.segmentation.coralscop_adapter import CoralScopAdapter
 
 import logging
+logger = logging.getLogger(__name__)
 
 load_dotenv()
-
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 
 _supabase_instance = None
 
-logger = logging.getLogger(__name__)
+adapter = CoralScopAdapter()
 
 def get_supabase_client() -> Client:
     """
@@ -64,17 +65,17 @@ def process_coral_upload(request):
             # Ingest and decode the uploaded image stream
             raw_img = decode_image_stream(uploaded_file)
 
-            # Apply OpenCV adjustments
-            processed_img = apply_underwater_corrections(raw_img)
-            
-            # Crop coral, keeping some margin
-            cropped_img = crop_primary_coral(processed_img)["crop"]
+            masks = adapter.segment(raw_img)
+            segmentation = crop_primary_coral(raw_img, masks)
+            if segmentation is None:
+                return add_cors_headers({"error": "Segmentation not possible. Has image been uploaded?"})
+            cropped_img = segmentation["crop"]
             save_debug_image(cropped_img, f"processing/debug_crop_{site_name}_{coral_id}_{uploaded_file.filename}")
 
             # Extract AI vector descriptor fingerprint
             vector_fingerprint = generate_vector_embedding(cropped_img)
 
-            public_url = upload_image(processed_img, f"processed/{site_name}/{coral_id}_{uploaded_file.filename}")
+            public_url = upload_image(cropped_img, f"processed/{site_name}/{coral_id}_{uploaded_file.filename}")
 
             # Save record to monitoring_sessions
             session_payload = {"coral_id": coral_id, "site_name": site_name, "storage_url": public_url}
@@ -113,9 +114,11 @@ def process_coral_upload(request):
 
             raw_img = decode_image_stream(uploaded_file)
 
-            # Run color adjustments so the vector search matches true features, not water color shifts
-            corrected_img = apply_underwater_corrections(raw_img)
-            cropped_img = crop_primary_coral(corrected_img)["crop"]
+            masks = adapter.segment(raw_img)
+            segmentation = crop_primary_coral(raw_img, masks)
+            if segmentation is None:
+                return add_cors_headers({"error": "Segmentation not possible. Has image been uploaded?"})
+            cropped_img = segmentation["crop"]
             debug_path = f"processing/debug_crop_{site_name}_{uploaded_file.filename}"
             save_debug_image(cropped_img, debug_path)
             

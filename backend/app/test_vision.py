@@ -1,9 +1,9 @@
 import os
 import cv2
 from datetime import datetime
-from vision import apply_underwater_corrections
-from vision import crop_primary_coral
-from vision import create_debug_collage
+from app.vision import apply_underwater_corrections
+from app.vision import crop_primary_coral
+from app.vision import create_debug_collage
 import torch
 
 def test_find_gpu():
