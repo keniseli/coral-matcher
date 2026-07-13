@@ -70,7 +70,13 @@ def crop_primary_coral(img_matrix, padding_ratio=0.15):
     )
 
     if len(contours) == 0:
-        return img_matrix
+        return {
+            "crop": img_matrix,
+            "edges": edges,
+            "closed": closed,
+            "contours": img_matrix.copy(),
+            "bounding_box": None
+        }
 
     best_score = -1
     best_rect = None
@@ -78,14 +84,11 @@ def crop_primary_coral(img_matrix, padding_ratio=0.15):
     image_area = width * height
 
     for contour in contours:
-
         area = cv2.contourArea(contour)
-
+        # print(f"Contour {len(contour)} points, area = {area:.0f}")
         if area < image_area * 0.02:
             continue
-
         x, y, w, h = cv2.boundingRect(contour)
-
         contour_center = np.array([
             x + w / 2,
             y + h / 2
@@ -109,8 +112,23 @@ def crop_primary_coral(img_matrix, padding_ratio=0.15):
             best_score = score
             best_rect = (x, y, w, h)
 
+    contour_debug = img_matrix.copy()
+    cv2.drawContours(
+        contour_debug,
+        contours,
+        -1,
+        (0, 255, 0),
+        2
+    )
+
     if best_rect is None:
-        return img_matrix
+        return {
+            "crop": img_matrix,
+            "edges": edges,
+            "closed": closed,
+            "contours": contour_debug,
+            "bounding_box": None
+        }
 
     x, y, w, h = best_rect
 
@@ -119,10 +137,107 @@ def crop_primary_coral(img_matrix, padding_ratio=0.15):
 
     x1 = max(0, x - pad_x)
     y1 = max(0, y - pad_y)
-
     x2 = min(width, x + w + pad_x)
     y2 = min(height, y + h + pad_y)
+    cv2.rectangle(
+        contour_debug,
+        (x1, y1),
+        (x2, y2),
+        (0, 0, 255),
+        3
+    )
 
     crop = img_matrix[y1:y2, x1:x2]
 
-    return crop
+    return {
+        "crop": crop,
+        "edges": edges,
+        "closed": closed,
+        "contours": contour_debug,
+        "bounding_box": (x1, y1, x2, y2)
+    }
+
+def create_debug_collage(original, corrected, edges, contour_debug, crop):
+    if len(edges.shape) == 2:
+        edges = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
+        
+    target_h = 500
+    target_w = 500
+
+    def prepare(img):
+        h,w = img.shape[:2]
+        scale = min(target_w/w,
+                    target_h/h)
+        resized = cv2.resize(
+            img,
+            (int(w*scale),
+             int(h*scale))
+        )
+
+        canvas = np.full(
+            (target_h,target_w,3),
+            40,
+            dtype=np.uint8
+        )
+
+        y = (target_h-resized.shape[0])//2
+        x = (target_w-resized.shape[1])//2
+
+        canvas[
+            y:y+resized.shape[0],
+            x:x+resized.shape[1]
+        ] = resized
+
+        return canvas
+
+    panels = [
+        prepare(original),
+        prepare(edges),
+        prepare(contour_debug),
+        prepare(crop)
+    ]
+
+    cv2.putText(
+        panels[0],
+        "Original",
+        (15,35),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        1,
+        (255,255,255),
+        2
+    )
+
+    cv2.putText(
+        panels[1],
+        "Edges",
+        (15,35),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        1,
+        (255,255,255),
+        2
+    )
+
+    cv2.putText(
+        panels[2],
+        "Contours",
+        (15,35),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        1,
+        (255,255,255),
+        2
+    )
+
+    cv2.putText(
+        panels[3],
+        "Crop",
+        (15,35),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        1,
+        (255,255,255),
+        2
+    )
+
+    top = np.hstack((panels[0],panels[1]))
+    bottom = np.hstack((panels[2],panels[3]))
+
+    return np.vstack((top,bottom))

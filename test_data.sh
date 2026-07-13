@@ -71,3 +71,9 @@ curl --location 'http://127.0.0.1:8080/register-new' \
 --form 'coral_id="olohuita-pocillopora-0001"' \
 --form 'site_name="Olohuita"'
 
+
+
+curl --location 'https://us-central1-coral-matcher.cloudfunctions.net/coral-upload-pipeline/register-new' \
+--form 'image=@"/mnt/c/Users/kenis/Downloads/Corals Daniek/06-07-2026/CR_Olohuita_T07_c001_C.JPG"' \
+--form 'coral_id="olohuita-pocillopora-0001"' \
+--form 'site_name="Olohuita"'

@@ -76,7 +76,7 @@ def process_coral_upload(request):
             processed_img = apply_underwater_corrections(raw_img)
             
             # Crop coral, keeping some margin
-            cropped_img = crop_primary_coral(processed_img)
+            cropped_img = crop_primary_coral(processed_img)["crop"]
             print(f"processing/debug_crop_{site_name}_{coral_id}_{uploaded_file.filename}")
             cv2.imwrite(f"processing/debug_crop_{site_name}_{coral_id}_{uploaded_file.filename}", cropped_img)
 
@@ -136,7 +136,7 @@ def process_coral_upload(request):
 
             # Run color adjustments so the vector search matches true features, not water color shifts
             corrected_img = apply_underwater_corrections(raw_img)
-            cropped_img = crop_primary_coral(corrected_img)
+            cropped_img = crop_primary_coral(corrected_img)["crop"]
             cv2.imwrite(f"processing/debug_crop_{site_name}_{uploaded_file.filename}", cropped_img)
             
             query_vector = generate_vector_embedding(cropped_img)
