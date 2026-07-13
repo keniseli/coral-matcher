@@ -1,16 +1,13 @@
 import os
-import cv2
-import numpy as np
 import functions_framework
 from dotenv import load_dotenv
-from google.cloud import storage
 from supabase import create_client, Client
-from app.vision import apply_underwater_corrections
-from app.vision import crop_primary_coral
-from app.embedding import generate_vector_embedding
+from vision import apply_underwater_corrections
+from vision import crop_primary_coral
+from embedding import generate_vector_embedding
+from storage import decode_image_stream, save_debug_image, upload_image
 
 import logging
-
 
 load_dotenv()
 
@@ -66,33 +63,20 @@ def process_coral_upload(request):
             if not site_name or not coral_id or not uploaded_file:
                 return add_cors_headers({"error": "Missing metadata fields."}, 400)
 
-            # Ingest image array byte matrices
-            file_bytes = np.frombuffer(uploaded_file.read(), np.uint8)
-            raw_img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
-            if raw_img is None:
-                return add_cors_headers({"error": "Corrupt or invalid image."}, 400)
+            # Ingest and decode the uploaded image stream
+            raw_img = decode_image_stream(uploaded_file)
 
             # Apply OpenCV adjustments
             processed_img = apply_underwater_corrections(raw_img)
             
             # Crop coral, keeping some margin
             cropped_img = crop_primary_coral(processed_img)["crop"]
-            print(f"processing/debug_crop_{site_name}_{coral_id}_{uploaded_file.filename}")
-            cv2.imwrite(f"processing/debug_crop_{site_name}_{coral_id}_{uploaded_file.filename}", cropped_img)
+            save_debug_image(cropped_img, f"processing/debug_crop_{site_name}_{coral_id}_{uploaded_file.filename}")
 
             # Extract AI vector descriptor fingerprint
             vector_fingerprint = generate_vector_embedding(cropped_img)
 
-            # Stream normalized JPEG file stream directly to GCS bucket - keep uncropped image for now
-            _, encoded_buffer = cv2.imencode(".jpg", processed_img)
-            processed_bytes = encoded_buffer.tobytes()
-
-            storage_client = storage.Client(project=GCP_PROJECT)
-            bucket = storage_client.bucket(BUCKET_NAME)
-            blob_filename = f"processed/{site_name}/{coral_id}_{uploaded_file.filename}"
-            blob = bucket.blob(blob_filename)
-            blob.upload_from_string(processed_bytes, content_type="image/jpeg")
-            public_url = f"https://storage.googleapis.com/{BUCKET_NAME}/{blob_filename}"
+            public_url = upload_image(processed_img, f"processed/{site_name}/{coral_id}_{uploaded_file.filename}")
 
             # Save record to monitoring_sessions
             session_payload = {"coral_id": coral_id, "site_name": site_name, "storage_url": public_url}
@@ -129,15 +113,13 @@ def process_coral_upload(request):
             if not site_name or not uploaded_file:
                 return add_cors_headers({"error": "Missing parameters."}, 400)
 
-            file_bytes = np.frombuffer(uploaded_file.read(), np.uint8)
-            raw_img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
-            if raw_img is None:
-                return add_cors_headers({"error": "Failed to decode matrix."}, 400)
+            raw_img = decode_image_stream(uploaded_file)
 
             # Run color adjustments so the vector search matches true features, not water color shifts
             corrected_img = apply_underwater_corrections(raw_img)
             cropped_img = crop_primary_coral(corrected_img)["crop"]
-            cv2.imwrite(f"processing/debug_crop_{site_name}_{uploaded_file.filename}", cropped_img)
+            debug_path = f"processing/debug_crop_{site_name}_{uploaded_file.filename}"
+            save_debug_image(cropped_img, debug_path)
             
             query_vector = generate_vector_embedding(cropped_img)
 
