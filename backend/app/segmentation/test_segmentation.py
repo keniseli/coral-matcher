@@ -10,7 +10,8 @@ import numpy as np
 adapter = CoralScopAdapter()
 
 #image_name = "CR_IslaLarga_T08_c010_C.JPG"
-image_name = "CR_IslaLarga_T08_c014_B.JPG"
+#image_name = "CR_IslaLarga_T08_c014_B.JPG"
+image_name = "CR_IslaLarga_T08_c001_A.JPG"
 demo = (
     Path(__file__).resolve().parents[2]
     / "app"
@@ -21,6 +22,7 @@ demo = (
 
 #image = cv2.imread(str(demo))
 image = Image.open(str(demo)).convert("RGB")
+image.thumbnail((1024, 1024))
 image = np.array(image)
 
 start = time.perf_counter()

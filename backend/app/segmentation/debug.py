@@ -81,7 +81,7 @@ def create_segmentation_collage(
             panel_boxes,
             (x, y),
             (x + bw, y + bh),
-            (0, 255, 0),
+            (0, 0, 255),
             2,
         )
 
@@ -91,7 +91,7 @@ def create_segmentation_collage(
             (x, y - 5),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.6,
-            (0, 255, 255),
+            (0, 0, 255),
             2,
         )
 
