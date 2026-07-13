@@ -5,9 +5,9 @@ import functions_framework
 from dotenv import load_dotenv
 from google.cloud import storage
 from supabase import create_client, Client
-from vision import apply_underwater_corrections
-from vision import crop_primary_coral
-from embedding import generate_vector_embedding
+from app.vision import apply_underwater_corrections
+from app.vision import crop_primary_coral
+from app.embedding import generate_vector_embedding
 
 import logging
 
