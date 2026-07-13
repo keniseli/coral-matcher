@@ -8,10 +8,13 @@
 $ pip install -r requirements.txt
 
 # Only necessary once
-$ python -m venv venv
+$ python -m venv coral-matcher-env
 
 # Run in virtual environment
-$ source venv/bin/activate
+$ source coral-matcher-env/bin/activate
+
+# Run tests
+$ pytest -s test_vision.py
 
 # Run app
 $ functions-framework --target=process_coral_upload --debug
