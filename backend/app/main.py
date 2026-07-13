@@ -2,6 +2,7 @@ import os
 import functions_framework
 from dotenv import load_dotenv
 from supabase import create_client, Client
+from datetime import datetime
 from app.vision import apply_underwater_corrections
 from app.vision import crop_primary_coral
 from app.embedding import generate_vector_embedding
@@ -119,7 +120,7 @@ def process_coral_upload(request):
             if segmentation is None:
                 return add_cors_headers({"error": "Segmentation not possible. Has image been uploaded?"})
             cropped_img = segmentation["crop"]
-            debug_path = f"processing/debug_crop_{site_name}_{uploaded_file.filename}"
+            debug_path = f"processing/{datetime.now().strftime("%Y%m%d_%H%M")}_debug_crop_{site_name}_{uploaded_file.filename}"
             save_debug_image(cropped_img, debug_path)
             
             query_vector = generate_vector_embedding(cropped_img)
