@@ -5,10 +5,12 @@
 
 ## Run Locally
 ```
-$ cd backend
-$ conda activate coralscop
 
+# Install dependencies - this takes a while
+$ cd backend
+$ conda env create -f environment.yaml
 $ pip install -r requirements.txt
+$ conda activate coral-matcher
 
 # Run tests
 $ pytest -s test_vision.py

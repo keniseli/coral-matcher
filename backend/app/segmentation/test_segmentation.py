@@ -9,47 +9,50 @@ import numpy as np
 
 adapter = CoralScopAdapter()
 
-#image_name = "CR_IslaLarga_T08_c010_C.JPG"
-#image_name = "CR_IslaLarga_T08_c014_B.JPG"
-image_name = "CR_IslaLarga_T08_c001_A.JPG"
 demo = (
     Path(__file__).resolve().parents[2]
     / "app"
     / "segmentation"
     / "test_images"
-    / image_name
+    / "CR_IslaLarga_T02_c002_B_turned.JPG"
 )
 
-#image = cv2.imread(str(demo))
-image = Image.open(str(demo)).convert("RGB")
-image.thumbnail((1024, 1024))
-image = np.array(image)
-
-start = time.perf_counter()
-masks = adapter.segment(image)
-elapsed = time.perf_counter() - start
-
-print(f"Detected {len(masks)} masks")
-print(f"Segmentation took {elapsed:.2f} seconds")
-
-for i, mask in enumerate(masks):
-    print(
-        f"{i:2d} | "
-        f"area={mask['area']:8.0f} | "
-        f"iou={mask['predicted_iou']:.3f} | "
-        f"stability={mask['stability_score']:.3f}"
+image_paths = []
+if demo.is_dir():
+    image_paths = sorted(
+        p for p in demo.iterdir()
+        if p.suffix.lower() in {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff"}
     )
+else:
+    image_paths = [demo]
 
-    collage_name = datetime.now().strftime("%Y%m%d_%H%M") + "_" + image_name
+for demo_image in image_paths:
+    print(f"Processing {demo_image.name}")
+    image = Image.open(str(demo_image)).convert("RGB")
+    image.thumbnail((1024, 1024))
+    image = np.array(image)
+
+    start = time.perf_counter()
+    masks = adapter.segment(image)
+    elapsed = time.perf_counter() - start
+
+    print(f"Detected {len(masks)} masks")
+    print(f"Segmentation took {elapsed:.2f} seconds")
+
+    for i, mask in enumerate(masks):
+        print(
+            f"{i:2d} | "
+            f"area={mask['area']:8.0f} | "
+            f"iou={mask['predicted_iou']:.3f} | "
+            f"stability={mask['stability_score']:.3f}"
+        )
+
+    collage_name = datetime.now().strftime("%Y%m%d_%H%M") + "_" + demo_image.name
     collage_path = (
     Path(__file__).resolve().parents[2]
-    / "app"
-    / "processing"
-    / "collages"
-    / collage_name
-)
-create_segmentation_collage(
-    image,
-    masks,
-    str(collage_path),
-)
+        / "app"
+        / "processing"
+        / "collages"
+        / collage_name
+    )
+    create_segmentation_collage(image, masks, str(collage_path))

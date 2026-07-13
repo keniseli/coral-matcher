@@ -6,7 +6,7 @@ import json
 import glob
 import os
 import argparse
-from segment_anything import sam_model_registry, SamAutomaticMaskGenerator
+from .segment_anything import sam_model_registry, SamAutomaticMaskGenerator
 import torch
 
 def main():
