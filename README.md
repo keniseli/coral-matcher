@@ -5,13 +5,10 @@
 
 ## Run Locally
 ```
+$ cd backend
+$ conda activate coralscop
+
 $ pip install -r requirements.txt
-
-# Only necessary once
-$ python -m venv coral-matcher-env
-
-# Run in virtual environment
-$ source coral-matcher-env/bin/activate
 
 # Run tests
 $ pytest -s test_vision.py
