@@ -43,14 +43,12 @@ def get_cached_segmentation(segmentation_id: str) -> Dict[str, Any]:
 def convert_mask_to_polygon(mask: np.ndarray) -> List[List[int]]:
     mask = (mask > 0).astype(np.uint8) * 255
 
-    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     if not contours:
         return []
 
     contour = max(contours, key=cv2.contourArea)
-    epsilon = max(1.0, 0.01 * cv2.arcLength(contour, True))
-    approx = cv2.approxPolyDP(contour, epsilon, True)
-    return [[int(x), int(y)] for x, y in approx.reshape(-1, 2)]
+    return [[int(x), int(y)] for x, y in contour.reshape(-1, 2)]
 
 
 def build_segment_response(mask_record: Dict[str, Any], segment_id: int) -> Dict[str, Any]:
