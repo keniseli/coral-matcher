@@ -26,8 +26,18 @@ SEGMENTATION_CACHE: Dict[str, Any] = {}
 
 adapter = CoralScopAdapter()
 
-def store_segmentation_cache(segmentation_id: str, masks: List[Dict[str, Any]]) -> None:
-    SEGMENTATION_CACHE[segmentation_id] = masks
+def store_segmentation_cache(segmentation_id: str, masks: List[Dict[str, Any]], raw_img: np.ndarray) -> None:
+    SEGMENTATION_CACHE[segmentation_id] = {
+        "masks": masks,
+        "image": raw_img,
+    }
+
+
+def get_cached_segmentation(segmentation_id: str) -> Dict[str, Any]:
+    cached = SEGMENTATION_CACHE.get(segmentation_id)
+    if cached is None:
+        raise ValueError("Segmentation ID not found.")
+    return cached
 
 
 def convert_mask_to_polygon(mask: np.ndarray) -> List[List[int]]:
@@ -68,8 +78,85 @@ def build_segment_response(mask_record: Dict[str, Any], segment_id: int) -> Dict
     }
 
 
-def segment_uploaded_image(request) -> Dict[str, Any]:
-    uploaded_file = request.files.get("image")
+def merge_selected_masks(masks: List[Dict[str, Any]], selected_ids: List[int]) -> np.ndarray:
+    if not isinstance(selected_ids, list) or not selected_ids:
+        raise ValueError("selectedSegments must be a non-empty list of segment indices.")
+
+    merged_mask = None
+    for segment_id in selected_ids:
+        if not isinstance(segment_id, int) or segment_id < 0 or segment_id >= len(masks):
+            raise ValueError(f"Invalid segment id: {segment_id}")
+
+        segmentation = masks[segment_id].get("segmentation")
+        if segmentation is None:
+            raise ValueError(f"Missing segmentation for segment {segment_id}.")
+
+        if isinstance(segmentation, list):
+            mask = np.asarray(segmentation, dtype=np.uint8)
+        elif isinstance(segmentation, np.ndarray):
+            mask = segmentation.astype(np.uint8)
+        else:
+            raise ValueError("Unsupported segmentation format for selected mask.")
+
+        if mask.ndim == 3 and mask.shape[2] == 1:
+            mask = mask[:, :, 0]
+        if mask.ndim != 2:
+            raise ValueError("Selected segmentation masks must be 2D arrays.")
+
+        mask = (mask > 0).astype(np.uint8)
+        merged_mask = mask if merged_mask is None else np.logical_or(merged_mask, mask)
+
+    if merged_mask is None:
+        raise ValueError("Merged mask could not be created from selected segments.")
+
+    return merged_mask.astype(np.uint8)
+
+
+def build_mask_crop(raw_img: np.ndarray, merged_mask: np.ndarray) -> Dict[str, Any]:
+    ys, xs = np.where(merged_mask > 0)
+    if ys.size == 0 or xs.size == 0:
+        raise ValueError("Merged mask contains no pixels.")
+
+    x = int(xs.min())
+    y = int(ys.min())
+    w = int(xs.max() - x + 1)
+    h = int(ys.max() - y + 1)
+
+    dummy_mask = [{
+        "segmentation": merged_mask,
+        "bbox": [x, y, w, h],
+        "predicted_iou": 1.0,
+        "stability_score": 1.0,
+    }]
+
+    return crop_primary_coral(raw_img, dummy_mask)
+
+
+def identify_coral(segmentation_id: str, selected_ids: List[int]) -> Dict[str, Any]:
+    if not segmentation_id or not isinstance(segmentation_id, str):
+        raise ValueError("Missing or invalid segmentationId.")
+    if not isinstance(selected_ids, list) or not selected_ids:
+        raise ValueError("selectedSegments must be a non-empty list of segment indices.")
+
+    cached = get_cached_segmentation(segmentation_id)
+    masks = cached["masks"]
+    raw_img = cached["image"]
+
+    merged_mask = merge_selected_masks(masks, selected_ids)
+
+    crop_result = build_mask_crop(raw_img, merged_mask)
+    square_crop = crop_result.get("square_crop")
+    if square_crop is None:
+        raise ValueError("Failed to generate padded crop.")
+
+    return {
+        "cropWidth": int(square_crop.shape[1]),
+        "cropHeight": int(square_crop.shape[0]),
+        "selectedSegments": selected_ids,
+    }
+
+
+def segment_uploaded_image(uploaded_file) -> Dict[str, Any]:
     if not uploaded_file:
         raise ValueError("Missing image file.")
 
@@ -79,7 +166,7 @@ def segment_uploaded_image(request) -> Dict[str, Any]:
         raise ValueError("No coral segments detected.")
 
     segmentation_id = str(uuid.uuid4())
-    store_segmentation_cache(segmentation_id, masks)
+    store_segmentation_cache(segmentation_id, masks, raw_img)
 
     height, width = raw_img.shape[:2]
     segment_responses = [build_segment_response(mask, idx) for idx, mask in enumerate(masks)]
@@ -125,9 +212,10 @@ def process_coral_upload(request):
     if request.method == "OPTIONS":
         return add_cors_headers("", 204)
     
-    if request.path == "/segment-image":
+    if request.path == "/api/segment-image":
         try:
-            response_body = segment_uploaded_image(request)
+            uploaded_file = request.files.get("image")
+            response_body = segment_uploaded_image(uploaded_file)
             return add_cors_headers(response_body, 200)
         except ValueError as e:
             logger.exception(f"Segmentation request validation failure: {str(e)}")
@@ -135,6 +223,23 @@ def process_coral_upload(request):
         except Exception as e:
             logger.exception(f"Segmentation execution failure: {str(e)}")
             return add_cors_headers({"error": f"Segmentation execution failure: {str(e)}"}, 500)
+
+    if request.path == "/api/identify-coral":
+        try:
+            payload = request.get_json(silent=True)
+            if payload is None:
+                raise ValueError("Request body must be valid JSON.")
+
+            segmentation_id = payload.get("segmentationId")
+            selected_ids = payload.get("selectedSegments")
+            response_body = identify_coral(segmentation_id, selected_ids)
+            return add_cors_headers(response_body, 200)
+        except ValueError as e:
+            logger.exception(f"Identify request validation failure: {str(e)}")
+            return add_cors_headers({"error": str(e)}, 400)
+        except Exception as e:
+            logger.exception(f"Identify execution failure: {str(e)}")
+            return add_cors_headers({"error": f"Identify execution failure: {str(e)}"}, 500)
 
 
     # ----------------------------------------------------
