@@ -1,11 +1,6 @@
-export interface IdentifyResponse {
-  cropDataUrl?: string
-  cropWidth?: number
-  cropHeight?: number
-  selectedSegments?: number[]
-}
+import type { IdentifyApiResponse } from '../types/api'
 
-async function identifyCoral(segmentationId: string, selectedSegmentIds: number[]): Promise<IdentifyResponse> {
+async function identifyCoral(segmentationId: string, selectedSegmentIds: number[]): Promise<IdentifyApiResponse> {
   const apiBase = import.meta.env.PROD ? (import.meta.env.VITE_API_BASE as string) : ''
   const url = apiBase ? `${apiBase}/api/identify-coral` : '/api/identify-coral'
 
