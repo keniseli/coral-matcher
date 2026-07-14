@@ -2,15 +2,16 @@
   <g>
     <polygon
       :points="polygonPoints"
-      :class="baseClass"
+      :style="polygonStyle"
       @click.stop.prevent="onToggle"
       @mouseenter="hovered = true"
       @mouseleave="hovered = false"
-      style="pointer-events: all; transition: all 150ms ease;"
+      style="pointer-events: all; cursor: pointer; transition: all 180ms ease;"
     />
     <g v-if="hovered" class="pointer-events-none">
-      <rect :x="labelX" :y="labelY" width="140" height="32" rx="4" fill="#ffffffcc" stroke="#0ea5e9" />
-      <text :x="labelX + 8" :y="labelY + 16" font-size="12" fill="#0b1224">ID: {{ segment.id }}</text>
+      <rect :x="labelX" :y="labelY" width="240" height="70" rx="12" fill="#020617e6" stroke="#38bdf8" stroke-width="1.3" />
+      <text :x="labelX + 12" :y="labelY + 22" font-size="13" font-weight="700" fill="#f8fafc">ID: {{ segment.id }}</text>
+      <text :x="labelX + 12" :y="labelY + 44" font-size="11" fill="#bae6fd">IoU {{ segment.predictedIoU.toFixed(2) }} · Stability {{ segment.stabilityScore.toFixed(2) }}</text>
     </g>
   </g>
 </template>
@@ -22,30 +23,38 @@ import type { Segment } from '../types/segment'
 export default defineComponent({
   props: {
     segment: { type: Object as () => Segment, required: true },
-    selected: { type: Boolean, default: false }
+    selected: { type: Boolean, default: false },
+    polygonOpacity: { type: Number, default: 0.75 }
   },
   emits: ['toggle'],
   setup(props, { emit }) {
     const hovered = ref(false)
-    // API returns polygon as array of [x, y] pairs. Keep this simple and fast.
+
     const polygonPoints = computed(() => {
       const pts = props.segment.polygon || []
-      return pts.map((p: number[]) => `${p[0]},${p[1]}`).join(' ')
+      return pts.map((p: any) => `${Array.isArray(p) ? p[0] : p.x},${Array.isArray(p) ? p[1] : p.y}`).join(' ')
     })
 
-    const baseClass = computed(() => {
-      if (props.selected) return 'fill-green-400 stroke-green-700 stroke-2 opacity-60'
-      if (hovered.value) return 'fill-blue-400 stroke-blue-700 stroke-2 opacity-40'
-      return 'fill-blue-300 stroke-blue-500 stroke-1 opacity-25'
+    const polygonStyle = computed(() => {
+      const strokeWidth = props.selected ? 3.2 : hovered.value ? 2.8 : 2
+      const fill = props.selected ? '#34d399' : hovered.value ? '#38bdf8' : '#f59e0b'
+      const stroke = props.selected ? '#f8fafc' : hovered.value ? '#f8fafc' : '#fef3c7'
+      return {
+        fill,
+        stroke,
+        strokeWidth,
+        fillOpacity: Math.max(0.2, props.polygonOpacity),
+        opacity: 0.98,
+      }
     })
 
     const onToggle = () => emit('toggle')
 
     const bbox = props.segment.bbox
     const labelX = bbox.x
-    const labelY = Math.max(0, bbox.y - 36)
+    const labelY = Math.max(0, bbox.y - 72)
 
-    return { polygonPoints, baseClass, onToggle, hovered, labelX, labelY }
+    return { polygonPoints, polygonStyle, onToggle, hovered, labelX, labelY }
   }
 })
 </script>
