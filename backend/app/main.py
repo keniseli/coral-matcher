@@ -1,8 +1,12 @@
 import os
+import uuid
+import cv2
+import numpy as np
 import functions_framework
 from dotenv import load_dotenv
 from supabase import create_client, Client
 from datetime import datetime
+from typing import Any, Dict, List
 from app.vision import apply_underwater_corrections
 from app.vision import crop_primary_coral
 from app.embedding import generate_vector_embedding
@@ -18,7 +22,77 @@ SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 
 _supabase_instance = None
 
+SEGMENTATION_CACHE: Dict[str, Any] = {}
+
 adapter = CoralScopAdapter()
+
+def store_segmentation_cache(segmentation_id: str, masks: List[Dict[str, Any]]) -> None:
+    SEGMENTATION_CACHE[segmentation_id] = masks
+
+
+def convert_mask_to_polygon(mask: np.ndarray) -> List[List[int]]:
+    mask = (mask > 0).astype(np.uint8) * 255
+
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if not contours:
+        return []
+
+    contour = max(contours, key=cv2.contourArea)
+    epsilon = max(1.0, 0.01 * cv2.arcLength(contour, True))
+    approx = cv2.approxPolyDP(contour, epsilon, True)
+    return [[int(x), int(y)] for x, y in approx.reshape(-1, 2)]
+
+
+def build_segment_response(mask_record: Dict[str, Any], segment_id: int) -> Dict[str, Any]:
+    segmentation = mask_record.get("segmentation")
+    if isinstance(segmentation, np.ndarray):
+        mask = segmentation
+    elif isinstance(segmentation, list):
+        mask = np.asarray(segmentation, dtype=np.uint8)
+    else:
+        raise ValueError("Unsupported segmentation format for polygon conversion.")
+
+    polygon = convert_mask_to_polygon(mask)
+    bbox = mask_record.get("bbox", [0, 0, 0, 0])
+    return {
+        "id": segment_id,
+        "bbox": {
+            "x": int(bbox[0]),
+            "y": int(bbox[1]),
+            "width": int(bbox[2]),
+            "height": int(bbox[3]),
+        },
+        "predictedIoU": float(mask_record.get("predicted_iou", 0.0)),
+        "stabilityScore": float(mask_record.get("stability_score", 0.0)),
+        "polygon": polygon,
+    }
+
+
+def segment_uploaded_image(request) -> Dict[str, Any]:
+    uploaded_file = request.files.get("image")
+    if not uploaded_file:
+        raise ValueError("Missing image file.")
+
+    raw_img = decode_image_stream(uploaded_file)
+    masks = adapter.segment(raw_img)
+    if not masks:
+        raise ValueError("No coral segments detected.")
+
+    segmentation_id = str(uuid.uuid4())
+    store_segmentation_cache(segmentation_id, masks)
+
+    height, width = raw_img.shape[:2]
+    segment_responses = [build_segment_response(mask, idx) for idx, mask in enumerate(masks)]
+
+    return {
+        "segmentationId": segmentation_id,
+        "image": {
+            "width": width,
+            "height": height,
+        },
+        "segments": segment_responses,
+    }
+
 
 def get_supabase_client() -> Client:
     """
@@ -50,11 +124,23 @@ def add_cors_headers(response_data, status_code=200):
 def process_coral_upload(request):
     if request.method == "OPTIONS":
         return add_cors_headers("", 204)
+    
+    if request.path == "/segment-image":
+        try:
+            response_body = segment_uploaded_image(request)
+            return add_cors_headers(response_body, 200)
+        except ValueError as e:
+            logger.exception(f"Segmentation request validation failure: {str(e)}")
+            return add_cors_headers({"error": str(e)}, 400)
+        except Exception as e:
+            logger.exception(f"Segmentation execution failure: {str(e)}")
+            return add_cors_headers({"error": f"Segmentation execution failure: {str(e)}"}, 500)
+
 
     # ----------------------------------------------------
     # ROUTE A: DISCOVER & REGISTER A NEW CORAL (/register-new)
     # ----------------------------------------------------
-    if request.path == "/register-new":
+    elif request.path == "/register-new":
         try:
             site_name = request.form.get("site_name")
             coral_id = request.form.get("coral_id")
@@ -120,7 +206,7 @@ def process_coral_upload(request):
             if segmentation is None:
                 return add_cors_headers({"error": "Segmentation not possible. Has image been uploaded?"})
             cropped_img = segmentation["crop"]
-            debug_path = f"processing/{datetime.now().strftime("%Y%m%d_%H%M")}_debug_crop_{site_name}_{uploaded_file.filename}"
+            debug_path = f"processing/{datetime.now().strftime('%Y%m%d_%H%M')}_debug_crop_{site_name}_{uploaded_file.filename}"
             save_debug_image(cropped_img, debug_path)
             
             query_vector = generate_vector_embedding(cropped_img)
