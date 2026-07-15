@@ -6,7 +6,7 @@
           <div class="max-w-2xl">
             <p class="text-sm font-semibold uppercase tracking-[0.35em] text-emerald-400">Coral Matcher</p>
             <h1 class="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Interactive segmentation workspace</h1>
-            <p class="mt-3 text-sm leading-6 text-slate-400 sm:text-base">Drop an image into the workspace, inspect every polygon overlay, and pick the best coral geometry with a polished, dark-mode flow.</p>
+            <p class="mt-3 text-sm leading-6 text-slate-400 sm:text-base">Drop an image into the workspace, inspect every polygon overlay, and pick the best coral geometry.</p>
           </div>
 
           <div class="grid gap-3 sm:grid-cols-2">
@@ -33,7 +33,7 @@
             <div class="flex flex-wrap items-center gap-3">
               <label class="flex items-center gap-3 rounded-full border border-slate-700 bg-slate-950/90 px-3 py-2 text-sm font-medium text-slate-200 shadow-sm">
                 <span>Opacity</span>
-                <input v-model.number="polygonOpacity" class="h-2 w-24 cursor-pointer appearance-none rounded-full bg-slate-800 accent-emerald-500" type="range" min="0.2" max="1" step="0.05" />
+                <input v-model.number="polygonOpacity" class="h-2 w-24 cursor-pointer appearance-none rounded-full bg-slate-800 accent-emerald-500" type="range" min="0.0" max="1" step="0.05" />
                 <span class="min-w-[3rem] text-right text-emerald-400">{{ polygonOpacity.toFixed(2) }}</span>
               </label>
               <upload-toolbar @on-file="handleFile" :loading="loading.segmenting" />

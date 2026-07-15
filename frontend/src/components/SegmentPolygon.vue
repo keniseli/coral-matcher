@@ -37,8 +37,8 @@ export default defineComponent({
 
     const polygonStyle = computed(() => {
       const strokeWidth = props.selected ? 3.2 : hovered.value ? 2.8 : 2
-      const fill = props.selected ? '#34d399' : hovered.value ? '#38bdf8' : '#f59e0b'
-      const stroke = props.selected ? '#f8fafc' : hovered.value ? '#f8fafc' : '#fef3c7'
+      const fill = props.selected ? '#43A047' : hovered.value ? '#FFB300' : '#4FC3F7'
+      const stroke = props.selected ? '#1B5E20' : hovered.value ? '#EF6C00' : '#0288D1'
       return {
         fill,
         stroke,
