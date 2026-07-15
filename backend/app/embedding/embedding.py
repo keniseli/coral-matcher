@@ -23,6 +23,12 @@ transform_pipeline = transforms.Compose([
 ])
 
 class EmbeddingService:
+    """
+    An embedding is a vector representation of an image. It will be used to determine similarity of
+    two corals and whether it is the same colony or not (not the same species, but the same individual).
+    Images of the same coral colony will result in similar embeddings even if the lighting or the camera
+    angle is different.
+    """
 
     def generate_vector_embedding(self, cv2_image):
         """ Transforms an OpenCV image matrix into a 512-dimension spatial vector array. """
