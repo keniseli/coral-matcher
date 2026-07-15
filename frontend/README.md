@@ -1,6 +1,6 @@
 # Coral Matcher Frontend
 
-Development and build instructions for the Coral Matcher interactive segmentation prototype.
+Development and build instructions for the Coral Matcher interactive UI.
 
 ## Local development
 
