@@ -1,6 +1,8 @@
 import cv2
 import numpy as np
 
+from typing import Any, Dict, List
+
 def apply_underwater_corrections(img_matrix: np.ndarray):
     """
     Applies CLAHE local contrast enhancement and Gray World color balancing
@@ -40,7 +42,7 @@ def crop_primary_coral(
     img_matrix: np.ndarray,
     masks: list,
     padding_ratio: float = 0.15,
-):
+) -> Dict[str, Any] :
     """
     Crops the highest-confidence coral detected by CoralSCOP.
 

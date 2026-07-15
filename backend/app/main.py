@@ -11,7 +11,8 @@ from app.vision import apply_underwater_corrections
 from app.vision import crop_primary_coral
 from app.embedding import generate_vector_embedding
 from app.storage import decode_image_stream, save_debug_image, upload_image
-from app.segmentation.coralscop_adapter import CoralScopAdapter
+from app.segmentation.provider_factory import get_segmentation_provider
+from app.segmentation.models import Segment
 
 import logging
 logger = logging.getLogger(__name__)
@@ -24,7 +25,9 @@ _supabase_instance = None
 
 SEGMENTATION_CACHE: Dict[str, Any] = {}
 
-adapter = CoralScopAdapter()
+provider = get_segmentation_provider()
+provider_name = "CoralSCOP" if provider.__class__.__name__ == "CoralScopProvider" else "Fixture"
+logger.info(f"[Segmentation] Using provider: {provider_name}")
 
 def store_segmentation_cache(segmentation_id: str, masks: List[Dict[str, Any]], raw_img: np.ndarray) -> None:
     SEGMENTATION_CACHE[segmentation_id] = {
@@ -51,8 +54,28 @@ def convert_mask_to_polygon(mask: np.ndarray) -> List[List[int]]:
     return [[int(x), int(y)] for x, y in contour.reshape(-1, 2)]
 
 
-def build_segment_response(mask_record: Dict[str, Any], segment_id: int) -> Dict[str, Any]:
-    segmentation = mask_record.get("segmentation")
+def serialize_segment_to_mask_record(segment: Segment | Dict[str, Any], segment_id: int, image_shape: tuple[int, int] | None = None) -> Dict[str, Any]:
+    if isinstance(segment, Segment):
+        polygon = [[int(point.x), int(point.y)] for point in segment.polygon]
+        bbox = segment.bbox
+        if image_shape is not None:
+            height, width = image_shape
+            mask = np.zeros((height, width), dtype=np.uint8)
+            if polygon:
+                points = np.array(polygon, dtype=np.int32).reshape((-1, 1, 2))
+                cv2.fillPoly(mask, [points], 1)
+            segmentation = mask
+        else:
+            segmentation = np.asarray(polygon, dtype=np.uint8)
+        return {
+            "id": segment_id,
+            "bbox": [int(bbox.x), int(bbox.y), int(bbox.width), int(bbox.height)],
+            "predicted_iou": float(segment.predictedIoU),
+            "stability_score": float(segment.stabilityScore),
+            "segmentation": segmentation,
+        }
+
+    segmentation = segment.get("segmentation")
     if isinstance(segmentation, np.ndarray):
         mask = segmentation
     elif isinstance(segmentation, list):
@@ -61,6 +84,18 @@ def build_segment_response(mask_record: Dict[str, Any], segment_id: int) -> Dict
         raise ValueError("Unsupported segmentation format for polygon conversion.")
 
     polygon = convert_mask_to_polygon(mask)
+    bbox = segment.get("bbox", [0, 0, 0, 0])
+    return {
+        "id": segment_id,
+        "bbox": [int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])],
+        "predicted_iou": float(segment.get("predicted_iou", 0.0)),
+        "stability_score": float(segment.get("stability_score", 0.0)),
+        "segmentation": mask,
+    }
+
+
+def build_segment_response(mask_record: Dict[str, Any], segment_id: int) -> Dict[str, Any]:
+    polygon = convert_mask_to_polygon(mask_record.get("segmentation"))
     bbox = mask_record.get("bbox", [0, 0, 0, 0])
     return {
         "id": segment_id,
@@ -159,7 +194,9 @@ def segment_uploaded_image(uploaded_file) -> Dict[str, Any]:
         raise ValueError("Missing image file.")
 
     raw_img = decode_image_stream(uploaded_file)
-    masks = adapter.segment(raw_img)
+    segmentation_result = provider.segment(raw_img, uploaded_file.filename or "uploaded.jpg")
+    image_shape = raw_img.shape[:2]
+    masks = [serialize_segment_to_mask_record(segment, idx, image_shape=image_shape) for idx, segment in enumerate(segmentation_result.segments)]
     if not masks:
         raise ValueError("No coral segments detected.")
 
@@ -207,6 +244,7 @@ def add_cors_headers(response_data, status_code=200):
 # ========================================================
 @functions_framework.http
 def process_coral_upload(request):
+    logger.info(f"[API] {request.method} {request.path} has been called")
     if request.method == "OPTIONS":
         return add_cors_headers("", 204)
     
@@ -222,7 +260,7 @@ def process_coral_upload(request):
             logger.exception(f"Segmentation execution failure: {str(e)}")
             return add_cors_headers({"error": f"Segmentation execution failure: {str(e)}"}, 500)
 
-    if request.path == "/api/identify-coral":
+    elif request.path == "/api/identify-coral":
         try:
             payload = request.get_json(silent=True)
             if payload is None:
@@ -239,115 +277,5 @@ def process_coral_upload(request):
             logger.exception(f"Identify execution failure: {str(e)}")
             return add_cors_headers({"error": f"Identify execution failure: {str(e)}"}, 500)
 
-
-    # ----------------------------------------------------
-    # ROUTE A: DISCOVER & REGISTER A NEW CORAL (/register-new)
-    # ----------------------------------------------------
-    elif request.path == "/register-new":
-        try:
-            site_name = request.form.get("site_name")
-            coral_id = request.form.get("coral_id")
-            uploaded_file = request.files.get("image")
-
-            if not site_name or not coral_id or not uploaded_file:
-                return add_cors_headers({"error": "Missing metadata fields."}, 400)
-
-            # Ingest and decode the uploaded image stream
-            raw_img = decode_image_stream(uploaded_file)
-
-            masks = adapter.segment(raw_img)
-            segmentation = crop_primary_coral(raw_img, masks)
-            if segmentation is None:
-                return add_cors_headers({"error": "Segmentation not possible. Has image been uploaded?"})
-            cropped_img = segmentation["crop"]
-            save_debug_image(cropped_img, f"processing/debug_crop_{site_name}_{coral_id}_{uploaded_file.filename}")
-
-            # Extract AI vector descriptor fingerprint
-            vector_fingerprint = generate_vector_embedding(cropped_img)
-
-            public_url = upload_image(cropped_img, f"processed/{site_name}/{coral_id}_{uploaded_file.filename}")
-
-            # Save record to monitoring_sessions
-            session_payload = {"coral_id": coral_id, "site_name": site_name, "storage_url": public_url}
-            session_res = get_supabase_client().table("monitoring_sessions").insert(session_payload).execute()
-            session_uuid = session_res.data[0]["id"]
-
-            # Link fingerprint database row
-            vector_payload = {
-                "session_id": session_uuid,
-                "coral_id": coral_id,
-                "site_name": site_name,
-                "embedding": vector_fingerprint
-            }
-            get_supabase_client().table("media_vectors").insert(vector_payload).execute()
-
-            return add_cors_headers({
-                "status": "success",
-                "message": "New baseline individual logged successfully.",
-                "data": session_res.data[0]
-            }, 201)
-
-        except Exception as e:
-            logger.exception(f"Registration exception: {str(e)}")
-            return add_cors_headers({"error": f"Registration exception: {str(e)}"}, 500)
-
-    # ----------------------------------------------------
-    # ROUTE B: SEARCH PATTERN SIMILARITIES (/match-coral)
-    # ----------------------------------------------------
-    elif request.path == "/match-coral":
-        try:
-            site_name = request.form.get("site_name")
-            uploaded_file = request.files.get("image")
-
-            if not site_name or not uploaded_file:
-                return add_cors_headers({"error": "Missing parameters."}, 400)
-
-            raw_img = decode_image_stream(uploaded_file)
-
-            masks = adapter.segment(raw_img)
-            segmentation = crop_primary_coral(raw_img, masks)
-            if segmentation is None:
-                return add_cors_headers({"error": "Segmentation not possible. Has image been uploaded?"})
-            cropped_img = segmentation["crop"]
-            debug_path = f"processing/{datetime.now().strftime('%Y%m%d_%H%M')}_debug_crop_{site_name}_{uploaded_file.filename}"
-            save_debug_image(cropped_img, debug_path)
-            
-            query_vector = generate_vector_embedding(cropped_img)
-
-            db_call = get_supabase_client().rpc("match_coral_vectors", {
-                "query_embedding": query_vector,
-                "filter_site": site_name,
-                "match_threshold": 0.85,
-                "match_count": 3
-            }).execute()
-
-            return add_cors_headers({"matches": db_call.data}, 200)
-        except Exception as e:
-            logger.exception(f"Search execution fail: {str(e)}")
-            return add_cors_headers({"error": f"Search execution fail: {str(e)}"}, 500)
-
-    # ----------------------------------------------------
-    # ROUTE C: COMMIT A CONFIRMED MATCHED SESSION (/commit-session)
-    # ----------------------------------------------------
-    elif request.path == "/commit-session":
-        try:
-            coral_id = request.form.get("coral_id")
-            site_name = request.form.get("site_name")
-            public_url = request.form.get("storage_url")
-
-            if not coral_id or not site_name or not public_url:
-                return add_cors_headers({"error": "Missing core identifier records."}, 400)
-
-            session_payload = {"coral_id": coral_id, "site_name": site_name, "storage_url": public_url}
-            db_response = get_supabase_client().table("monitoring_sessions").insert(session_payload).execute()
-
-            return add_cors_headers({
-                "status": "success",
-                "message": "Monitoring session logged successfully.",
-                "data": db_response.data[0]
-            }, 201)
-        except Exception as e:
-            logger.exception(f"Commit verification failure: {str(e)}")
-            return add_cors_headers({"error": f"Commit verification failure: {str(e)}"}, 500)
 
     return add_cors_headers({"error": "Endpoint path not resolved."}, 404)
