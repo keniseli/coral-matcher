@@ -80,7 +80,6 @@ class FixtureProvider(SegmentationProvider):
             )
 
         return SegmentationResult(
-            coralId=payload.get("coralId"),
             image_width=int(image_payload.get("width", 0)),
             image_height=int(image_payload.get("height", 0)),
             segments=segments,

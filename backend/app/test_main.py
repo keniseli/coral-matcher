@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 import cv2
 from app.vision import apply_underwater_corrections
-from embedding import generate_vector_embedding
+from app.embedding.embedding import EmbeddingService
 
 def test_resnet_feature_vector_dimensions():
     """
@@ -13,7 +13,7 @@ def test_resnet_feature_vector_dimensions():
     mock_coral_canvas = np.random.randint(0, 255, (300, 300, 3), dtype=np.uint8)
     
     # Generate signature array
-    vector_output = generate_vector_embedding(mock_coral_canvas)
+    vector_output = EmbeddingService().generate_vector_embedding(mock_coral_canvas)
     
     assert isinstance(vector_output, list)
     assert len(vector_output) == 512

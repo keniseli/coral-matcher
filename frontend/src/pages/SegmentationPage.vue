@@ -5,15 +5,11 @@
         <div class="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
           <div class="max-w-2xl">
             <p class="text-sm font-semibold uppercase tracking-[0.35em] text-emerald-400">Coral Matcher</p>
-            <h1 class="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Interactive segmentation workspace</h1>
-            <p class="mt-3 text-sm leading-6 text-slate-400 sm:text-base">Drop an image into the workspace, inspect every polygon overlay, and pick the best coral geometry.</p>
+            <h1 class="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Interactive Workspace</h1>
+            <p class="mt-3 text-sm leading-6 text-slate-400 sm:text-base">Drop an image into the workspace, verify segments, and find the coral.</p>
           </div>
 
-          <div class="grid gap-3 sm:grid-cols-2">
-            <div class="rounded-2xl border border-slate-800 bg-slate-950/90 px-4 py-3 text-sm text-slate-100">
-              <p class="text-[11px] uppercase tracking-[0.3em] text-slate-500">Session</p>
-              <p class="mt-2 font-semibold">{{ segmentationId || 'Waiting for upload' }}</p>
-            </div>
+          <div class="grid gap-3 sm:grid-cols-1">
             <div class="rounded-2xl border border-slate-800 bg-slate-950/90 px-4 py-3 text-sm text-slate-100">
               <p class="text-[11px] uppercase tracking-[0.3em] text-slate-500">Selection</p>
               <p class="mt-2 font-semibold">{{ selectedSegmentIds.size }} / {{ segments.length }}</p>
@@ -141,7 +137,6 @@ export default defineComponent({
   setup() {
     const segments = ref<Segment[]>([])
     const imageSrc = ref<string | null>(null)
-    const segmentationId = ref<string | null>(null)
     const selectedSegmentIds = ref(new Set<number>())
     const cropSrc = ref<string | null>(null)
     const loading = reactive({ segmenting: false, identifying: false })
@@ -150,20 +145,20 @@ export default defineComponent({
     const isDragging = ref(false)
     const fileInput = ref<HTMLInputElement | null>(null)
     const polygonOpacity = ref(0.75)
+    const coralImage = ref<File | null>(null)
 
     const handleFile = async (file: File) => {
       error.value = null
       loading.segmenting = true
       segments.value = []
       imageSrc.value = null
-      segmentationId.value = null
       selectedSegmentIds.value = new Set()
       cropSrc.value = null
       imageSize.value = { width: 0, height: 0 }
+      coralImage.value = file;
 
       try {
         const res = await segmentationService.segmentImage(file)
-        segmentationId.value = res.segmentationId
         imageSrc.value = URL.createObjectURL(file)
         segments.value = res.segments
         imageSize.value = {
@@ -184,18 +179,24 @@ export default defineComponent({
       selectedSegmentIds.value = new Set(s)
     }
 
-    const canIdentify = computed(() => !!segmentationId.value && selectedSegmentIds.value.size > 0)
+    const canIdentify = computed(() => selectedSegmentIds.value.size > 0)
 
     const confirmSelection = async () => {
-      if (!segmentationId.value) return
       loading.identifying = true
       error.value = null
       cropSrc.value = null
 
       try {
         const selected = Array.from(selectedSegmentIds.value)
-        const res = await identificationService.identifyCoral(segmentationId.value, selected)
-        cropSrc.value = (res as any).cropDataUrl ?? null
+        const selectedSegments = segments.value.filter(segment => selected.includes(segment.id))
+        const file = coralImage.value;
+        if(file) {
+          const res = await identificationService.identifyCoral(selectedSegments, file)
+          cropSrc.value = (res as any).cropDataUrl ?? null
+        } else {
+          console.log("no bueno!") 
+          console.log(coralImage)
+        }
       } catch (err: any) {
         error.value = err?.message || 'Identification failed.'
       } finally {
@@ -234,7 +235,6 @@ export default defineComponent({
       canIdentify,
       imageWidth,
       imageHeight,
-      segmentationId,
       isDragging,
       fileInput,
       polygonOpacity,

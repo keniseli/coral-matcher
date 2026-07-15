@@ -29,7 +29,6 @@ class Segment:
 
 @dataclass(slots=True)
 class SegmentationResult:
-    coralId: str | None = None
     image_width: int = 0
     image_height: int = 0
     segments: List[Segment] = field(default_factory=list)

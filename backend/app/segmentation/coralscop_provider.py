@@ -93,7 +93,6 @@ class CoralScopProvider(SegmentationProvider):
         except Exception as e:
             logger.exception(f"[CoralSCOP] Failed writing fixture. {str(e)}")
         return SegmentationResult(
-            coralId=None,
             image_width=int(width),
             image_height=int(height),
             segments=segments,
