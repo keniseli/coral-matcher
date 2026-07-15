@@ -1,0 +1,15 @@
+Third-Party Software
+
+CoralSCOP
+Copyright © the CoralSCOP authors
+
+Repository:
+https://github.com/<repository>
+
+License:
+Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International
+https://creativecommons.org/licenses/by-nc-sa/4.0/
+
+Modifications:
+- Integrated into Coral Matcher backend
+- Adjusted imports for module referencing
