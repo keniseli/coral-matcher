@@ -33,7 +33,7 @@ def process_coral_upload(request: Request):
         return add_cors_headers("", 204)
 
     try:
-        if request.path == "/api/segment-image":
+        if request.path == "/api/upload-coral-image":
             uploaded_file = extract_file_from_request(request, "image")
             image = decode_image_stream(uploaded_file)
             segmentation = service.segment_image(

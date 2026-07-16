@@ -10,7 +10,7 @@ async function segmentImage(file: File): Promise<SegmentResponse> {
   const form = new FormData()
   form.append('image', file)
   const apiBase = import.meta.env.PROD ? (import.meta.env.VITE_API_BASE as string) : ''
-  const url = apiBase ? `${apiBase}/api/segment-image` : '/api/segment-image'
+  const url = apiBase ? `${apiBase}/api/upload-coral-image` : '/api/upload-coral-image'
 
   const res = await fetch(url, { method: 'POST', body: form })
   if (!res.ok) throw new Error('Segmentation request failed.')
