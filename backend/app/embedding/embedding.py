@@ -4,6 +4,7 @@ import torch
 import torchvision.models as models
 import torchvision.transforms as transforms
 
+EMBEDDING_DIMENSION = 512
 
 # Re-direct the framework to point inside our local packaged directory path
 local_weights_dir = os.path.join(os.getcwd(), "weights")
@@ -29,6 +30,8 @@ class EmbeddingService:
     Images of the same coral colony will result in similar embeddings even if the lighting or the camera
     angle is different.
     """
+    
+    
 
     def generate_vector_embedding(self, cv2_image):
         """ Transforms an OpenCV image matrix into a 512-dimension spatial vector array. """
