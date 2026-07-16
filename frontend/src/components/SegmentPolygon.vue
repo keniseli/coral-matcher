@@ -1,60 +1,44 @@
 <template>
-  <g>
-    <polygon
-      :points="polygonPoints"
-      :style="polygonStyle"
-      @click.stop.prevent="onToggle"
-      @mouseenter="hovered = true"
-      @mouseleave="hovered = false"
-      style="pointer-events: all; cursor: pointer; transition: all 180ms ease;"
-    />
-    <g v-if="hovered" class="pointer-events-none">
-      <rect :x="labelX" :y="labelY" width="240" height="70" rx="12" fill="#020617e6" stroke="#38bdf8" stroke-width="1.3" />
-      <text :x="labelX + 12" :y="labelY + 22" font-size="13" font-weight="700" fill="#f8fafc">ID: {{ segment.id }}</text>
-      <text :x="labelX + 12" :y="labelY + 44" font-size="11" fill="#bae6fd">IoU {{ segment.predictedIoU.toFixed(2) }} · Stability {{ segment.stabilityScore.toFixed(2) }}</text>
-    </g>
-  </g>
+  <polygon
+    :points="points"
+    :fill="color.fill"
+    :stroke="color.stroke"
+    :stroke-width="color.width"
+    :fill-opacity="opacity"
+    style="cursor: pointer"
+    @click.stop="$emit('toggle')"
+    @mouseenter="hover = true"
+    @mouseleave="hover = false"
+  />
 </template>
 
-<script lang="ts">
-import { defineComponent, computed, ref } from 'vue'
-import type { Segment } from '../types/segment'
+<script setup lang="ts">
+import { computed, ref } from "vue";
+import type { SegmentPoint } from "../types/segment";
 
-export default defineComponent({
-  props: {
-    segment: { type: Object as () => Segment, required: true },
-    selected: { type: Boolean, default: false },
-    polygonOpacity: { type: Number, default: 0.75 }
-  },
-  emits: ['toggle'],
-  setup(props, { emit }) {
-    const hovered = ref(false)
+const props = defineProps<{
+  segment: { polygon: SegmentPoint[] };
+  selected: boolean;
+  opacity: number;
+}>();
 
-    const polygonPoints = computed(() => {
-      const pts = props.segment.polygon || []
-      return pts.map((p: any) => `${Array.isArray(p) ? p[0] : p.x},${Array.isArray(p) ? p[1] : p.y}`).join(' ')
-    })
+defineEmits<{ toggle: [] }>();
 
-    const polygonStyle = computed(() => {
-      const strokeWidth = props.selected ? 3.2 : hovered.value ? 2.8 : 2
-      const fill = props.selected ? '#43A047' : hovered.value ? '#FFB300' : '#4FC3F7'
-      const stroke = props.selected ? '#1B5E20' : hovered.value ? '#EF6C00' : '#0288D1'
-      return {
-        fill,
-        stroke,
-        strokeWidth,
-        fillOpacity: Math.max(0.2, props.polygonOpacity),
-        opacity: 0.98,
-      }
-    })
+const hover = ref(false);
+const pointCoordinates = (point: SegmentPoint) =>
+  Array.isArray(point) ? point : [point.x, point.y];
 
-    const onToggle = () => emit('toggle')
+const points = computed(() =>
+  props.segment.polygon
+    .map((point) => pointCoordinates(point).join(","))
+    .join(" "),
+);
 
-    const bbox = props.segment.bbox
-    const labelX = bbox.x
-    const labelY = Math.max(0, bbox.y - 72)
-
-    return { polygonPoints, polygonStyle, onToggle, hovered, labelX, labelY }
-  }
-})
+const color = computed(() =>
+  props.selected
+    ? { fill: "#43A047", stroke: "#1B5E20", width: 3.2 }
+    : hover.value
+      ? { fill: "#FFB300", stroke: "#EF6C00", width: 2.8 }
+      : { fill: "#4FC3F7", stroke: "#0288D1", width: 2 },
+);
 </script>

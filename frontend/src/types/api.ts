@@ -7,8 +7,16 @@ export interface SegmentApiResponse {
 }
 
 export interface IdentifyApiResponse {
-  cropDataUrl?: string
-  cropWidth?: number
-  cropHeight?: number
-  selectedSegments?: number[]
+  image?: { width: number; height: number }
+  imageData?: string
+  candidates?: CoralCandidate[]
+}
+
+export interface CoralCandidate {
+  id: string
+  coralId: string
+  monitoringSessionDate: string
+  visualSimilarity: number
+  diveSite: string
+  imageUrl?: string
 }

@@ -1,249 +1,325 @@
 <template>
-  <div class="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.18),_transparent_30%),linear-gradient(135deg,_#020617_0%,_#0f172a_100%)] p-4 text-slate-100 sm:p-6 lg:p-8">
-    <div class="mx-auto max-w-7xl">
-      <section class="rounded-[32px] border border-slate-800 bg-slate-900/85 p-6 shadow-[0_24px_80px_-32px_rgba(2,6,23,0.95)] backdrop-blur-xl">
-        <div class="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
-          <div class="max-w-2xl">
-            <p class="text-sm font-semibold uppercase tracking-[0.35em] text-emerald-400">Coral Matcher</p>
-            <h1 class="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Interactive Workspace</h1>
-            <p class="mt-3 text-sm leading-6 text-slate-400 sm:text-base">Drop an image into the workspace, verify segments, and find the coral.</p>
-          </div>
-
-          <div class="grid gap-3 sm:grid-cols-1">
-            <div class="rounded-2xl border border-slate-800 bg-slate-950/90 px-4 py-3 text-sm text-slate-100">
-              <p class="text-[11px] uppercase tracking-[0.3em] text-slate-500">Selection</p>
-              <p class="mt-2 font-semibold">{{ selectedSegmentIds.size }} / {{ segments.length }}</p>
-            </div>
-          </div>
+  <main class="min-h-screen bg-[#071116] p-5 text-slate-100">
+    <div class="mx-auto flex min-h-[calc(100vh-40px)] max-w-[1800px] flex-col">
+      <header
+        class="mb-4 flex items-center justify-between border-b border-slate-800 pb-3"
+      >
+        <div>
+          <h1 class="text-base font-semibold">Coral Matcher</h1>
+          <p class="text-xs text-slate-500">
+            Scientific image annotation workspace
+          </p>
         </div>
-      </section>
-
-      <div class="mt-6 grid gap-6 xl:grid-cols-[1.55fr_0.9fr]">
-        <section class="overflow-hidden rounded-[32px] border border-slate-800 bg-slate-900/85 p-5 shadow-[0_20px_70px_-35px_rgba(2,6,23,0.95)] backdrop-blur-xl">
-          <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <h2 class="text-xl font-semibold text-white">Coral image workspace</h2>
-              <p class="mt-1 text-sm text-slate-400">Drag and drop an image into the canvas, hover polygons for readable details, and click to select or deselect them.</p>
-            </div>
-
-            <div class="flex flex-wrap items-center gap-3">
-              <label class="flex items-center gap-3 rounded-full border border-slate-700 bg-slate-950/90 px-3 py-2 text-sm font-medium text-slate-200 shadow-sm">
-                <span>Opacity</span>
-                <input v-model.number="polygonOpacity" class="h-2 w-24 cursor-pointer appearance-none rounded-full bg-slate-800 accent-emerald-500" type="range" min="0.0" max="1" step="0.05" />
-                <span class="min-w-[3rem] text-right text-emerald-400">{{ polygonOpacity.toFixed(2) }}</span>
-              </label>
-              <upload-toolbar @on-file="handleFile" :loading="loading.segmenting" />
-            </div>
-          </div>
-
+        <span class="text-xs text-slate-500">{{
+          imageUrl ? "Image loaded" : "Ready for image"
+        }}</span>
+      </header>
+      <div
+        v-if="error"
+        class="mb-3 flex justify-between rounded-md border border-red-400/40 bg-red-950/40 px-4 py-3 text-sm text-red-100"
+      >
+        <span>{{ error }}</span
+        ><button @click="error = ''">Dismiss</button>
+      </div>
+      <div class="grid min-h-0 flex-1 gap-4 xl:grid-cols-[3fr_2fr]">
+        <section
+          class="flex min-h-0 flex-col overflow-hidden rounded-xl border border-slate-800 bg-[#0b181e]"
+        >
           <div
-            class="relative mt-6 overflow-hidden rounded-[30px] border border-slate-800 bg-slate-950/95 p-4 min-h-[560px]"
-            @dragover.prevent="handleDragOver"
-            @dragleave.prevent="handleDragLeave"
-            @drop.prevent="handleDrop"
+            class="flex items-center justify-between border-b border-slate-800 px-4 py-3"
           >
-            <div v-if="isDragging" class="absolute inset-4 z-20 flex items-center justify-center rounded-[24px] border border-dashed border-emerald-400/70 bg-slate-950/95 text-center shadow-2xl shadow-emerald-500/10">
-              <div class="space-y-2">
-                <p class="text-lg font-semibold text-white">Drop image here</p>
-                <p class="text-sm text-slate-400">The segmentation overlays appear directly in this workspace.</p>
-              </div>
+            <div>
+              <h2 class="text-sm font-semibold">Image workspace</h2>
+              <p class="text-xs text-slate-500">
+                Select every segment that belongs to one colony.
+              </p>
             </div>
-
-            <coral-image-viewer
-              :imageSrc="imageSrc || undefined"
+            <div class="flex items-center gap-3 text-xs text-slate-400">
+              <label
+                >Opacity
+                <input
+                  v-model.number="opacity"
+                  type="range"
+                  min="0"
+                  max="1"
+                  step=".05"
+                  class="w-20 accent-teal-400"
+                />
+                {{ Math.round(opacity * 100) }}%</label
+              ><button
+                class="rounded border border-slate-700 px-3 py-1.5 hover:bg-slate-800"
+                @click="picker?.click()"
+              >
+                Choose image</button
+              ><input
+                ref="picker"
+                class="hidden"
+                type="file"
+                accept="image/*"
+                @change="picked"
+              />
+            </div>
+          </div>
+          <div
+            class="relative flex min-h-[540px] flex-1 items-center justify-center bg-black/40 p-3"
+            @dragover.prevent
+            @drop.prevent="dropped"
+          >
+            <CoralImageViewer
+              v-if="imageUrl"
+              :image-src="imageUrl"
               :segments="segments"
-              :selectedSegmentIds="selectedSegmentIds"
-              :polygonOpacity="polygonOpacity"
-              @toggleSegment="toggleSegment"
+              :selected="selected"
+              :opacity="opacity"
+              @toggle="toggle"
             />
-
-            <div v-if="!imageSrc && !loading.segmenting" class="absolute inset-0 flex items-center justify-center bg-slate-950/80 p-6">
-              <div class="max-w-md rounded-[28px] border border-slate-800 bg-slate-900/90 p-8 text-center shadow-2xl shadow-slate-950/40">
-                <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-300">
-                  <span class="text-2xl">⬆</span>
-                </div>
-                <p class="mt-4 text-base font-medium text-white">Drop an image into this workspace</p>
-                <p class="mt-2 text-sm text-slate-400">Polygons appear here after the backend finishes segmentation.</p>
-                <button class="mt-5 rounded-2xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400" @click="openFilePicker" type="button">
-                  Choose image
-                </button>
-                <input ref="fileInput" class="hidden" type="file" accept="image/*" @change="handleInputChange" />
-              </div>
+            <div v-else class="text-center">
+              <p class="text-base">Drop an underwater image here</p>
+              <p class="mt-2 text-sm text-slate-500">
+                Segmentation overlays will appear directly on the photograph.
+              </p>
+              <button
+                class="mt-4 rounded bg-teal-400 px-4 py-2 text-sm font-semibold text-[#062126]"
+                @click="picker?.click()"
+              >
+                Browse image
+              </button>
             </div>
-
-            <div v-if="loading.segmenting" class="absolute inset-0 flex items-center justify-center bg-slate-950/75">
-              <div class="rounded-3xl border border-slate-800 bg-slate-900/90 px-6 py-5 text-center text-slate-300 shadow-2xl shadow-slate-950/40">
-                <div class="mx-auto inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-800 text-emerald-400">
-                  <span class="block h-4 w-4 animate-pulse rounded-full bg-current"></span>
-                </div>
-                <p class="mt-4 text-sm">Processing the image and extracting segment polygons…</p>
+            <div
+              v-if="loading.segment"
+              class="absolute inset-0 flex items-center justify-center bg-[#071116]/45"
+            >
+              <div
+                class="rounded border border-slate-700 bg-[#0d1b21] px-5 py-4 text-center"
+              >
+                <i
+                  class="mx-auto block h-5 w-5 rounded-full border-2 border-teal-300 border-t-transparent"
+                ></i>
+                <p class="mt-2 text-sm">Segmenting image</p>
+                <p class="text-xs text-slate-400">
+                  This may take several minutes.
+                </p>
               </div>
             </div>
           </div>
-        </section>
-
-        <aside class="space-y-6">
-          <section class="rounded-[32px] border border-slate-800 bg-slate-900/85 p-5 shadow-[0_20px_70px_-35px_rgba(2,6,23,0.95)] backdrop-blur-xl">
-            <h2 class="text-lg font-semibold text-white">Selection summary</h2>
-            <p class="mt-2 text-sm leading-6 text-slate-400">Pick the segment geometry that best matches the coral before confirming the crop.</p>
-            <div class="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-              <div class="rounded-2xl border border-slate-800 bg-slate-950/90 p-4 text-slate-100">
-                <p class="text-[11px] uppercase tracking-[0.3em] text-slate-500">Total segments</p>
-                <p class="mt-2 text-3xl font-semibold text-white">{{ segments.length }}</p>
-              </div>
-              <div class="rounded-2xl border border-slate-800 bg-slate-950/90 p-4 text-slate-100">
-                <p class="text-[11px] uppercase tracking-[0.3em] text-slate-500">Image size</p>
-                <p class="mt-2 text-sm text-slate-300">{{ imageWidth }} × {{ imageHeight }}</p>
-              </div>
-            </div>
-          </section>
-
-          <section class="rounded-[32px] border border-slate-800 bg-slate-900/85 p-5 shadow-[0_20px_70px_-35px_rgba(2,6,23,0.95)] backdrop-blur-xl">
-            <div class="flex items-center justify-between gap-3">
-              <div>
-                <h2 class="text-lg font-semibold text-white">Crop preview</h2>
-                <p class="mt-1 text-sm text-slate-400">The selected crop appears instantly after confirmation.</p>
-              </div>
-            </div>
-            <div class="mt-5 rounded-[24px] border border-slate-800 bg-slate-950/90 p-3">
-              <crop-preview :cropSrc="cropSrc || undefined" />
-            </div>
-            <div v-if="error" class="mt-4 rounded-2xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-200">{{ error }}</div>
-            <button
-              class="mt-5 w-full rounded-2xl bg-emerald-500 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
-              :disabled="!canIdentify || loading.identifying"
-              @click="confirmSelection"
+          <footer
+            class="flex justify-between border-t border-slate-800 px-4 py-3 text-xs"
+          >
+            <span class="text-slate-500"
+              ><b class="text-slate-200">{{ selected.size }}</b> of
+              {{ segments.length }} segments selected</span
+            ><button
+              :disabled="!selected.size || loading.identify"
+              class="rounded bg-teal-400 px-3 py-2 font-semibold text-[#062126] disabled:opacity-40"
+              @click="identify"
             >
-              {{ loading.identifying ? 'Identifying…' : 'Confirm selection' }}
+              {{
+                loading.identify
+                  ? "Finding candidates..."
+                  : "Find coral colony for selection"
+              }}
             </button>
-          </section>
+          </footer>
+        </section>
+        <aside
+          class="flex min-h-0 flex-col overflow-hidden rounded-xl border border-slate-800 bg-[#0b181e]"
+        >
+          <div class="border-b border-slate-800 bg-[#0e1d23] p-4">
+            <h2 class="text-sm font-semibold">Potential matches</h2>
+            <p class="mt-1 text-xs text-slate-500">
+              Compare selected coral with past observations.
+            </p>
+            <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
+              <label
+                >Dive site<select
+                  v-model="site"
+                  class="mt-1 block w-full rounded border border-slate-700 bg-[#091419] p-2 text-slate-200"
+                >
+                  <option>Isla Larga</option>
+                  <option>Olohuita</option>
+                </select></label
+              ><label
+                >Colony name<input
+                  v-model="name"
+                  class="mt-1 w-full rounded border border-slate-700 bg-[#091419] p-2 text-slate-200"
+              /></label>
+            </div>
+            <div
+              class="mt-3 flex items-center justify-between rounded border border-slate-700 bg-[#091419] p-2 text-xs"
+            >
+              <span
+                >Selection:
+                <b>{{ active?.coralId || "New coral colony" }}</b></span
+              ><button
+                :disabled="!selected.size || loading.confirm"
+                class="rounded bg-teal-400 px-3 py-1.5 font-semibold text-[#062126] disabled:opacity-40"
+                @click="confirm"
+              >
+                {{
+                  loading.confirm
+                    ? "Saving..."
+                    : active
+                      ? "Confirm match"
+                      : "Save as new"
+                }}
+              </button>
+            </div>
+            <button
+              v-if="active"
+              class="mt-2 text-xs text-teal-300"
+              @click="activeId = ''"
+            >
+              Save as new coral instead
+            </button>
+          </div>
+          <div class="min-h-0 flex-1 overflow-y-auto p-3">
+            <div
+              v-if="loading.segment || loading.identify"
+              class="flex h-full min-h-[180px] flex-col items-center justify-center text-sm text-slate-400"
+            >
+              <i
+                class="h-5 w-5 rounded-full border-2 border-teal-300 border-t-transparent"
+              ></i>
+              <p class="mt-3">Calculating possible matches?</p>
+            </div>
+            <p
+              v-else-if="!imageUrl"
+              class="mt-20 text-center text-sm text-slate-500"
+            >
+              Upload an image to begin comparison.
+            </p>
+            <p
+              v-else-if="!candidates.length"
+              class="mt-20 text-center text-sm text-slate-500"
+            >
+              No matching colonies found. You can save this observation as a new
+              colony.
+            </p>
+            <button
+              v-for="c in candidates"
+              v-else
+              :key="c.id"
+              class="mb-2 grid w-full grid-cols-[130px_1fr] overflow-hidden rounded-lg border text-left"
+              :class="
+                activeId === c.id
+                  ? 'border-teal-400 bg-teal-400/10'
+                  : 'border-slate-800 bg-[#091419]'
+              "
+              @click="activeId = c.id"
+            >
+              <div
+                class="flex h-[108px] items-center justify-center bg-slate-900"
+              >
+                <img
+                  v-if="c.imageUrl"
+                  :src="c.imageUrl"
+                  class="h-full w-full object-contain"
+                /><span v-else class="text-xs text-slate-600">No preview</span>
+              </div>
+              <div class="p-3 text-xs">
+                <b class="text-sm">{{ c.coralId }}</b>
+                <p class="mt-2 text-teal-300">
+                  Visual similarity {{ Math.round(c.visualSimilarity * 100) }}%
+                </p>
+                <p class="mt-1 text-slate-400">
+                  Session {{ c.monitoringSessionDate }}
+                </p>
+                <p class="mt-1 text-slate-400">{{ c.diveSite }}</p>
+              </div>
+            </button>
+          </div>
         </aside>
       </div>
     </div>
-  </div>
+  </main>
 </template>
-
-<script lang="ts">
-import { defineComponent, ref, reactive, computed } from 'vue'
-import UploadToolbar from '../components/UploadToolbar.vue'
-import CoralImageViewer from '../components/CoralImageViewer.vue'
-import CropPreview from '../components/CropPreview.vue'
-import segmentationService from '../services/segmentationService'
-import identificationService from '../services/identificationService'
-import type { Segment } from '../types/segment'
-
-export default defineComponent({
-  components: { UploadToolbar, CoralImageViewer, CropPreview },
-  setup() {
-    const segments = ref<Segment[]>([])
-    const imageSrc = ref<string | null>(null)
-    const selectedSegmentIds = ref(new Set<number>())
-    const cropSrc = ref<string | null>(null)
-    const loading = reactive({ segmenting: false, identifying: false })
-    const error = ref<string | null>(null)
-    const imageSize = ref({ width: 0, height: 0 })
-    const isDragging = ref(false)
-    const fileInput = ref<HTMLInputElement | null>(null)
-    const polygonOpacity = ref(0.75)
-    const coralImage = ref<File | null>(null)
-
-    const handleFile = async (file: File) => {
-      error.value = null
-      loading.segmenting = true
-      segments.value = []
-      imageSrc.value = null
-      selectedSegmentIds.value = new Set()
-      cropSrc.value = null
-      imageSize.value = { width: 0, height: 0 }
-      coralImage.value = file;
-
-      try {
-        const res = await segmentationService.segmentImage(file)
-        imageSrc.value = URL.createObjectURL(file)
-        segments.value = res.segments
-        imageSize.value = {
-          width: res.image.width,
-          height: res.image.height,
-        }
-      } catch (err: any) {
-        error.value = err?.message || 'Segmentation failed.'
-      } finally {
-        loading.segmenting = false
-      }
-    }
-
-    const toggleSegment = (id: number) => {
-      const s = selectedSegmentIds.value
-      if (s.has(id)) s.delete(id)
-      else s.add(id)
-      selectedSegmentIds.value = new Set(s)
-    }
-
-    const canIdentify = computed(() => selectedSegmentIds.value.size > 0)
-
-    const confirmSelection = async () => {
-      loading.identifying = true
-      error.value = null
-      cropSrc.value = null
-
-      try {
-        const selected = Array.from(selectedSegmentIds.value)
-        const selectedSegments = segments.value.filter(segment => selected.includes(segment.id))
-        const file = coralImage.value;
-        if(file) {
-          const res = await identificationService.identifyCoral(selectedSegments, file)
-          cropSrc.value = (res as any).cropDataUrl ?? null
-        } else {
-          console.log("no bueno!") 
-          console.log(coralImage)
-        }
-      } catch (err: any) {
-        error.value = err?.message || 'Identification failed.'
-      } finally {
-        loading.identifying = false
-      }
-    }
-
-    const imageWidth = computed(() => imageSize.value.width || 0)
-    const imageHeight = computed(() => imageSize.value.height || 0)
-
-    const openFilePicker = () => fileInput.value?.click()
-    const handleDragOver = () => { isDragging.value = true }
-    const handleDragLeave = () => { isDragging.value = false }
-    const handleDrop = (event: DragEvent) => {
-      isDragging.value = false
-      const file = event.dataTransfer?.files?.[0]
-      if (file && file.type.startsWith('image/')) void handleFile(file)
-    }
-    const handleInputChange = (event: Event) => {
-      const target = event.target as HTMLInputElement
-      const file = target.files?.[0]
-      if (file) void handleFile(file)
-      target.value = ''
-    }
-
-    return {
-      segments,
-      imageSrc,
-      selectedSegmentIds,
-      cropSrc,
-      loading,
-      error,
-      handleFile,
-      toggleSegment,
-      confirmSelection,
-      canIdentify,
-      imageWidth,
-      imageHeight,
-      isDragging,
-      fileInput,
-      polygonOpacity,
-      openFilePicker,
-      handleDragOver,
-      handleDragLeave,
-      handleDrop,
-      handleInputChange,
-    }
+<script setup lang="ts">
+import { computed, reactive, ref } from "vue";
+import CoralImageViewer from "../components/CoralImageViewer.vue";
+import segmentation from "../services/segmentationService";
+import identifyService from "../services/identificationService";
+import type { Segment } from "../types/segment";
+import type { CoralCandidate } from "../types/api";
+const picker = ref<HTMLInputElement>();
+const image = ref<File>();
+const imageUrl = ref("");
+const segments = ref<Segment[]>([]);
+const selected = ref(new Set<number>());
+const candidates = ref<CoralCandidate[]>([]);
+const activeId = ref("");
+const active = computed(() =>
+  candidates.value.find((c) => c.id === activeId.value),
+);
+const opacity = ref(0.55);
+const error = ref("");
+const site = ref("Isla Larga");
+const name = ref(`Coral-${crypto.randomUUID().slice(0, 5).toUpperCase()}`);
+const loading = reactive({ segment: false, identify: false, confirm: false });
+const toggle = (id: number) => {
+  const next = new Set(selected.value);
+  next.has(id) ? next.delete(id) : next.add(id);
+  selected.value = next;
+};
+const upload = async (file: File) => {
+  if (!file.type.startsWith("image/"))
+    return (error.value = "Please select an image file.");
+  image.value = file;
+  imageUrl.value = URL.createObjectURL(file);
+  segments.value = [];
+  selected.value = new Set();
+  candidates.value = [];
+  loading.segment = true;
+  error.value = "";
+  try {
+    segments.value = (await segmentation.segmentImage(file)).segments;
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : "Segmentation failed.";
+  } finally {
+    loading.segment = false;
   }
-})
+};
+const picked = (e: Event) => {
+  const f = (e.target as HTMLInputElement).files?.[0];
+  if (f) void upload(f);
+};
+const dropped = (e: DragEvent) => {
+  const f = e.dataTransfer?.files[0];
+  if (f) void upload(f);
+};
+const identify = async () => {
+  if (!image.value) return;
+  loading.identify = true;
+  candidates.value = [];
+  activeId.value = "";
+  try {
+    const r = await identifyService.identifyCoral(
+      segments.value.filter((s) => selected.value.has(s.id)),
+      image.value,
+    );
+    candidates.value = r.candidates ?? [];
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : "Could not find matches.";
+  } finally {
+    loading.identify = false;
+  }
+};
+const confirm = async () => {
+  if (!image.value) return;
+  loading.confirm = true;
+  try {
+    await identifyService.confirmCoral({
+      image: image.value,
+      selectedSegments: segments.value.filter((s) => selected.value.has(s.id)),
+      selectedCandidateId: activeId.value || null,
+      diveSite: site.value,
+      coralName: name.value,
+    });
+    name.value = `Coral-${crypto.randomUUID().slice(0, 5).toUpperCase()}`;
+  } catch (e) {
+    error.value =
+      e instanceof Error ? e.message : "Could not save observation.";
+  } finally {
+    loading.confirm = false;
+  }
+};
 </script>

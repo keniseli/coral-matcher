@@ -3,15 +3,34 @@ import type { Segment } from '../types/segment'
 
 async function identifyCoral(selectedSegments: Segment[], file: File): Promise<IdentifyApiResponse> {
   const apiBase = import.meta.env.PROD ? (import.meta.env.VITE_API_BASE as string) : ''
-  const url = apiBase ? `${apiBase}/api/identify-coral` : '/api/identify-coral'
-
+  const url = apiBase ? `${apiBase}/api/identify` : '/api/identify-coral'
   const form = new FormData()
   form.append('image', file)
-  form.append('segments', JSON.stringify({selectedSegments: selectedSegments }))
-
+  form.append('segments', JSON.stringify({ selectedSegments }))
   const res = await fetch(url, { method: 'POST', body: form })
   if (!res.ok) throw new Error('Identify request failed.')
   return await res.json()
 }
 
-export default { identifyCoral }
+interface ConfirmCoralRequest {
+  image: File
+  selectedSegments: Segment[]
+  selectedCandidateId: string | null
+  diveSite: string
+  coralName: string
+}
+
+async function confirmCoral(request: ConfirmCoralRequest): Promise<void> {
+  const apiBase = import.meta.env.PROD ? (import.meta.env.VITE_API_BASE as string) : ''
+  const url = apiBase ? `${apiBase}/api/confirm-coral` : '/api/confirm-coral'
+  const form = new FormData()
+  form.append('image', request.image)
+  form.append('segments', JSON.stringify({ selectedSegments: request.selectedSegments }))
+  form.append('selectedCandidateId', request.selectedCandidateId ?? '')
+  form.append('dive_site', request.diveSite)
+  form.append('coral_name', request.coralName)
+  const res = await fetch(url, { method: 'POST', body: form })
+  if (!res.ok) throw new Error('Confirmation request failed.')
+}
+
+export default { identifyCoral, confirmCoral }
