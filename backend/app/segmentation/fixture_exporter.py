@@ -4,9 +4,10 @@ import json
 import re
 from pathlib import Path
 from typing import Any
+from app.domain.models import BoundingBox, Point
 import cv2
 import numpy as np
-from app.segmentation.models import BoundingBox, Point, Segment
+from app.domain.models import Segment
 from app.storage import save_debug_image
 
 def export_segmentation_fixture(image: np.ndarray, image_filename: str, masks: list[dict[str, Any]]) -> None:

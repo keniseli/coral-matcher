@@ -3,11 +3,12 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
+from app.domain.models import BoundingBox, Point, Segment
 import cv2
 import numpy as np
 import torch
 
-from app.segmentation.models import BoundingBox, Point, Segment, SegmentationResult
+from app.segmentation.models import SegmentationResult
 from app.segmentation.segmentation_provider import SegmentationProvider
 from third_party.coralscop.segment_anything import (
     SamAutomaticMaskGenerator,

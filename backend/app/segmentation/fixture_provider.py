@@ -7,9 +7,10 @@ import re
 from pathlib import Path
 from typing import List
 
+from app.domain.models import BoundingBox, Point, Segment
 import numpy as np
 
-from app.segmentation.models import BoundingBox, Point, Segment, SegmentationResult
+from app.segmentation.models import SegmentationResult
 from app.segmentation.segmentation_provider import SegmentationProvider
 
 logger = logging.getLogger(__name__)

@@ -3,28 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import List
 
-
-@dataclass(slots=True)
-class Point:
-    x: int
-    y: int
-
-
-@dataclass(slots=True)
-class BoundingBox:
-    x: int
-    y: int
-    width: int
-    height: int
-
-
-@dataclass(slots=True)
-class Segment:
-    id: int
-    polygon: List[Point]
-    bbox: BoundingBox
-    predictedIoU: float
-    stabilityScore: float
+from app.domain.models import Segment
 
 
 @dataclass(slots=True)

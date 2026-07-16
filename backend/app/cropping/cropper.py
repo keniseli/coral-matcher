@@ -2,10 +2,8 @@ from __future__ import annotations
 
 import numpy as np
 
-from app.segmentation.models import Segment
-
-from .models import BoundingBox, CropResult
-
+from app.domain.models import Segment, BoundingBox
+from .models import CropResult
 
 class BoundingBoxCropper:
     """

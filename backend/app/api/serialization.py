@@ -1,3 +1,5 @@
+from app.domain.models import BoundingBox, Point, Segment
+from app.orchestration.models import IdentifyResult
 import numpy as np
 from flask import Request
 import json
@@ -5,8 +7,8 @@ import base64
 import cv2
 
 from app.storage import decode_image_stream
-from app.segmentation.models import SegmentationResult, Segment, BoundingBox, Point
-from app.orchestration.coral_service import IdentifyRequest, IdentifyResult
+from app.segmentation.models import SegmentationResult
+from app.orchestration.models import IdentifyRequest
 
 
 

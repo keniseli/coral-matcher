@@ -1,26 +1,14 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import List
 
+from app.orchestration.models import IdentifyRequest, IdentifyResult
 import numpy as np
 
 from app.cropping.cropper import BoundingBoxCropper
 from app.embedding.embedding import EmbeddingService
-from app.segmentation.models import Segment, SegmentationResult
+from app.segmentation.models import SegmentationResult
 from app.segmentation.provider_factory import get_segmentation_provider
-
-@dataclass(slots=True)
-class IdentifyRequest:
-    image: np.ndarray
-    selected_segments: list[Segment]
-
-@dataclass(slots=True)
-class IdentifyResult:
-    crop: np.ndarray
-    embedding: list[float]
-    selected_segments: list[Segment]
-
 
 class CoralService:
     """
