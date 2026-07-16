@@ -8,7 +8,7 @@ from app.domain.models import BoundingBox, Point
 import cv2
 import numpy as np
 from app.domain.models import Segment
-from app.storage import save_debug_image
+from app.persistence.storage import save_debug_image
 
 def export_segmentation_fixture(image: np.ndarray, image_filename: str, masks: list[dict[str, Any]]) -> None:
     base_dir = Path(__file__).resolve().parents[2]

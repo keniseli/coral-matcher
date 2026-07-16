@@ -4,7 +4,7 @@ import time
 from datetime import datetime
 from .coralscop_adapter import CoralScopAdapter
 from .debug import create_segmentation_collage
-from app.vision import apply_underwater_corrections
+from app.vision.vision import apply_underwater_corrections
 from PIL import Image
 import numpy as np
 

@@ -6,7 +6,7 @@ import json
 import base64
 import cv2
 
-from app.storage import decode_image_stream
+from app.persistence.storage import decode_image_stream
 from app.segmentation.models import SegmentationResult
 from app.orchestration.models import IdentifyRequest
 

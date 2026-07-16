@@ -4,7 +4,7 @@ import functions_framework
 from flask import Request
 
 from app.orchestration.coral_service import CoralService
-from app.storage import decode_image_stream
+from app.persistence.storage import decode_image_stream
 from app.api.serialization import parse_identify_request, serialize_identify_response, serialize_segmentation_response
 
 
