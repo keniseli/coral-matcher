@@ -8,7 +8,7 @@ from functools import reduce
 
 from app.orchestration.coral_service import CoralService
 from app.persistence.storage import decode_image_stream
-from app.api.serialization import parse_identify_request, serialize_identify_response, serialize_segmentation_response
+from app.api.serialization import parse_identify_request, serialize_identify_response, serialize_image_upload_response
 
 
 logger = logging.getLogger(__name__)
