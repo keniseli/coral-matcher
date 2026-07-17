@@ -1,40 +1,29 @@
 <template>
-  <main class="min-h-screen bg-[#071116] p-5 text-slate-100">
-    <div class="mx-auto flex min-h-[calc(100vh-40px)] max-w-[1800px] flex-col">
-      <header
-        class="mb-4 flex items-center justify-between border-b border-slate-800 pb-3"
-      >
+  <main class="min-h-screen overflow-auto bg-[#071116] p-5 text-slate-100
+              xl:h-screen xl:overflow-hidden">
+    <div class="mx-auto flex h-full max-w-[1800px] min-h-0 flex-col">
+      <header class="mb-4 flex items-center justify-between border-b border-slate-800 pb-3">
         <div>
           <h1 class="text-base font-semibold">Coral Matcher</h1>
           <p class="text-xs text-slate-500">
             Scientific image annotation workspace
           </p>
         </div>
-        <span class="text-xs text-slate-500">{{
-          imageUrl ? "Image loaded" : "Ready for image"
-        }}</span>
+        <div>
+          <div v-if="error" class="
+              mb-3 flex justify-between rounded-md border border-red-400 bg-red-950 px-4 py-3 text-sm text-red-100">
+            <span>{{ error }}</span><button @click="error = ''">&nbsp;Dismiss</button>
+          </div>
+          <div v-if="message"
+            class="
+              mb-3 flex justify-between rounded-md border border-green-400 bg-green-950 px-4 py-3 text-sm text-green-100">
+            <span>{{ message }}</span><button @click="message = ''">&nbsp;Dismiss</button>
+          </div>
+        </div>
       </header>
-      <div
-        v-if="error"
-        class="mb-3 flex justify-between rounded-md border border-red-400/40 bg-red-950/40 px-4 py-3 text-sm text-red-100"
-      >
-        <span>{{ error }}</span
-        ><button @click="error = ''">Dismiss</button>
-      </div>
-      <div
-        v-if="message"
-        class="mb-3 flex justify-between rounded-md border border-green-400/40 bg-green-950/40 px-4 py-3 text-sm text-green-100"
-      >
-        <span>{{ message }}</span
-        ><button @click="message = ''">Dismiss</button>
-      </div>
       <div class="grid min-h-0 flex-1 gap-4 xl:grid-cols-[3fr_2fr]">
-        <section
-          class="flex min-h-0 flex-col overflow-hidden rounded-xl border border-slate-800 bg-[#0b181e]"
-        >
-          <div
-            class="flex items-center justify-between border-b border-slate-800 px-4 py-3"
-          >
+        <section class="flex min-h-0 flex-col overflow-hidden rounded-xl border border-slate-800 bg-[#0b181e]">
+          <div class="flex items-center justify-between border-b border-slate-800 px-4 py-3">
             <div>
               <h2 class="text-sm font-semibold">Image workspace</h2>
               <p class="text-xs text-slate-500">
@@ -42,66 +31,30 @@
               </p>
             </div>
             <div class="flex items-center gap-3 text-xs text-slate-400">
-              <label
-                >Opacity
-                <input
-                  v-model.number="opacity"
-                  type="range"
-                  min="0"
-                  max="1"
-                  step=".05"
-                  class="w-20 accent-teal-400"
-                />
-                {{ Math.round(opacity * 100) }}%</label
-              ><button
-                class="rounded border border-slate-700 px-3 py-1.5 hover:bg-slate-800"
-                @click="picker?.click()"
-              >
-                Choose image</button
-              ><input
-                ref="picker"
-                class="hidden"
-                type="file"
-                accept="image/*"
-                @change="picked"
-              />
+              <label>Opacity
+                <input v-model.number="opacity" type="range" min="0" max="1" step=".05" class="w-20 accent-teal-400" />
+                {{ Math.round(opacity * 100) }}%</label><button
+                class="rounded border border-slate-700 px-3 py-1.5 hover:bg-slate-800" @click="picker?.click()">
+                Choose image</button><input ref="picker" class="hidden" type="file" accept="image/*" @change="picked" />
             </div>
           </div>
-          <div
-            class="relative flex min-h-[540px] flex-1 items-center justify-center bg-black/40 p-3"
-            @dragover.prevent
-            @drop.prevent="dropped"
-          >
-            <CoralImageViewer
-              v-if="imageUrl"
-              :image-src="imageUrl"
-              :segments="segments"
-              :selected="selected"
-              :opacity="opacity"
-              @toggle="toggle"
-            />
+          <div class="relative flex min-h-[540px] flex-1 items-center justify-center bg-black/40 p-3" @dragover.prevent
+            @drop.prevent="dropped">
+            <CoralImageViewer v-if="imageUrl" :image-src="imageUrl" :segments="segments" :selected="selected"
+              :opacity="opacity" @toggle="toggle" />
             <div v-else class="text-center">
               <p class="text-base">Drop an underwater image here</p>
               <p class="mt-2 text-sm text-slate-500">
                 Segmentation overlays will appear directly on the photograph.
               </p>
-              <button
-                class="mt-4 rounded bg-teal-400 px-4 py-2 text-sm font-semibold text-[#062126]"
-                @click="picker?.click()"
-              >
+              <button class="mt-4 rounded bg-teal-400 px-4 py-2 text-sm font-semibold text-[#062126]"
+                @click="picker?.click()">
                 Browse image
               </button>
             </div>
-            <div
-              v-if="loading.segment"
-              class="absolute inset-0 flex items-center justify-center bg-[#071116]/45"
-            >
-              <div
-                class="rounded border border-slate-700 bg-[#0d1b21] px-5 py-4 text-center"
-              >
-                <i
-                  class="mx-auto block h-5 w-5 rounded-full border-2 border-teal-300 border-t-transparent"
-                ></i>
+            <div v-if="loading.segment" class="absolute inset-0 flex items-center justify-center bg-[#071116]/45">
+              <div class="rounded border border-slate-700 bg-[#0d1b21] px-5 py-4 text-center">
+                <i class="mx-auto block h-5 w-5 rounded-full border-2 border-teal-300 border-t-transparent"></i>
                 <p class="mt-2 text-sm">Segmenting image</p>
                 <p class="text-xs text-slate-400">
                   This may take several minutes.
@@ -109,18 +62,11 @@
               </div>
             </div>
           </div>
-          <footer
-            class="flex justify-between border-t border-slate-800 px-4 py-3 text-xs"
-          >
-            <span class="text-slate-500"
-              ><b class="text-slate-200">{{ selected.size }}</b> of
-              {{ segments.length }} segments selected</span
-            >
-            <button
-              :disabled="!selected.size || loading.identify"
-              class="rounded bg-teal-400 px-3 py-2 font-semibold text-[#062126] disabled:opacity-40"
-              @click="identify"
-            >
+          <footer class="flex justify-between border-t border-slate-800 px-4 py-3 text-xs">
+            <span class="text-slate-500"><b class="text-slate-200">{{ selected.size }}</b> of
+              {{ segments.length }} segments selected</span>
+            <button :disabled="!selected.size || loading.identify"
+              class="rounded bg-teal-400 px-3 py-2 font-semibold text-[#062126] disabled:opacity-40" @click="identify">
               {{
                 loading.identify
                   ? "Finding candidates..."
@@ -129,40 +75,27 @@
             </button>
           </footer>
         </section>
-        <aside
-          class="flex min-h-0 flex-col overflow-hidden rounded-xl border border-slate-800 bg-[#0b181e]"
-        >
+        <aside class="flex min-h-0 flex-col overflow-hidden rounded-xl border border-slate-800 bg-[#0b181e]">
           <div class="border-b border-slate-800 bg-[#0e1d23] p-4">
             <h2 class="text-sm font-semibold">Potential matches</h2>
             <p class="mt-1 text-xs text-slate-500">
               Compare selected coral with past observations.
             </p>
             <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
-              <label
-                >Dive site<select
-                  v-model="site"
-                  class="mt-1 block w-full rounded border border-slate-700 bg-[#091419] p-2 text-slate-200"
-                >
+              <label>Dive site<select v-model="site"
+                  class="mt-1 block w-full rounded border border-slate-700 bg-[#091419] p-2 text-slate-200">
                   <option>Isla Larga</option>
                   <option>Olohuita</option>
-                </select></label
-              ><label
-                >Colony name<input
-                  v-model="name"
-                  class="mt-1 w-full rounded border border-slate-700 bg-[#091419] p-2 text-slate-200"
-              /></label>
+                </select></label><label>Colony name<input v-model="name"
+                  class="mt-1 w-full rounded border border-slate-700 bg-[#091419] p-2 text-slate-200" /></label>
             </div>
             <div
-              class="mt-3 flex items-center justify-between rounded border border-slate-700 bg-[#091419] p-2 text-xs"
-            >
-              <span
-                >Selection:
-                <b>{{ active?.coralName || "New coral colony" }}</b></span
-              ><button
+              class="mt-3 flex items-center justify-between rounded border border-slate-700 bg-[#091419] p-2 text-xs">
+              <span>Selection:
+                <b>{{ active?.coralName || "New coral colony" }}</b></span><button
                 :disabled="!selected.size || loading.confirm"
                 class="rounded bg-teal-400 px-3 py-1.5 font-semibold text-[#062126] disabled:opacity-40"
-                @click="confirm"
-              >
+                @click="confirm">
                 {{
                   loading.confirm
                     ? "Saving..."
@@ -172,60 +105,34 @@
                 }}
               </button>
             </div>
-            <button
-              v-if="active"
-              class="mt-2 text-xs text-teal-300"
-              @click="activeId = ''"
-            >
+            <button v-if="active" class="mt-2 text-xs text-teal-300" @click="activeId = ''">
               Save as new coral instead
             </button>
           </div>
           <div class="min-h-0 flex-1 overflow-y-auto p-3">
-            <div
-              v-if="loading.segment || loading.identify"
-              class="flex h-full min-h-[180px] flex-col items-center justify-center text-sm text-slate-400"
-            >
-              <i
-                class="h-5 w-5 rounded-full border-2 border-teal-300 border-t-transparent"
-              ></i>
+            <div v-if="loading.segment || loading.identify"
+              class="flex h-full min-h-[180px] flex-col items-center justify-center text-sm text-slate-400">
+              <i class="h-5 w-5 rounded-full border-2 border-teal-300 border-t-transparent"></i>
               <p class="mt-3">Calculating possible matches...</p>
             </div>
-            <p
-              v-else-if="!imageUrl"
-              class="mt-20 text-center text-sm text-slate-500"
-            >
+            <p v-else-if="!imageUrl" class="mt-20 text-center text-sm text-slate-500">
               Upload an image to begin comparison.
             </p>
-            <p
-              v-else-if="!candidates.length"
-              class="mt-20 text-center text-sm text-slate-500"
-            >
+            <p v-else-if="!candidates.length" class="mt-20 text-center text-sm text-slate-500">
               No matching colonies found. You can save this observation as a new
               colony.
             </p>
-            <button
-              v-for="c in candidates"
-              v-else
-              :key="c.id"
-              class="mb-2 grid w-full grid-cols-[130px_1fr] overflow-hidden rounded-lg border text-left"
-              :class="
-                activeId === c.id
-                  ? 'border-teal-400 bg-teal-400/10'
-                  : 'border-slate-800 bg-[#091419]'
-              "
-              @click="
-                activeId === c.id
-                  ? activeId = ''
-                  : activeId = c.id"
-            >
-              <div
-                class="flex h-[108px] items-center justify-center bg-slate-900"
-              >
-                <img
-                  v-if="c.imageUrl"
-                  :src="c.imageUrl"
-                  class="h-full w-full object-contain"
-                /><span v-else class="text-xs text-slate-600">No preview</span>
+            <button v-for="c in candidates" v-else :key="c.id"
+              class="mb-2 grid w-full grid-cols-[130px_1fr] overflow-hidden rounded-lg border text-left" :class="activeId === c.id
+                ? 'border-teal-400 bg-teal-400/10'
+                : 'border-slate-800 bg-[#091419]'
+                " @click="
+                  activeId === c.id
+                    ? activeId = ''
+                    : activeId = c.id">
+              <div class="flex h-[108px] items-center justify-center bg-slate-900">
+                <img v-if="c.imageUrl" :src="c.imageUrl" class="h-full w-full object-contain" /><span v-else
+                  class="text-xs text-slate-600">No preview</span>
               </div>
               <div class="p-3 text-xs">
                 <b class="text-sm">{{ c.coralName }}</b>
@@ -339,9 +246,9 @@ const confirm = async () => {
   } catch (e) {
     error.value =
       e instanceof Error ? e.message : "Could not save observation.";
-      candidates.value = tmpCandidates;
-      activeId.value = tmpActiveId;
-      selected.value = tmpSelected;
+    candidates.value = tmpCandidates;
+    activeId.value = tmpActiveId;
+    selected.value = tmpSelected;
   } finally {
     loading.confirm = false;
   }
