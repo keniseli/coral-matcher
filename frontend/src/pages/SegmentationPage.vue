@@ -4,38 +4,73 @@
     <div class="mx-auto flex h-full max-w-[1800px] min-h-0 flex-col">
       <header class="mb-4 flex items-center justify-between border-b border-slate-800 pb-3">
         <div>
-          <h1 class="text-base font-semibold">Coral Matcher</h1>
-          <p class="text-xs text-slate-500">
-            Scientific image annotation workspace
+          <h1 class="text-3xl font-bold">Coral Matcher</h1>
+          <p class=" text-xs text-slate-500">
+            Identify and find monitored colonies
           </p>
         </div>
         <div>
           <div v-if="error" class="
-              mb-3 flex justify-between rounded-md border border-red-400 bg-red-950 px-4 py-3 text-sm text-red-100">
-            <span>{{ error }}</span><button @click="error = ''">&nbsp;Dismiss</button>
+              relative mb-3 rounded-md border border-red-400 bg-red-950 px-4 py-3 pr-10 text-sm text-red-100
+              ">
+            <span>{{ error }}</span>
+            <button @click="error = ''" class="absolute right-3 top-3 text-red-200 transition hover:text-white"
+              aria-label="Dismiss">
+              ✕
+            </button>
           </div>
-          <div v-if="message"
-            class="
-              mb-3 flex justify-between rounded-md border border-green-400 bg-green-950 px-4 py-3 text-sm text-green-100">
-            <span>{{ message }}</span><button @click="message = ''">&nbsp;Dismiss</button>
+          <div v-if="info" class="
+              relative mb-3 rounded-md border border-white-400 bg-blue-950 px-4 py-3 pr-10 text-sm text-red-100
+              ">
+            <span>{{ info }}</span>
+            <button @click="info = ''" class="absolute right-3 top-3 text-white-200 transition hover:text-white"
+              aria-label="Dismiss">
+              ✕
+            </button>
+          </div>
+          <div v-if="success" class="
+              relative mb-3 rounded-md border border-green-400 bg-green-95 px-4 py-3 pr-10 text-sm text-red-100
+              ">
+            <span>{{ success }}</span>
+            <button @click="success = ''" class="absolute right-3 top-3 text-green-200 transition hover:text-white"
+              aria-label="Dismiss">
+              ✕
+            </button>
           </div>
         </div>
       </header>
       <div class="grid min-h-0 flex-1 gap-4 xl:grid-cols-[3fr_2fr]">
         <section class="flex min-h-0 flex-col overflow-hidden rounded-xl border border-slate-800 bg-[#0b181e]">
-          <div class="flex items-center justify-between border-b border-slate-800 px-4 py-3">
+          <div class="flex items-center justify-between border-b border-slate-800 px-4 py-3
+                      grid grid-cols-[1fr_2fr_1fr_1fr] text-xs">
             <div>
-              <h2 class="text-sm font-semibold">Image workspace</h2>
               <p class="text-xs text-slate-500">
-                Select every segment that belongs to one colony.
+                Select every segment that belongs to one colony. Drop image to start
               </p>
             </div>
-            <div class="flex items-center gap-3 text-xs text-slate-400">
-              <label>Opacity
-                <input v-model.number="opacity" type="range" min="0" max="1" step=".05" class="w-20 accent-teal-400" />
-                {{ Math.round(opacity * 100) }}%</label><button
-                class="rounded border border-slate-700 px-3 py-1.5 hover:bg-slate-800" @click="picker?.click()">
-                Choose image</button><input ref="picker" class="hidden" type="file" accept="image/*" @change="picked" />
+            <div class="flex flex-col items-center gap-3">
+              <span class="text-slate-400">
+                <b class="text-slate-200">{{ selected.size }}</b> of
+                {{ segments.length }} segments selected
+              </span>
+              <button :disabled="!selected.size || loading.identify"
+                class="rounded bg-teal-400 px-3 py-2 font-semibold text-[#062126] disabled:opacity-40"
+                @click="identify">
+                {{
+                  loading.identify
+                    ? "Finding candidates..."
+                    : "Find coral colony for selection"
+                }}
+              </button>
+            </div>
+            <div class="flex flex-col text-slate-400 gap-3">
+              <label>Opacity: <span class="text-slate-200"><b>{{ Math.round(opacity * 100) }}%</b></span></label>
+              <input v-model.number="opacity" type="range" min="0" max="1" step=".05" class="w-20 accent-teal-400" />
+            </div>
+            <div class="ml-auto">
+              <button class="rounded border border-slate-700 px-3 py-1.5 hover:bg-slate-800" @click="picker?.click()">
+                New Image</button>
+              <input ref="picker" class="hidden" type="file" accept="image/*" @change="picked" />
             </div>
           </div>
           <div class="relative flex min-h-[540px] flex-1 items-center justify-center bg-black/40 p-3" @dragover.prevent
@@ -43,9 +78,9 @@
             <CoralImageViewer v-if="imageUrl" :image-src="imageUrl" :segments="segments" :selected="selected"
               :opacity="opacity" @toggle="toggle" />
             <div v-else class="text-center">
-              <p class="text-base">Drop an underwater image here</p>
+              <p class="text-base">Drop an image here</p>
               <p class="mt-2 text-sm text-slate-500">
-                Segmentation overlays will appear directly on the photograph.
+                Segmentation overlays appear after segmentation results are calculated.
               </p>
               <button class="mt-4 rounded bg-teal-400 px-4 py-2 text-sm font-semibold text-[#062126]"
                 @click="picker?.click()">
@@ -62,37 +97,25 @@
               </div>
             </div>
           </div>
-          <footer class="flex justify-between border-t border-slate-800 px-4 py-3 text-xs">
-            <span class="text-slate-500"><b class="text-slate-200">{{ selected.size }}</b> of
-              {{ segments.length }} segments selected</span>
-            <button :disabled="!selected.size || loading.identify"
-              class="rounded bg-teal-400 px-3 py-2 font-semibold text-[#062126] disabled:opacity-40" @click="identify">
-              {{
-                loading.identify
-                  ? "Finding candidates..."
-                  : "Find coral colony for selection"
-              }}
-            </button>
-          </footer>
         </section>
         <aside class="flex min-h-0 flex-col overflow-hidden rounded-xl border border-slate-800 bg-[#0b181e]">
           <div class="border-b border-slate-800 bg-[#0e1d23] p-4">
             <h2 class="text-sm font-semibold">Potential matches</h2>
             <p class="mt-1 text-xs text-slate-500">
-              Compare selected coral with past observations.
+              Compare uploaded image with past observations
             </p>
             <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
               <label>Dive site<select v-model="site"
                   class="mt-1 block w-full rounded border border-slate-700 bg-[#091419] p-2 text-slate-200">
                   <option>Isla Larga</option>
                   <option>Olohuita</option>
-                </select></label><label>Colony name<input v-model="name"
+                </select></label><label>Coral Colony name<input v-model="name"
                   class="mt-1 w-full rounded border border-slate-700 bg-[#091419] p-2 text-slate-200" /></label>
             </div>
             <div
               class="mt-3 flex items-center justify-between rounded border border-slate-700 bg-[#091419] p-2 text-xs">
               <span>Selection:
-                <b>{{ active?.coralName || "New coral colony" }}</b></span><button
+                <b>{{ active?.coralName || "New Coral Colony" }}</b></span><button
                 :disabled="!selected.size || loading.confirm"
                 class="rounded bg-teal-400 px-3 py-1.5 font-semibold text-[#062126] disabled:opacity-40"
                 @click="confirm">
@@ -170,7 +193,8 @@ const active = computed(() =>
 );
 const opacity = ref(0.55);
 const error = ref("");
-const message = ref("");
+const info = ref("");
+const success = ref("");
 const site = ref("Isla Larga");
 const name = ref(`Coral-${crypto.randomUUID().slice(0, 5).toUpperCase()}`);
 const loading = reactive({ segment: false, identify: false, confirm: false });
@@ -179,6 +203,22 @@ const toggle = (id: number) => {
   next.has(id) ? next.delete(id) : next.add(id);
   selected.value = next;
 };
+const MESSAGE_TYPE_INFO = "info";
+const MESSAGE_TYPE_ERROR = "error";
+const MESSAGE_TYPE_SUCCESS = "success";
+
+const notify = (message: string, type: string) => {
+  success.value = "";
+  info.value = "";
+  error.value = "";
+  if (type === "error")
+    error.value = message;
+  else if (type === "success") {
+    success.value = message;
+  } else {
+    info.value = message;
+  }
+}
 const upload = async (file: File) => {
   if (!file.type.startsWith("image/"))
     return (error.value = "Please select an image file.");
@@ -188,13 +228,14 @@ const upload = async (file: File) => {
   selected.value = new Set();
   candidates.value = [];
   loading.segment = true;
-  error.value = "";
+  notify("Calculating Segments...", MESSAGE_TYPE_INFO);
   try {
     const uploadResult = await segmentation.segmentImage(file);
     segments.value = uploadResult.segments;
     candidates.value = uploadResult.observationCandidates
+    notify("Segments Calculated", MESSAGE_TYPE_SUCCESS);
   } catch (e) {
-    error.value = e instanceof Error ? e.message : "Segmentation failed.";
+    notify(e instanceof Error ? e.message : "Segmentation failed.", MESSAGE_TYPE_ERROR)
   } finally {
     loading.segment = false;
   }
@@ -212,14 +253,16 @@ const identify = async () => {
   loading.identify = true;
   candidates.value = [];
   activeId.value = "";
+  notify("Finding Candidates...", MESSAGE_TYPE_INFO);
   try {
     const r = await identifyService.identifyCoral(
       segments.value.filter((s) => selected.value.has(s.id)),
       image.value,
     );
     candidates.value = r.candidates ?? [];
+    notify("Found " + candidates.value.length + " Candidates", MESSAGE_TYPE_SUCCESS);
   } catch (e) {
-    error.value = e instanceof Error ? e.message : "Could not find matches.";
+    notify(e instanceof Error ? e.message : "Could not find matches.", MESSAGE_TYPE_ERROR);
   } finally {
     loading.identify = false;
   }
@@ -230,6 +273,7 @@ const confirm = async () => {
   const tmpCandidates = candidates.value;
   const tmpActiveId = activeId.value;
   const tmpSelected = selected.value;
+  notify("Saving Observation...", MESSAGE_TYPE_INFO);
   try {
     candidates.value = [];
     activeId.value = "";
@@ -241,11 +285,10 @@ const confirm = async () => {
       diveSite: site.value,
       coralName: name.value,
     });
-    message.value = "Coral " + name.value + " has been successfully saved.";
+    notify("Coral " + name.value + " has been successfully saved", MESSAGE_TYPE_SUCCESS);
     name.value = `Coral-${crypto.randomUUID().slice(0, 5).toUpperCase()}`;
   } catch (e) {
-    error.value =
-      e instanceof Error ? e.message : "Could not save observation.";
+    notify(e instanceof Error ? e.message : "Could not save Observation", MESSAGE_TYPE_ERROR);
     candidates.value = tmpCandidates;
     activeId.value = tmpActiveId;
     selected.value = tmpSelected;
