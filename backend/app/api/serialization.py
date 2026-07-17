@@ -9,13 +9,14 @@ import cv2
 from app.persistence.storage import decode_image_stream
 from app.segmentation.models import SegmentationResult
 from app.orchestration.models import IdentifyRequest
+from app.domain.observation import Observation
 
 
-
-def serialize_segmentation_response(result: SegmentationResult) -> dict:
+def serialize_image_upload_response(result: SegmentationResult, observation_candidates: list[Observation]) -> dict:
     """
     Convert a SegmentationResult into a JSON-compatible API response.
     """
+
     return {
         "image": {
             "height": result.image_height,
@@ -39,6 +40,18 @@ def serialize_segmentation_response(result: SegmentationResult) -> dict:
             }
             for segment in result.segments
         ],
+        "observationCandidates": [
+            {
+                "id": observation.id,
+                "coralId": observation.id,
+                "monitoringSessionDate": observation.created_at,
+                #TODO: find a way to show visual similarity. is this distance between the vectors? or the confidence of the segment? 
+                "visualSimilarity": 0.83,
+                "diveSite": observation.dive_site,
+                "imageUrl": observation.image_path,
+            }
+            for observation in observation_candidates
+        ]
     }
     
 def _extract_file_from_request(request: Request, parameter_name: str):

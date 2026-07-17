@@ -37,3 +37,7 @@ class Segment:
     bbox: BoundingBox
     predictedIoU: float
     stabilityScore: float
+    
+    def score(self) -> float :
+        area = self.bbox.width * self.bbox.height
+        return area * self.predictedIoU

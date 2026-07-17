@@ -1,4 +1,4 @@
-from sqlmodel import create_engine
+from sqlmodel import create_engine, Session
 from dotenv import load_dotenv
 import os
 
@@ -10,3 +10,6 @@ engine = create_engine(
     DATABASE_URL,
     echo=True,
 )
+
+def get_session() -> Session:
+    return Session(engine)
