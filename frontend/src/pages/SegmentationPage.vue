@@ -42,10 +42,10 @@
       <div class="grid min-h-0 flex-1 gap-4 xl:grid-cols-[3fr_2fr]">
         <section class="flex min-h-0 flex-col overflow-hidden rounded-xl border border-slate-800 bg-[#0b181e]">
           <div class="flex items-center justify-between border-b border-slate-800 px-4 py-3
-                      grid grid-cols-[1fr_2fr_1fr_1fr] text-xs">
+                      grid grid-cols-[2fr_2fr_1fr_1fr] text-xs">
             <div>
               <p class="text-xs text-slate-500">
-                Select every segment that belongs to one colony. Drop image to start
+                Select every segment that belongs to one colony or choose from past observations. Drop image to start
               </p>
             </div>
             <div class="flex flex-col items-center gap-3">
