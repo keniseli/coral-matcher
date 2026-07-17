@@ -4,6 +4,7 @@ from typing import List
 import uuid
 from app.orchestration.models import IdentifyRequest, IdentifyResult
 import numpy as np
+import os
 
 from app.cropping.cropper import BoundingBoxCropper
 from app.embedding.embedding import EmbeddingService
@@ -12,8 +13,9 @@ from app.segmentation.provider_factory import get_segmentation_provider
 from app.domain.observation import Observation
 from app.orchestration.models import ConfirmResult
 from app.persistence.observation_repository import ObservationRepository
-from app.domain.models import Segment
+from app.domain.models import Segment, ObservationCandidate
 from app.persistence.storage import upload_image_to_bucket
+
 
 class CoralService:
     """
@@ -21,6 +23,8 @@ class CoralService:
 
     The HTTP layer should only call this service.
     """
+    
+    DISTANCE_THRESHOLD = float(os.environ.get("DISTANCE_THRESHOLD", "0.2"))
 
     def __init__(self) -> None:
         self.segmenter = get_segmentation_provider()
@@ -41,15 +45,15 @@ class CoralService:
 
         return self.segmenter.segment(image, filename)
 
-    def find_similar_observations(self, image: np.ndarray, segment: Segment) -> list[Observation]:
+    def find_similar_observations(self, image: np.ndarray, segment: Segment) -> list[ObservationCandidate]:
         """
         Finds similar observations by first detecting the embedding and then comparing it against
         what is stored in the db.
         """
         
         identify_result = self.identify(image, [segment])
-        # TODO: this will always return observations. Should find only actually similar ones
-        return self.observation_repository.find_similar(identify_result.embedding)
+        candidates = self.observation_repository.find_similar(identify_result.embedding)
+        return [candidate for candidate in candidates if candidate.distance < self.DISTANCE_THRESHOLD]
 
     def identify(self, image: np.ndarray, segments: list[Segment]) -> IdentifyResult:
         """

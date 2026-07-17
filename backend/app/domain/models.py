@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import List
-
+from app.domain.observation import Observation
 
 @dataclass(slots=True)
 class Point:
@@ -41,3 +41,9 @@ class Segment:
     def score(self) -> float :
         area = self.bbox.width * self.bbox.height
         return area * self.predictedIoU
+    
+@dataclass(slots=True)
+class ObservationCandidate:
+    observation: Observation
+    distance: float
+    similarity: float

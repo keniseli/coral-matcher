@@ -100,7 +100,7 @@
         </section>
         <aside class="flex min-h-0 flex-col overflow-hidden rounded-xl border border-slate-800 bg-[#0b181e]">
           <div class="border-b border-slate-800 bg-[#0e1d23] p-4">
-            <h2 class="text-sm font-semibold">Potential matches</h2>
+            <h2 class="text-sm font-semibold">Candidates</h2>
             <p class="mt-1 text-xs text-slate-500">
               Compare uploaded image with past observations
             </p>

@@ -10,9 +10,10 @@ from app.persistence.storage import decode_image_stream
 from app.segmentation.models import SegmentationResult
 from app.orchestration.models import IdentifyRequest, ConfirmRequest
 from app.domain.observation import Observation
+from app.domain.models import ObservationCandidate
 
 
-def serialize_image_upload_response(result: SegmentationResult, observation_candidates: list[Observation]) -> dict:
+def serialize_image_upload_response(result: SegmentationResult, observation_candidates: list[ObservationCandidate]) -> dict:
     """
     Convert a SegmentationResult into a JSON-compatible API response.
     """
@@ -42,17 +43,16 @@ def serialize_image_upload_response(result: SegmentationResult, observation_cand
         ],
         "observationCandidates": [
             {
-                "id": observation.id,
-                "coralId": observation.id,
-                "coralName": observation.coral_name,
-                "monitoringSessionDate": observation.created_at,
-                #TODO: find a way to show visual similarity. is this distance between the vectors? or the confidence of the segment? 
-                "visualSimilarity": 0.83,
-                "diveSite": observation.dive_site,
+                "id": candidate.observation.id,
+                "coralId": candidate.observation.id,
+                "coralName": candidate.observation.coral_name,
+                "monitoringSessionDate": candidate.observation.created_at,
+                "visualSimilarity": candidate.similarity,
+                "diveSite": candidate.observation.dive_site,
                 # intentionally return a smaller image
-                "imageUrl": observation.cropped_image_path,
+                "imageUrl": candidate.observation.cropped_image_path,
             }
-            for observation in observation_candidates
+            for candidate in observation_candidates
         ]
     }
     
