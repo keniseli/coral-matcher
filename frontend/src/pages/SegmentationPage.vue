@@ -108,7 +108,8 @@
             <span class="text-slate-500"
               ><b class="text-slate-200">{{ selected.size }}</b> of
               {{ segments.length }} segments selected</span
-            ><button
+            >
+            <button
               :disabled="!selected.size || loading.identify"
               class="rounded bg-teal-400 px-3 py-2 font-semibold text-[#062126] disabled:opacity-40"
               @click="identify"
@@ -217,7 +218,7 @@
                 /><span v-else class="text-xs text-slate-600">No preview</span>
               </div>
               <div class="p-3 text-xs">
-                <b class="text-sm">{{ c.coralId }}</b>
+                <b class="text-sm">{{ c.coralName }}</b>
                 <p class="mt-2 text-teal-300">
                   Visual similarity {{ Math.round(c.visualSimilarity * 100) }}%
                 </p>
@@ -271,7 +272,9 @@ const upload = async (file: File) => {
   loading.segment = true;
   error.value = "";
   try {
-    segments.value = (await segmentation.segmentImage(file)).segments;
+    const uploadResult = await segmentation.segmentImage(file);
+    segments.value = uploadResult.segments;
+    candidates.value = uploadResult.observationCandidates
   } catch (e) {
     error.value = e instanceof Error ? e.message : "Segmentation failed.";
   } finally {

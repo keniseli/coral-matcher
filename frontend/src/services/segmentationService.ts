@@ -1,9 +1,12 @@
+import { CoralCandidate } from '@/types/api';
 import type { Segment } from '../types/segment'
 
 export interface SegmentResponse {
   segmentationId: string
+  // TODO: are image dimensions required at all?
   image: { width: number; height: number }
   segments: Segment[]
+  observationCandidates: [CoralCandidate]
 }
 
 async function segmentImage(file: File): Promise<SegmentResponse> {

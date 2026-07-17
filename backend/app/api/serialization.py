@@ -44,11 +44,13 @@ def serialize_image_upload_response(result: SegmentationResult, observation_cand
             {
                 "id": observation.id,
                 "coralId": observation.id,
+                "coralName": observation.coral_name,
                 "monitoringSessionDate": observation.created_at,
                 #TODO: find a way to show visual similarity. is this distance between the vectors? or the confidence of the segment? 
                 "visualSimilarity": 0.83,
                 "diveSite": observation.dive_site,
-                "imageUrl": observation.image_path,
+                # intentionally return a smaller image
+                "imageUrl": observation.cropped_image_path,
             }
             for observation in observation_candidates
         ]

@@ -31,6 +31,7 @@ async function confirmCoral(request: ConfirmCoralRequest): Promise<void> {
   form.append('coralName', request.coralName)
   const res = await fetch(url, { method: 'POST', body: form })
   if (!res.ok) throw new Error('Confirmation request failed.')
+  return res.json()
 }
 
 export default { identifyCoral, confirmCoral }
