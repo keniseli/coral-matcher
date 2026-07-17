@@ -21,6 +21,13 @@
         <span>{{ error }}</span
         ><button @click="error = ''">Dismiss</button>
       </div>
+      <div
+        v-if="message"
+        class="mb-3 flex justify-between rounded-md border border-green-400/40 bg-green-950/40 px-4 py-3 text-sm text-green-100"
+      >
+        <span>{{ message }}</span
+        ><button @click="message = ''">Dismiss</button>
+      </div>
       <div class="grid min-h-0 flex-1 gap-4 xl:grid-cols-[3fr_2fr]">
         <section
           class="flex min-h-0 flex-col overflow-hidden rounded-xl border border-slate-800 bg-[#0b181e]"
@@ -150,7 +157,7 @@
             >
               <span
                 >Selection:
-                <b>{{ active?.coralId || "New coral colony" }}</b></span
+                <b>{{ active?.coralName || "New coral colony" }}</b></span
               ><button
                 :disabled="!selected.size || loading.confirm"
                 class="rounded bg-teal-400 px-3 py-1.5 font-semibold text-[#062126] disabled:opacity-40"
@@ -181,7 +188,7 @@
               <i
                 class="h-5 w-5 rounded-full border-2 border-teal-300 border-t-transparent"
               ></i>
-              <p class="mt-3">Calculating possible matches?</p>
+              <p class="mt-3">Calculating possible matches...</p>
             </div>
             <p
               v-else-if="!imageUrl"
@@ -206,7 +213,10 @@
                   ? 'border-teal-400 bg-teal-400/10'
                   : 'border-slate-800 bg-[#091419]'
               "
-              @click="activeId = c.id"
+              @click="
+                activeId === c.id
+                  ? activeId = ''
+                  : activeId = c.id"
             >
               <div
                 class="flex h-[108px] items-center justify-center bg-slate-900"
@@ -253,6 +263,7 @@ const active = computed(() =>
 );
 const opacity = ref(0.55);
 const error = ref("");
+const message = ref("");
 const site = ref("Isla Larga");
 const name = ref(`Coral-${crypto.randomUUID().slice(0, 5).toUpperCase()}`);
 const loading = reactive({ segment: false, identify: false, confirm: false });
@@ -309,18 +320,28 @@ const identify = async () => {
 const confirm = async () => {
   if (!image.value) return;
   loading.confirm = true;
+  const tmpCandidates = candidates.value;
+  const tmpActiveId = activeId.value;
+  const tmpSelected = selected.value;
   try {
+    candidates.value = [];
+    activeId.value = "";
+    selected.value = new Set();
     await identifyService.confirmCoral({
       image: image.value,
-      selectedSegments: segments.value.filter((s) => selected.value.has(s.id)),
-      selectedCandidateId: activeId.value || null,
+      selectedSegments: segments.value.filter((s) => tmpSelected.has(s.id)),
+      selectedCandidateId: tmpActiveId || null,
       diveSite: site.value,
       coralName: name.value,
     });
+    message.value = "Coral " + name.value + " has been successfully saved.";
     name.value = `Coral-${crypto.randomUUID().slice(0, 5).toUpperCase()}`;
   } catch (e) {
     error.value =
       e instanceof Error ? e.message : "Could not save observation.";
+      candidates.value = tmpCandidates;
+      activeId.value = tmpActiveId;
+      selected.value = tmpSelected;
   } finally {
     loading.confirm = false;
   }
