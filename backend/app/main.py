@@ -8,7 +8,7 @@ from functools import reduce
 
 from app.orchestration.coral_service import CoralService
 from app.persistence.storage import decode_image_stream
-from app.api.serialization import parse_identify_request, serialize_identify_response, serialize_image_upload_response
+from app.api.serialization import parse_identify_request, serialize_identify_response, serialize_image_upload_response, parse_confirm_request
 
 
 logger = logging.getLogger(__name__)
@@ -56,6 +56,16 @@ def process_coral_upload(request: Request):
             result = service.identify(identify_request.image, identify_request.selected_segments)
             response = serialize_identify_response(result)
             return add_cors_headers(response)
+        
+        if request.path == "/api/confirm-coral":
+            confirm_request = parse_confirm_request(request)
+            observation = service.confirm_observation(confirm_request.image,
+                confirm_request.selected_segments,
+                confirm_request.selected_candidate_id,
+                confirm_request.dive_site,
+                confirm_request.coral_name
+            ).observation
+            return add_cors_headers({"observationId": observation.id})
 
         return add_cors_headers({"error": "Unknown endpoint."}, 404)
 

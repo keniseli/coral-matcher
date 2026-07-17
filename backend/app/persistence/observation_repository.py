@@ -1,4 +1,5 @@
 from sqlmodel import Session, select
+import uuid
 
 from app.domain.observation import Observation
 from .database import get_session
@@ -20,3 +21,7 @@ class ObservationRepository:
         )
         session: Session = get_session()
         return list(session.exec(statement))
+
+    def find_by_id(self, id: str) -> Observation:
+        session = get_session()
+        return session.get(Observation, uuid.UUID(id))

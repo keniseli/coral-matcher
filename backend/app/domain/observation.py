@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import TYPE_CHECKING
 
 import uuid
 from datetime import datetime
@@ -8,6 +9,9 @@ from sqlalchemy import Column
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, SQLModel
 from app.embedding.embedding import EMBEDDING_DIMENSION
+
+if TYPE_CHECKING:
+    from app.domain.monitoring_session import MonitoringSession
 
 class Observation(SQLModel, table=True):
     __tablename__ = "observations"
@@ -23,9 +27,10 @@ class Observation(SQLModel, table=True):
     )
 
     monitoring_session_id: uuid.UUID = Field(
-        foreign_key="monitoring_sessions.id",
-        nullable=False,
+        foreign_key="monitoring_sessions.id"
     )
+    
+    coral_name: str
 
     dive_site: str
 
@@ -37,11 +42,10 @@ class Observation(SQLModel, table=True):
 
     image_height: int
 
-    crop_polygon: list[dict] = Field(
-        sa_column=Column(JSONB, nullable=False)
-    )
+    cropped_image_path: str
 
     created_at: datetime = Field(
-        default_factory=datetime.now(),
+        default_factory=datetime.now,
         nullable=False,
     )
+    

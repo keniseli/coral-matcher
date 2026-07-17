@@ -25,16 +25,16 @@ def encode_image(image: np.ndarray, image_format: str = ".jpg") -> bytes:
         raise ValueError("Failed to encode image for storage upload.")
     return encoded_buffer.tobytes()
 
-def upload_image_bytes(image_bytes: bytes, destination_path: str, content_type: str = "image/jpeg") -> str:
+def upload_image_bytes_to_bucket(image_bytes: bytes, destination_path: str, content_type: str = "image/jpeg") -> str:
     storage_client = get_storage_client()
     bucket = storage_client.bucket(BUCKET_NAME)
     blob = bucket.blob(destination_path)
     blob.upload_from_string(image_bytes, content_type=content_type)
     return f"https://storage.googleapis.com/{BUCKET_NAME}/{destination_path}"
 
-def upload_image(image: np.ndarray, destination_path: str, image_format: str = ".jpg", content_type: str = "image/jpeg") -> str:
+def upload_image_to_bucket(image: np.ndarray, destination_path: str, image_format: str = ".jpg", content_type: str = "image/jpeg") -> str:
     encoded_bytes = encode_image(image, image_format)
-    return upload_image_bytes(encoded_bytes, destination_path, content_type=content_type)
+    return upload_image_bytes_to_bucket(encoded_bytes, destination_path, content_type=content_type)
 
 def save_debug_image(image: np.ndarray, destination_path: str) -> None:
     cv2.imwrite(destination_path, image)

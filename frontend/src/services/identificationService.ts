@@ -27,8 +27,8 @@ async function confirmCoral(request: ConfirmCoralRequest): Promise<void> {
   form.append('image', request.image)
   form.append('segments', JSON.stringify({ selectedSegments: request.selectedSegments }))
   form.append('selectedCandidateId', request.selectedCandidateId ?? '')
-  form.append('dive_site', request.diveSite)
-  form.append('coral_name', request.coralName)
+  form.append('diveSite', request.diveSite)
+  form.append('coralName', request.coralName)
   const res = await fetch(url, { method: 'POST', body: form })
   if (!res.ok) throw new Error('Confirmation request failed.')
 }
