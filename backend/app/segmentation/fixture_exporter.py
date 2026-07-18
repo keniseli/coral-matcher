@@ -4,10 +4,9 @@ import json
 import re
 from pathlib import Path
 from typing import Any
-from app.domain.models import BoundingBox, Point
 import cv2
+from datetime import datetime
 import numpy as np
-from app.domain.models import Segment
 from app.persistence.storage import save_debug_image
 
 def export_segmentation_fixture(image: np.ndarray, image_filename: str, masks: list[dict[str, Any]]) -> None:
@@ -18,10 +17,13 @@ def export_segmentation_fixture(image: np.ndarray, image_filename: str, masks: l
     match = re.search(r"(?:^|_)([A-Za-z]+)_T\d+_c(\d+)(?:_[A-Z])?\.(?:jpe?g|png|bmp|tif|tiff)", image_filename, re.I)
     site = match.group(1).lower() if match else "default"
     coral_id = f"c{match.group(2)}" if match else "default"
-    fixture_stem = f"{site}_{coral_id}"
+    fixture_coral_id = f"{site}_{coral_id}"
 
-    target_image_path = output_dir / f"{fixture_stem}.jpg"
-    target_json_path = output_dir / f"{fixture_stem}.json"
+    coral_directory = output_dir / fixture_coral_id
+    coral_directory.mkdir(parents=True, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M");
+    target_image_path = coral_directory / f"{timestamp}.jpg"
+    target_json_path = coral_directory / f"{timestamp}.json"
 
     save_debug_image(image, str(target_image_path))
 
@@ -54,6 +56,7 @@ def export_segmentation_fixture(image: np.ndarray, image_filename: str, masks: l
     height, width = image.shape[:2]
     payload = {
         "coralId": coral_id,
+        "coralName": coral_id,
         "image": {
             "width": width,
             "height": height,

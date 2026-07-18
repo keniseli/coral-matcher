@@ -1,6 +1,7 @@
 import os
 import cv2
 import torch
+import numpy as np
 import torchvision.models as models
 import torchvision.transforms as transforms
 
@@ -36,7 +37,15 @@ class EmbeddingService:
     def generate_vector_embedding(self, cv2_image):
         """ Transforms an OpenCV image matrix into a 512-dimension spatial vector array. """
         rgb_img = cv2.cvtColor(cv2_image, cv2.COLOR_BGR2RGB)
+        
         tensor_img = transform_pipeline(rgb_img).unsqueeze(0).to(device)
+        
         with torch.no_grad():
             embedding_tensor = torch.squeeze(resnet_model(tensor_img))
-            return embedding_tensor.cpu().numpy().tolist()
+            embedding = embedding_tensor.cpu().numpy()
+            
+            # Normalizing is not _really_ necessary but it will standarize the length of all vectors to 1
+            norm = np.linalg.norm(embedding)
+            embedding = embedding / norm
+            return embedding.tolist()
+        

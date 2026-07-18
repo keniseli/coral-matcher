@@ -22,36 +22,26 @@ class FixtureProvider(SegmentationProvider):
         self.fixtures_dir = Path(fixtures_dir) if fixtures_dir is not None else base_dir / "dev_fixtures"
         self.fixtures_dir.mkdir(parents=True, exist_ok=True)
 
-    def _fixture_key_for_filename(self, image_filename: str) -> tuple[str, str]:
-        if not image_filename:
-            return "default", "default"
+    def _get_fixture_json_path(self, image_filename: str) -> Path:
+        image_path = next(self.fixtures_dir.rglob(image_filename), None)
 
-        match = re.search(r"(?:^|_)([A-Za-z]+)_T\d+_c(\d+)(?:_[A-Z])?\.(?:jpe?g|png|bmp|tif|tiff)", image_filename, re.I)
-        if not match:
-            return "default", "default"
+        if image_path is None:
+            raise FileNotFoundError(
+                f"Image fixture not found: {image_filename}"
+            )
 
-        site = match.group(1).lower()
-        coral_id = f"c{match.group(2)}"
-        return site, coral_id
+        json_path = image_path.with_suffix(".json")
 
-    def _resolve_fixture_path(self, image_filename: str) -> Path:
-        site, coral_id = self._fixture_key_for_filename(image_filename)
-        candidate_stem = f"{site}_{coral_id}"
-        candidate_json = self.fixtures_dir / f"{candidate_stem}.json"
-        if candidate_json.exists():
-            logger.info(f"[Fixture] Loaded fixture: {candidate_stem}")
-            return candidate_json
+        if not json_path.exists():
+            raise FileNotFoundError(
+                f"JSON fixture not found for image: {image_path}"
+            )
 
-        default_json = self.fixtures_dir / "default.json"
-        if default_json.exists():
-            logger.info("[Fixture] Fixture not found, using default fixture.")
-            return default_json
-
-        raise FileNotFoundError(f"No fixture found for {image_filename} and no default fixture exists at {default_json}")
+        return json_path
 
     def segment(self, image: np.ndarray | None, image_filename: str) -> SegmentationResult:
-        fixture_path = self._resolve_fixture_path(image_filename)
-        with fixture_path.open("r", encoding="utf-8") as handle:
+        json_file = self._get_fixture_json_path(image_filename)
+        with json_file.open("r", encoding="utf-8") as handle:
             payload = json.load(handle)
 
         image_payload = payload.get("image", {})

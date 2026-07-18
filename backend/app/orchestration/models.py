@@ -8,6 +8,7 @@ from dataclasses import dataclass
 @dataclass(slots=True)
 class IdentifyResult:
     crop: np.ndarray
+    masked_image: np.ndarray
     embedding: list[float]
     selected_segments: list[Segment]
 

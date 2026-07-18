@@ -15,7 +15,7 @@ from app.orchestration.models import ConfirmResult
 from app.persistence.observation_repository import ObservationRepository
 from app.domain.models import Segment, ObservationCandidate
 from app.persistence.storage import upload_image_to_bucket
-
+from app.vision.vision import VisionService
 
 class CoralService:
     """
@@ -24,12 +24,13 @@ class CoralService:
     The HTTP layer should only call this service.
     """
     
-    DISTANCE_THRESHOLD = float(os.environ.get("DISTANCE_THRESHOLD", "0.2"))
+    EMBEDDING_VECTOR_DISTANCE_THRESHOLD = float(os.environ.get("EMBEDDING_VECTOR_DISTANCE_THRESHOLD", "0.2"))
 
     def __init__(self) -> None:
         self.segmenter = get_segmentation_provider()
         self.cropper = BoundingBoxCropper()
         self.embedding_service = EmbeddingService()
+        self.vision_service = VisionService()
         self.observation_repository = ObservationRepository()
 
     def segment_image(
@@ -53,22 +54,34 @@ class CoralService:
         
         identify_result = self.identify(image, [segment])
         candidates = self.observation_repository.find_similar(identify_result.embedding)
-        return [candidate for candidate in candidates if candidate.distance < self.DISTANCE_THRESHOLD]
+        return self.apply_embedding_distance_filter(candidates)
+
+    def apply_embedding_distance_filter(self, candidates):
+        """
+        Filter the given candidates according to configured threshold. 
+        Can be controlled by environment variable EMBEDDING_VECTOR_DISTANCE_THRESHOLD with values [0..1]
+        """
+        
+        return [candidate for candidate in candidates if candidate.distance < self.EMBEDDING_VECTOR_DISTANCE_THRESHOLD]
 
     def identify(self, image: np.ndarray, segments: list[Segment]) -> IdentifyResult:
         """
-        Creates one merged crop from the selected segments and
+        Creates one merged crop from the selected segments, masks the crop and
         generates an embedding.
         """
         if not segments:
             raise ValueError("No segments selected.")
 
-        crop_result = self.cropper.crop(image=image, segments=segments)
+        mask_result = self.vision_service.mask(image=image, segments=segments)
+        
+        # TODO: write a test to crop using a smaller padding ratio than 0.15
+        crop_result = self.cropper.crop(image=mask_result.masked_image, segments=segments)
 
         embedding = self.embedding_service.generate_vector_embedding(crop_result.crop)
 
         return IdentifyResult(
             crop=crop_result.crop,
+            masked_image=mask_result.masked_image,
             embedding=embedding,
             selected_segments=segments,
         )
@@ -84,10 +97,12 @@ class CoralService:
             coral_name = related_observation.coral_name
             dive_site = related_observation.dive_site
         
+        identifyResult = self.identify(image, segments)
+        
         observation = Observation()
         observation.coral_name = coral_name
         observation.dive_site = dive_site
-        observation.embedding = self.embedding_service.generate_vector_embedding(image)
+        observation.embedding = identifyResult.embedding
 
         directory_in_bucket = f"{dive_site}/{coral_name}"
         image_path = upload_image_to_bucket(image, f"{directory_in_bucket}/{observation.created_at}")
@@ -97,11 +112,15 @@ class CoralService:
         observation.image_width = width
         observation.image_path = image_path
         
-        crop_result = self.cropper.crop(image, segments)
         observation.cropped_image_path = upload_image_to_bucket(
-            crop_result.crop, f"{directory_in_bucket}/cropped_{observation.created_at}"
+            identifyResult.crop, f"{directory_in_bucket}/cropped_{observation.created_at}"
         )
         
+        upload_image_to_bucket(
+            identifyResult.masked_image, f"{directory_in_bucket}/masked_{observation.created_at}"
+        )
+
+        # TODO: fix this once monitoring sessions are a feature        
         observation.monitoring_session_id = uuid.UUID("75e06e38-78cd-41bb-aa4e-409ba4fb5c91")
 
         self.observation_repository.save(observation)

@@ -1,20 +1,22 @@
 from __future__ import annotations
 
+import os
 import numpy as np
+import cv2
 
 from app.domain.models import Segment, BoundingBox
 from .models import CropResult
 
+CROPPING_PADDING_RATIO = float(os.environ.get("CROPPING_PADDING_RATIO", "0.15"))
+
 class BoundingBoxCropper:
-    """
-    Creates a padded square crop around one or multiple selected segments.
 
-    The cropper knows nothing about CoralSCOP.
-    It simply receives polygons.
-    """
-
+   
     def crop(self, image: np.ndarray, segments: list[Segment], padding_ratio: float = 0.15) -> CropResult:
-
+        """
+        Creates a padded square crop around one or multiple selected segments.
+        """
+        
         if image is None or image.size == 0:
             raise ValueError("Image is empty.")
 
@@ -24,9 +26,20 @@ class BoundingBoxCropper:
         content_box = self._compute_content_box(segments)
         padding = int(max(content_box.width, content_box.height) * padding_ratio)
         padded_box = self._expand_with_padding(content_box, padding)
+        
         square_box = self._make_square(padded_box)
-        square_box = self._clip_to_image(square_box, image.shape)
-        crop = self._crop_image(image, square_box)
+
+        # required so that a square can be made out of a very large rectangular box
+        padded_image, adjusted_box = self._pad_image_for_crop(image, square_box)
+                
+        if not self._contains(square_box, content_box):
+            raise ValueError(
+                f"Final crop box {square_box} does not contain "
+                f"content box {content_box} "
+                f"for image with {len(segments)} segments"
+            )
+        
+        crop = self._crop_image(padded_image, adjusted_box)
 
         return CropResult(
             crop=crop,
@@ -87,9 +100,59 @@ class BoundingBoxCropper:
             width=side,
             height=side,
         )
+        
+    def _pad_image_for_crop(
+        self,
+        image: np.ndarray,
+        crop_box: BoundingBox,
+    ) -> tuple[np.ndarray, BoundingBox]:
+        """
+        Pads the image with black pixels whenever the desired crop
+        extends beyond the original image boundaries.
+        """
+
+        image_height, image_width = image.shape[:2]
+
+        left_padding = max(0, -crop_box.x)
+        top_padding = max(0, -crop_box.y)
+
+        right_padding = max(0, crop_box.x2 - image_width)
+
+        bottom_padding = max(0, crop_box.y2 - image_height)
+
+        if any(
+            padding > 0
+            for padding in (
+                left_padding,
+                top_padding,
+                right_padding,
+                bottom_padding,
+            )
+        ):
+            padded_image = cv2.copyMakeBorder(
+                image,
+                top=top_padding,
+                bottom=bottom_padding,
+                left=left_padding,
+                right=right_padding,
+                borderType=cv2.BORDER_CONSTANT,
+                value=(0, 0, 0),
+            )
+        else:
+            padded_image = image
+
+        adjusted_box = BoundingBox(
+            x=crop_box.x + left_padding,
+            y=crop_box.y + top_padding,
+            width=crop_box.width,
+            height=crop_box.height,
+        )
+
+        return padded_image, adjusted_box
 
     def _clip_to_image(
         self, box: BoundingBox, image_shape: tuple[int, ...]) -> BoundingBox:
+        
         image_height, image_width = image_shape[:2]
         x = box.x
         y = box.y
@@ -126,6 +189,14 @@ class BoundingBoxCropper:
             y=y,
             width=side,
             height=side,
+        )
+
+    def _contains(self, outer: BoundingBox, inner: BoundingBox) -> bool:
+        return (
+            outer.x <= inner.x
+            and outer.y <= inner.y
+            and outer.x2 >= inner.x2
+            and outer.y2 >= inner.y2
         )
 
     def _crop_image(self, image: np.ndarray, box: BoundingBox) -> np.ndarray:
