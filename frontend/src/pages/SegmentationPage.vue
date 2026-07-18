@@ -89,7 +89,7 @@
             </div>
             <div v-if="loading.segment" class="absolute inset-0 flex items-center justify-center bg-[#071116]/45">
               <div class="rounded border border-slate-700 bg-[#0d1b21] px-5 py-4 text-center">
-                <i class="mx-auto block h-5 w-5 rounded-full border-2 border-teal-300 border-t-transparent"></i>
+                <i class="mx-auto block h-5 w-5 rounded-full border-2 border-teal-300 border-t-transparent animate-spin"></i>
                 <p class="mt-2 text-sm">Segmenting image</p>
                 <p class="text-xs text-slate-400">
                   This may take several minutes.
@@ -135,7 +135,7 @@
           <div class="min-h-0 flex-1 overflow-y-auto p-3">
             <div v-if="loading.segment || loading.identify"
               class="flex h-full min-h-[180px] flex-col items-center justify-center text-sm text-slate-400">
-              <i class="h-5 w-5 rounded-full border-2 border-teal-300 border-t-transparent"></i>
+              <i class="h-5 w-5 rounded-full border-2 border-teal-300 border-t-transparent animate-spin"></i>
               <p class="mt-3">Calculating possible matches...</p>
             </div>
             <p v-else-if="!imageUrl" class="mt-20 text-center text-sm text-slate-500">
@@ -278,14 +278,15 @@ const confirm = async () => {
     candidates.value = [];
     activeId.value = "";
     selected.value = new Set();
+    const coralName = name.value;
     await identifyService.confirmCoral({
       image: image.value,
       selectedSegments: segments.value.filter((s) => tmpSelected.has(s.id)),
       selectedCandidateId: tmpActiveId || null,
       diveSite: site.value,
-      coralName: name.value,
+      coralName: coralName,
     });
-    notify("Coral " + name.value + " has been successfully saved", MESSAGE_TYPE_SUCCESS);
+    notify("Coral " + coralName + " has been successfully saved", MESSAGE_TYPE_SUCCESS);
     name.value = `Coral-${crypto.randomUUID().slice(0, 5).toUpperCase()}`;
   } catch (e) {
     notify(e instanceof Error ? e.message : "Could not save Observation", MESSAGE_TYPE_ERROR);
