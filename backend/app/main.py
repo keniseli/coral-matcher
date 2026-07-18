@@ -1,5 +1,5 @@
 import logging
-
+import sys
 import functions_framework
 from flask import Request
 
@@ -12,6 +12,14 @@ from app.api.serialization import parse_identify_request, serialize_identify_res
 
 
 logger = logging.getLogger(__name__)
+
+logging.basicConfig(
+        level=logging.INFO,
+        stream=sys.stdout,
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+        force=True,
+    )
+
 service = CoralService()
 
 def add_cors_headers(body, status=200):
@@ -76,3 +84,5 @@ def process_coral_upload(request: Request):
     except Exception as ex:
         logger.exception(ex)
         return add_cors_headers({"error": "Internal server error."}, 500)
+
+    
