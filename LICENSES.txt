@@ -13,3 +13,4 @@ https://creativecommons.org/licenses/by-nc-sa/4.0/
 Modifications:
 - Integrated into Coral Matcher backend
 - Adjusted imports for module referencing
+- Added a few print statements for debugging purpose in visualization components

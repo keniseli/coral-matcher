@@ -65,6 +65,7 @@ def main():
     parser.add_argument("--alpha", type=float, default=0.4, help="transparency")
     parser.add_argument("--min_area", type=float, default=4096, help="min area")
     args = parser.parse_args()
+    print("running")
     alpha = args.alpha
     label_mode = '1'
     anno_mode = ['Mask']
@@ -73,19 +74,24 @@ def main():
     output_path = args.output_path
     min_area=args.min_area
     for files in glob.glob(os.path.join(json_path,"*.json")):
+        print(f"found {len(files)} files");
         with open(files, "r", encoding='utf-8') as f:
             aa = json.loads(f.read())
             images = aa['image']
             annotations = aa['annotations']
+            print(f"found {len(annotations)} annotations")
             img_name=images['file_name']
             print(img_name)
             _,file_name=os.path.split(img_name)
             if os.path.exists(os.path.join(output_path, file_name)):
+                print(f"{os.path.join(output_path, file_name)} exists already, skipping. ")
                 continue
             _,json_name=os.path.split(files)
-            if not os.path.exists(os.path.join(img_path, json_name.replace(".json",".jpg"))):
+            jpg_name = json_name.replace(".json",".jpg")
+            if not os.path.exists(os.path.join(img_path, jpg_name)):
+                print(f"image {os.path.join(img_path, jpg_name)} file not found")
                 continue
-            image = cv2.imread(os.path.join(img_path, json_name.replace(".json",".jpg")))
+            image = cv2.imread(os.path.join(img_path, jpg_name))
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             visual = Visualizer(image, metadata=metadata)
             label = 1
