@@ -32,8 +32,116 @@ class SegmentEmbedding:
     segment_id: int
     segment_area: int
     embeddings: dict[int, np.ndarray]
+    average_embedding: np.ndarray
 
+def average_embeddings(
+    embeddings: dict[int, np.ndarray],
+) -> np.ndarray:
 
+    stacked_embeddings = np.stack(
+        list(embeddings.values())
+    )
+
+    average_embedding = np.mean(
+        stacked_embeddings,
+        axis=0,
+    )
+
+    # L2-normalize after averaging
+    norm = np.linalg.norm(
+        average_embedding
+    )
+
+    if norm == 0:
+        raise ValueError(
+            "Cannot normalize zero-length embedding."
+        )
+
+    return average_embedding / norm
+
+def average_embedding_similarity(
+    reference: SegmentEmbedding,
+    candidate: SegmentEmbedding,
+) -> float:
+
+    return cosine_similarity(
+        reference.average_embedding,
+        candidate.average_embedding,
+    )
+
+def print_rotation_similarity_matrix(
+    reference: SegmentEmbedding,
+    candidate: SegmentEmbedding,
+) -> None:
+    angles = [0, 90, 180, 270]
+
+    print()
+    print("=" * 80)
+    print("ROTATION SIMILARITY MATRIX")
+    print("=" * 80)
+
+    print(f"Reference: {reference.coral_id} / "
+          f"{reference.image_filename} / "
+          f"segment {reference.segment_id}")
+
+    print(f"Candidate: {candidate.coral_id} / "
+          f"{candidate.image_filename} / "
+          f"segment {candidate.segment_id}")
+
+    print()
+
+    # Header
+    print(f"{'Reference / Candidate':>24}", end="")
+    for angle in angles:
+        print(f"{angle:>10}°", end="")
+    print()
+
+    print("-" * 64)
+
+    best_similarity = -1.0
+    best_reference_angle = None
+    best_candidate_angle = None
+
+    for reference_angle in angles:
+        print(f"{reference_angle:>21}°", end="")
+
+        for candidate_angle in angles:
+            similarity = cosine_similarity(
+                reference.embeddings[reference_angle],
+                candidate.embeddings[candidate_angle],
+            )
+
+            print(f"{similarity:>11.4f}", end="")
+
+            if similarity > best_similarity:
+                best_similarity = similarity
+                best_reference_angle = reference_angle
+                best_candidate_angle = candidate_angle
+
+        print()
+
+    average_similarity = cosine_similarity(
+        reference.average_embedding,
+        candidate.average_embedding,
+    )
+
+    print()
+    print(f"Best individual similarity: {best_similarity:.4f}")
+    print(
+        f"Best rotations: "
+        f"{best_reference_angle}° vs {best_candidate_angle}°"
+    )
+    print(f"Average embedding similarity: {average_similarity:.4f}")
+
+    relative_rotation = (
+        best_candidate_angle - best_reference_angle
+    ) % 360
+
+    print(
+        f"Relative rotation: "
+        f"{relative_rotation}°"
+    )
+    
 def segment_from_payload(
     segment_payload: dict,
 ) -> Segment:
@@ -215,6 +323,7 @@ def load_segment_embeddings() -> list[SegmentEmbedding]:
                 segment_id=largest_segment.id,
                 segment_area=int(largest_area),
                 embeddings=embeddings,
+                average_embedding = average_embeddings(embeddings)
             )
         )
 
@@ -309,19 +418,17 @@ def main():
 
             candidate = records[j]
 
-            similarity, reference_angle, candidate_angle = (
-                rotation_invariant_similarity(
-                    reference,
-                    candidate,
-                )
+            similarity = average_embedding_similarity(
+                reference,
+                candidate,
             )
 
             pair = (
                 reference,
                 candidate,
                 similarity,
-                reference_angle,
-                candidate_angle,
+                #reference_angle,
+                #candidate_angle,
             )
 
             if (
@@ -502,8 +609,8 @@ def main():
             reference,
             candidate,
             similarity,
-            reference_angle,
-            candidate_angle,
+            #reference_angle,
+            #candidate_angle,
         ) = hardest_positive
 
         print()
@@ -529,8 +636,13 @@ def main():
 
         print(
             f"  best rotations: "
-            f"{reference_angle}° vs "
-            f"{candidate_angle}°"
+            #f"{reference_angle}° vs "
+            #f"{candidate_angle}°"
+        )
+        
+        print_rotation_similarity_matrix(
+            reference,
+            candidate,
         )
 
     if negative_pairs:
@@ -544,8 +656,8 @@ def main():
             reference,
             candidate,
             similarity,
-            reference_angle,
-            candidate_angle,
+            #reference_angle,
+            #candidate_angle,
         ) = hardest_negative
 
         print()
@@ -571,9 +683,15 @@ def main():
 
         print(
             f"  best rotations: "
-            f"{reference_angle}° vs "
-            f"{candidate_angle}°"
+            #f"{reference_angle}° vs "
+            #f"{candidate_angle}°"
         )
+        
+        print_rotation_similarity_matrix(
+            reference,
+            candidate,
+        )
+        
 
     print()
     print("=" * 80)
