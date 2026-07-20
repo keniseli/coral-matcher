@@ -1,7 +1,6 @@
 import pytest
 import numpy as np
 import cv2
-from app.vision.vision import apply_underwater_corrections
 from app.embedding.embedding import EmbeddingService
 
 def test_resnet_feature_vector_dimensions():
