@@ -35,3 +35,23 @@ class VisionService:
         masked = cv2.bitwise_and(image, image, mask=mask)
         
         return MaskResult(masked_image=masked)
+    
+    def rotate_image(self, image, angle):
+        """
+        Rotate an OpenCV image by 0, 90, 180, or 270 degrees.
+        """
+
+        if angle == 0:
+            return image.copy()
+
+        if angle == 90:
+            return cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE)
+
+        if angle == 180:
+            return cv2.rotate(image, cv2.ROTATE_180)
+
+        if angle == 270:
+            return cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)
+
+        raise ValueError(f"Unsupported rotation angle: {angle}")
+    

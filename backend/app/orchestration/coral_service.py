@@ -52,8 +52,23 @@ class CoralService:
         what is stored in the db.
         """
         
+        similars = []
         identify_result = self.identify(image, [segment])
-        candidates = self.observation_repository.find_similar(identify_result.embedding)
+        for embedding in identify_result.embeddings:
+             similars.extend(self.observation_repository.find_similar(embedding))
+        
+        # TODO: potentially candidates holds the same candidate multiple times 
+        # due to finding for all embeddings (0°, 90°, 180°, 270°) 
+        best_by_id = {}
+        for candidate in similars:
+            if (
+                candidate.observation.id not in best_by_id
+                or candidate.distance < best_by_id[candidate.observation.id].distance
+            ):
+                best_by_id[candidate.observation.id] = candidate
+
+        candidates = list(best_by_id.values())
+
         return self.apply_embedding_distance_filter(candidates)
 
     def apply_embedding_distance_filter(self, candidates):
@@ -74,15 +89,22 @@ class CoralService:
 
         mask_result = self.vision_service.mask(image=image, segments=segments)
         
-        # TODO: write a test to crop using a smaller padding ratio than 0.15
         crop_result = self.cropper.crop(image=mask_result.masked_image, segments=segments)
 
-        embedding = self.embedding_service.generate_vector_embedding(crop_result.crop)
+        original_embedding = self.embedding_service.generate_vector_embedding(crop_result.crop)
+        ninety_degree_embedding = self.embedding_service.generate_vector_embedding(self.vision_service.rotate_image(crop_result.crop, 90))
+        one_eighty_degree_embedding = self.embedding_service.generate_vector_embedding(self.vision_service.rotate_image(crop_result.crop, 180))
+        two_seventy_degree_embedding = self.embedding_service.generate_vector_embedding(self.vision_service.rotate_image(crop_result.crop, 270))
 
         return IdentifyResult(
             crop=crop_result.crop,
             masked_image=mask_result.masked_image,
-            embedding=embedding,
+            embeddings=[
+                original_embedding,
+                ninety_degree_embedding,
+                one_eighty_degree_embedding,
+                two_seventy_degree_embedding
+                ],
             selected_segments=segments,
         )
 
@@ -102,7 +124,7 @@ class CoralService:
         observation = Observation()
         observation.coral_name = coral_name
         observation.dive_site = dive_site
-        observation.embedding = identifyResult.embedding
+        observation.embedding = identifyResult.embeddings[0]
 
         directory_in_bucket = f"{dive_site}/{coral_name}"
         image_path = upload_image_to_bucket(image, f"{directory_in_bucket}/{observation.created_at}")

@@ -9,7 +9,7 @@ from dataclasses import dataclass
 class IdentifyResult:
     crop: np.ndarray
     masked_image: np.ndarray
-    embedding: list[float]
+    embeddings: list[list[float]]
     selected_segments: list[Segment]
 
 

@@ -61,6 +61,7 @@ def process_coral_upload(request: Request):
 
         if request.path == "/api/identify-coral":
             identify_request = parse_identify_request(request)
+            # TODO instead of identify, call observations and pass a merged segment from all selected ones
             result = service.identify(identify_request.image, identify_request.selected_segments)
             response = serialize_identify_response(result)
             return add_cors_headers(response)
