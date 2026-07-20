@@ -40,7 +40,7 @@ class EmbeddingService:
         
         tensor_img = transform_pipeline(rgb_img).unsqueeze(0).to(device)
         
-        with torch.no_grad():
+        with torch.inference_mode():
             embedding_tensor = torch.squeeze(resnet_model(tensor_img))
             embedding = embedding_tensor.cpu().numpy()
             
