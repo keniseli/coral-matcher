@@ -2,7 +2,7 @@ import type { IdentifyApiResponse } from '../types/api'
 import type { Segment } from '../types/segment'
 
 async function identifyCoral(selectedSegments: Segment[], file: File): Promise<IdentifyApiResponse> {
-  const apiBase = import.meta.env.PROD ? (import.meta.env.VITE_API_BASE as string) : ''
+  const apiBase = import.meta.env.VITE_API_BASE as string
   const url = apiBase ? `${apiBase}/api/identify` : '/api/identify-coral'
   const form = new FormData()
   form.append('image', file)
@@ -21,7 +21,7 @@ interface ConfirmCoralRequest {
 }
 
 async function confirmCoral(request: ConfirmCoralRequest): Promise<void> {
-  const apiBase = import.meta.env.PROD ? (import.meta.env.VITE_API_BASE as string) : ''
+  const apiBase = import.meta.env.VITE_API_BASE as string
   const url = apiBase ? `${apiBase}/api/confirm-coral` : '/api/confirm-coral'
   const form = new FormData()
   form.append('image', request.image)
