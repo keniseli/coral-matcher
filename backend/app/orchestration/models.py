@@ -22,7 +22,6 @@ class IdentifyRequest:
 class ConfirmRequest:
     image: np.ndarray
     selected_segments: list[Segment]
-    selected_candidate_id: str
     dive_site: str
     coral_name: str
     

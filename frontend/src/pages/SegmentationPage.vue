@@ -89,7 +89,8 @@
             </div>
             <div v-if="loading.segment" class="absolute inset-0 flex items-center justify-center bg-[#071116]/45">
               <div class="rounded border border-slate-700 bg-[#0d1b21] px-5 py-4 text-center">
-                <i class="mx-auto block h-5 w-5 rounded-full border-2 border-teal-300 border-t-transparent animate-spin"></i>
+                <i
+                  class="mx-auto block h-5 w-5 rounded-full border-2 border-teal-300 border-t-transparent animate-spin"></i>
                 <p class="mt-2 text-sm">Segmenting image</p>
                 <p class="text-xs text-slate-400">
                   This may take several minutes.
@@ -141,31 +142,32 @@
             <p v-else-if="!imageUrl" class="mt-20 text-center text-sm text-slate-500">
               Upload an image to begin comparison.
             </p>
-            <p v-else-if="!candidates.length" class="mt-20 text-center text-sm text-slate-500">
+            <p v-else-if="!coralObservations.length" class="mt-20 text-center text-sm text-slate-500">
               No matching colonies found. You can save this observation as a new
               colony.
             </p>
-            <button v-for="c in candidates" v-else :key="c.id"
-              class="mb-2 grid w-full grid-cols-[130px_1fr] overflow-hidden rounded-lg border text-left" :class="activeId === c.id
+            <button v-for="coralObservation in coralObservations" v-else :key="coralObservation.coralName"
+              class=" overflow-hidden rounded-lg border text-left w-full" :class="activeId === coralObservation.coralName
                 ? 'border-teal-400 bg-teal-400/10'
-                : 'border-slate-800 bg-[#091419]'
-                " @click="
-                  activeId === c.id
-                    ? activeId = ''
-                    : activeId = c.id">
-              <div class="flex h-[108px] items-center justify-center bg-slate-900">
-                <img v-if="c.imageUrl" :src="c.imageUrl" class="h-full w-full object-contain" /><span v-else
-                  class="text-xs text-slate-600">No preview</span>
-              </div>
-              <div class="p-3 text-xs">
-                <b class="text-sm">{{ c.coralName }}</b>
-                <p class="mt-2 text-teal-300">
-                  Visual similarity {{ Math.round(c.visualSimilarity * 100) }}%
-                </p>
-                <p class="mt-1 text-slate-400">
-                  Session {{ c.monitoringSessionDate }}
-                </p>
-                <p class="mt-1 text-slate-400">{{ c.diveSite }}</p>
+                : 'border-slate-800 bg-[#091419]'"
+                @click="coralObservationSelected(coralObservation.coralName)">
+              <p class="text-sm p-3 font-bold">{{ coralObservation.coralName }}</p>
+              <div class="grid grid-cols-3">
+                <div v-for="c in coralObservation.candidates" class="mb-2 text-center">
+                  <div class="flex h-[150px] items-center justify-center">
+                    <img v-if="c.imageUrl" :src="c.imageUrl" class="h-full w-full object-contain mix-blend-screen" /><span v-else
+                      class="text-xs text-slate-600">No preview</span>
+                  </div>
+                  <div class="text-xs">
+                    <p class="text-teal-300">
+                      Visual similarity {{ Math.round(c.visualSimilarity * 100) }}%
+                    </p>
+                    <p class="text-slate-400">
+                      Session {{ c.monitoringSessionDate }}
+                    </p>
+                    <p class="text-slate-400">{{ c.diveSite }}</p>
+                  </div>
+                </div>
               </div>
             </button>
           </div>
@@ -180,16 +182,17 @@ import CoralImageViewer from "../components/CoralImageViewer.vue";
 import segmentation from "../services/segmentationService";
 import identifyService from "../services/identificationService";
 import type { Segment } from "../types/segment";
-import type { CoralCandidate } from "../types/api";
+import type { CoralCandidate, CoralObservations } from "../types/api";
+
 const picker = ref<HTMLInputElement>();
 const image = ref<File>();
 const imageUrl = ref("");
 const segments = ref<Segment[]>([]);
 const selected = ref(new Set<number>());
-const candidates = ref<CoralCandidate[]>([]);
+const coralObservations = ref<CoralObservations[]>([]);
 const activeId = ref("");
 const active = computed(() =>
-  candidates.value.find((c) => c.id === activeId.value),
+  coralObservations.value.find((coralObservation) => coralObservation.coralName === activeId.value),
 );
 const opacity = ref(0.55);
 const error = ref("");
@@ -218,7 +221,19 @@ const notify = (message: string, type: string) => {
   } else {
     info.value = message;
   }
-}
+};
+
+const coralObservationSelected = (coralName: string) => {
+    if (activeId.value === coralName) {
+      activeId.value = '';
+      name.value = `Coral-${crypto.randomUUID().slice(0, 5).toUpperCase()}`;
+    } else {
+      activeId.value = coralName;
+      name.value = coralName;
+    }
+
+};
+
 const upload = async (file: File) => {
   if (!file.type.startsWith("image/"))
     return (error.value = "Please select an image file.");
@@ -226,32 +241,41 @@ const upload = async (file: File) => {
   imageUrl.value = URL.createObjectURL(file);
   segments.value = [];
   selected.value = new Set();
-  candidates.value = [];
   loading.segment = true;
   notify("Calculating Segments...", MESSAGE_TYPE_INFO);
   try {
     const uploadResult = await segmentation.segmentImage(file);
     segments.value = uploadResult.segments;
-    candidates.value = uploadResult.observationCandidates
     notify("Segments Calculated", MESSAGE_TYPE_SUCCESS);
+    updateCandidates(uploadResult.observationCandidates)
   } catch (e) {
     notify(e instanceof Error ? e.message : "Segmentation failed.", MESSAGE_TYPE_ERROR)
   } finally {
     loading.segment = false;
   }
 };
+
 const picked = (e: Event) => {
   const f = (e.target as HTMLInputElement).files?.[0];
   if (f) void upload(f);
 };
+
 const dropped = (e: DragEvent) => {
   const f = e.dataTransfer?.files[0];
   if (f) void upload(f);
 };
+
+const updateCandidates = (candidates: CoralCandidate[]) => {
+  const grouped = Object.groupBy(candidates, c => c.coralName);
+  coralObservations.value = Object.entries(grouped).map(([coralName, list]) => ({
+    coralName,
+    candidates: list ?? []
+  }));
+};
+
 const identify = async () => {
   if (!image.value) return;
   loading.identify = true;
-  candidates.value = [];
   activeId.value = "";
   notify("Finding Candidates...", MESSAGE_TYPE_INFO);
   try {
@@ -259,26 +283,28 @@ const identify = async () => {
       segments.value.filter((s) => selected.value.has(s.id)),
       image.value,
     );
-    candidates.value = r.candidates ?? [];
-    notify("Found " + candidates.value.length + " Candidates", MESSAGE_TYPE_SUCCESS);
+    updateCandidates(r.candidates ? r.candidates : []);
+
+    notify("Found " + r.candidates?.length + " Candidates", MESSAGE_TYPE_SUCCESS);
   } catch (e) {
     notify(e instanceof Error ? e.message : "Could not find matches.", MESSAGE_TYPE_ERROR);
   } finally {
     loading.identify = false;
   }
 };
+
 const confirm = async () => {
   if (!image.value) return;
   loading.confirm = true;
-  const tmpCandidates = candidates.value;
+  const tmpCoralObservations = coralObservations.value;
   const tmpActiveId = activeId.value;
   const tmpSelected = selected.value;
   notify("Saving Observation...", MESSAGE_TYPE_INFO);
   try {
-    candidates.value = [];
+    coralObservations.value = [];
     activeId.value = "";
-    selected.value = new Set();
     const coralName = name.value;
+    selected.value = new Set();
     await identifyService.confirmCoral({
       image: image.value,
       selectedSegments: segments.value.filter((s) => tmpSelected.has(s.id)),
@@ -286,11 +312,11 @@ const confirm = async () => {
       diveSite: site.value,
       coralName: coralName,
     });
-    notify("Coral " + coralName + " has been successfully saved", MESSAGE_TYPE_SUCCESS);
+    notify("Observation for " + coralName + " has been successfully saved", MESSAGE_TYPE_SUCCESS);
     name.value = `Coral-${crypto.randomUUID().slice(0, 5).toUpperCase()}`;
   } catch (e) {
     notify(e instanceof Error ? e.message : "Could not save Observation", MESSAGE_TYPE_ERROR);
-    candidates.value = tmpCandidates;
+    coralObservations.value = tmpCoralObservations;
     activeId.value = tmpActiveId;
     selected.value = tmpSelected;
   } finally {

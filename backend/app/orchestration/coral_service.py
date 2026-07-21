@@ -89,14 +89,8 @@ class CoralService:
 
     def confirm_observation(self, image: np.ndarray,
         segments: list[Segment],
-        related_observation_id: str,
         dive_site: str,
         coral_name: str) -> ConfirmResult:
-        
-        if related_observation_id:
-            related_observation = self.observation_repository.find_by_id(related_observation_id)
-            coral_name = related_observation.coral_name
-            dive_site = related_observation.dive_site
         
         identifyResult = self.identify(image, segments)
         

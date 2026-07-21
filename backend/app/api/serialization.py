@@ -105,9 +105,8 @@ def parse_confirm_request(request) -> ConfirmRequest:
 
     dive_site = request.form["diveSite"]
     coral_name = request.form["coralName"]
-    selected_candidate_id = request.form["selectedCandidateId"]
     
-    return ConfirmRequest(image, segments, selected_candidate_id, dive_site, coral_name)
+    return ConfirmRequest(image, segments, dive_site, coral_name)
 
 def parse_segments(segments_json_array):
     return [

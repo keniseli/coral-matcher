@@ -70,7 +70,6 @@ def process_coral_upload(request: Request):
             confirm_request = parse_confirm_request(request)
             observation = service.confirm_observation(confirm_request.image,
                 confirm_request.selected_segments,
-                confirm_request.selected_candidate_id,
                 confirm_request.dive_site,
                 confirm_request.coral_name
             ).observation

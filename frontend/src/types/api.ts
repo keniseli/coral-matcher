@@ -23,3 +23,8 @@ export interface CoralCandidate {
   // and show more relevant content in small space of candidate card
   imageUrl?: string
 }
+
+export interface CoralObservations {
+  coralName: string
+  candidates: CoralCandidate[]
+}
