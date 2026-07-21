@@ -2,16 +2,16 @@
   <main class="min-h-screen overflow-auto bg-[#071116] p-5 text-slate-100
               xl:h-screen xl:overflow-hidden">
     <div class="mx-auto flex h-full max-w-[1800px] min-h-0 flex-col">
-      <header class="mb-4 flex items-center justify-between border-b border-slate-800 pb-3">
+      <header class="flex items-center justify-between border-slate-800 pb-2">
         <div>
           <h1 class="text-3xl font-bold">Coral Matcher</h1>
           <p class=" text-xs text-slate-500">
-            Identify and find monitored colonies
+            Identify and find monitored coral colonies
           </p>
         </div>
         <div>
           <div v-if="error" class="
-              relative mb-3 rounded-md border border-red-400 bg-red-950 px-4 py-3 pr-10 text-sm text-red-100
+              relative mb-3 rounded-md border border-red-400 bg-red-600/20 px-4 py-3 pr-10 text-sm text-red-100
               ">
             <span>{{ error }}</span>
             <button @click="error = ''" class="absolute right-3 top-3 text-red-200 transition hover:text-white"
@@ -20,7 +20,7 @@
             </button>
           </div>
           <div v-if="info" class="
-              relative mb-3 rounded-md border border-white-400 bg-blue-950 px-4 py-3 pr-10 text-sm text-red-100
+              relative mb-3 rounded-md border border-white-400 bg-slate-100/10 px-4 py-3 pr-10 text-sm text-red-100
               ">
             <span>{{ info }}</span>
             <button @click="info = ''" class="absolute right-3 top-3 text-white-200 transition hover:text-white"
@@ -29,7 +29,7 @@
             </button>
           </div>
           <div v-if="success" class="
-              relative mb-3 rounded-md border border-green-400 bg-green-95 px-4 py-3 pr-10 text-sm text-red-100
+              relative mb-3 rounded-md border border-teal-400 bg-teal-600/20 px-4 py-3 pr-10 text-sm text-red-100
               ">
             <span>{{ success }}</span>
             <button @click="success = ''" class="absolute right-3 top-3 text-green-200 transition hover:text-white"
@@ -147,11 +147,20 @@
               colony.
             </p>
             <button v-for="coralObservation in coralObservations" v-else :key="coralObservation.coralName"
-              class=" overflow-hidden rounded-lg border text-left w-full" :class="activeId === coralObservation.coralName
+              class="mb-1 overflow-hidden rounded-lg border text-left w-full" :class="activeId === coralObservation.coralName
                 ? 'border-teal-400 bg-teal-400/10'
                 : 'border-slate-800 bg-[#091419]'"
                 @click="coralObservationSelected(coralObservation.coralName)">
-              <p class="text-sm p-3 font-bold">{{ coralObservation.coralName }}</p>
+              <div class="flex mt-2">
+                <span class="text-sm p-3 font-bold">{{ coralObservation.coralName }}</span>
+                  <div class="ml-3 inline-flex items-center bg-teal-600/20 text-xs font-medium px-1.5 rounded-md"
+                    v-if="highSimilarity(coralObservation.candidates)">
+                    <svg fill="#ffffff" width="24px" height="24px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" data-name="Layer 1">
+                      <path d="M21 4h-3V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1v1H3a1 1 0 0 0-1 1v3a4 4 0 0 0 4 4h1.54A6 6 0 0 0 11 13.91V16h-1a3 3 0 0 0-3 3v2a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-2a3 3 0 0 0-3-3h-1v-2.09A6 6 0 0 0 16.46 12H18a4 4 0 0 0 4-4V5a1 1 0 0 0-1-1M6 10a2 2 0 0 1-2-2V6h2v2a6 6 0 0 0 .35 2Zm8 8a1 1 0 0 1 1 1v1H9v-1a1 1 0 0 1 1-1Zm2-10a4 4 0 0 1-8 0V4h8Zm4 0a2 2 0 0 1-2 2h-.35A6 6 0 0 0 18 8V6h2Z"/>
+                    </svg>
+                    <span class="ml-1">Great Match</span>
+                  </div>
+              </div>
               <div class="grid grid-cols-3">
                 <div v-for="c in coralObservation.candidates" class="mb-2 text-center">
                   <div class="flex h-[150px] items-center justify-center">
@@ -160,7 +169,7 @@
                   </div>
                   <div class="text-xs">
                     <p class="text-teal-300">
-                      Visual similarity {{ Math.round(c.visualSimilarity * 100) }}%
+                      {{ similarityLabel(c.visualSimilarity) }}
                     </p>
                     <p class="text-slate-400">
                       Session {{ c.monitoringSessionDate }}
@@ -231,7 +240,28 @@ const coralObservationSelected = (coralName: string) => {
       activeId.value = coralName;
       name.value = coralName;
     }
+};
 
+const highSimilarity = (candidates: CoralCandidate[]) => {
+  return candidates
+    .filter(candidate => candidate.visualSimilarity >= 0.95)
+    .length > 0;
+}
+
+const similarityLabel = (similarity: number) => {
+  if(similarity == 1) {
+    return 'Identical'
+  } else if (similarity >= 0.95) {
+    return 'Very strong match';
+  } else if (similarity >= 0.90) {
+    return 'Strong match';
+  } else if (similarity >= 0.85) {
+    return 'Possible match';
+  } else if (similarity >= 0.70) {
+    return 'Weak match';
+  } else {
+    return 'Low similarity';
+  }
 };
 
 const upload = async (file: File) => {
