@@ -1,6 +1,6 @@
 <template>
   <div
-    class="relative h-full w-full overflow-hidden rounded-lg border border-slate-800 bg-black"
+    class="relative h-full w-full overflow-hidden rounded-lg border border-slate-800"
   >
     <img
       v-if="imageSrc"
