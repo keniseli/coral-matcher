@@ -50,7 +50,6 @@
           </div>
         </div>
       </header>
-
       <div class="grid min-h-0 flex-1 gap-4 xl:grid-cols-[3fr_2fr]">
         <!-- Image / segmentation panel -->
         <section class="flex min-h-0 flex-col overflow-hidden rounded-xl border border-slate-800 bg-[#0b181e]">
@@ -126,9 +125,11 @@
               </button>
             </div>
 
-            <div v-if="loading.segment || loading.identify" class="absolute inset-0 flex items-center justify-center bg-[#071116]/45">
+            <div v-if="loading.segment || loading.identify"
+              class="absolute inset-0 flex items-center justify-center bg-[#071116]/45">
               <div class="rounded border border-slate-700 bg-[#0d1b21] px-5 py-4 text-center">
-                <i class="mx-auto block h-5 w-5 rounded-full border-2 border-teal-300 border-t-transparent animate-spin"></i>
+                <i
+                  class="mx-auto block h-5 w-5 rounded-full border-2 border-teal-300 border-t-transparent animate-spin"></i>
 
                 <p class="mt-2 text-sm">
                   Segmenting image
@@ -142,14 +143,14 @@
           </div>
         </section>
 
-        <!-- Candidates -->
-        <CandidatesPanel :image-url="imageUrl"
-          :candidates="candidates"
-          :selected-count="selected.size"
-          :loading-segment="loading.segment" 
-          :loading-identify="loading.identify" 
-          :loading-confirm="loading.confirm"
-          @confirm="confirm" />
+        <!-- Monitoring Session Selector-->
+        <div>
+          <MonitoringSessionSelector v-model="selectedMonitoringSession" class="mb-2" />
+          <!-- Candidates -->
+          <CandidatesPanel :image-url="imageUrl" :candidates="candidates" :selected-count="selected.size"
+            :loading-segment="loading.segment" :loading-identify="loading.identify" :loading-confirm="loading.confirm"
+            @confirm="confirm" />
+        </div>
       </div>
     </div>
   </main>
@@ -163,12 +164,14 @@ import {
 
 import CoralImageViewer from "../components/CoralImageViewer.vue";
 import CandidatesPanel from "../components/CandidatesPanel.vue";
+import MonitoringSessionSelector from "../components/MonitoringSessionSelector.vue";
 
 import segmentation from "../services/segmentationService";
 import identifyService from "../services/identificationService";
 
 import type { Segment } from "../types/segment";
 import type { CoralCandidate } from "../types/api";
+import type { MonitoringSession } from "../types/monitoringSession.js";
 
 const picker = ref<HTMLInputElement>();
 
@@ -191,6 +194,8 @@ const loading = reactive({
   identify: false,
   confirm: false,
 });
+
+const selectedMonitoringSession = ref<MonitoringSession | null>(null);
 
 const toggle = (id: number) => {
   const next = new Set(selected.value);
