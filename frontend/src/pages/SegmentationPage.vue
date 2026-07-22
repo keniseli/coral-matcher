@@ -1,13 +1,7 @@
 <template>
-  <main
-    class="min-h-screen overflow-auto bg-[#071116] p-5 text-slate-100 xl:h-screen xl:overflow-hidden"
-  >
-    <div
-      class="mx-auto flex h-full max-w-[1800px] min-h-0 flex-col"
-    >
-      <header
-        class="flex items-center justify-between border-slate-800 pb-2"
-      >
+  <main class="min-h-screen overflow-auto bg-[#071116] p-5 text-slate-100 xl:h-screen xl:overflow-hidden">
+    <div class="mx-auto flex h-full max-w-[1800px] min-h-0 flex-col">
+      <header class="flex items-center justify-between border-slate-800 pb-2">
         <div>
           <h1 class="text-3xl font-bold">
             Coral Matcher
@@ -19,69 +13,48 @@
         </div>
 
         <div>
-          <div
-            v-if="error"
-            class="relative mb-3 rounded-md border border-red-400 bg-red-600/20 px-4 py-3 pr-10 text-sm text-red-100"
-          >
+          <div v-if="error"
+            class="relative mb-3 rounded-md border border-red-400 bg-red-600/20 px-4 py-3 pr-10 text-sm text-red-100">
             <span>
               {{ error }}
             </span>
 
-            <button
-              class="absolute right-3 top-3 text-red-200 transition hover:text-white"
-              aria-label="Dismiss"
-              @click="error = ''"
-            >
+            <button class="absolute right-3 top-3 text-red-200 transition hover:text-white" aria-label="Dismiss"
+              @click="error = ''">
               ✕
             </button>
           </div>
 
-          <div
-            v-if="info"
-            class="relative mb-3 rounded-md border border-white-400 bg-slate-100/10 px-4 py-3 pr-10 text-sm text-red-100"
-          >
+          <div v-if="info"
+            class="relative mb-3 rounded-md border border-white-400 bg-slate-100/10 px-4 py-3 pr-10 text-sm text-red-100">
             <span>
               {{ info }}
             </span>
 
-            <button
-              class="absolute right-3 top-3 text-white-200 transition hover:text-white"
-              aria-label="Dismiss"
-              @click="info = ''"
-            >
+            <button class="absolute right-3 top-3 text-white-200 transition hover:text-white" aria-label="Dismiss"
+              @click="info = ''">
               ✕
             </button>
           </div>
 
-          <div
-            v-if="success"
-            class="relative mb-3 rounded-md border border-teal-400 bg-teal-600/20 px-4 py-3 pr-10 text-sm text-red-100"
-          >
+          <div v-if="success"
+            class="relative mb-3 rounded-md border border-teal-400 bg-teal-600/20 px-4 py-3 pr-10 text-sm text-red-100">
             <span>
               {{ success }}
             </span>
 
-            <button
-              class="absolute right-3 top-3 text-green-200 transition hover:text-white"
-              aria-label="Dismiss"
-              @click="success = ''"
-            >
+            <button class="absolute right-3 top-3 text-green-200 transition hover:text-white" aria-label="Dismiss"
+              @click="success = ''">
               ✕
             </button>
           </div>
         </div>
       </header>
 
-      <div
-        class="grid min-h-0 flex-1 gap-4 xl:grid-cols-[3fr_2fr]"
-      >
+      <div class="grid min-h-0 flex-1 gap-4 xl:grid-cols-[3fr_2fr]">
         <!-- Image / segmentation panel -->
-        <section
-          class="flex min-h-0 flex-col overflow-hidden rounded-xl border border-slate-800 bg-[#0b181e]"
-        >
-          <div
-            class="grid grid-cols-[2fr_2fr_1fr_1fr] items-center gap-4 border-b border-slate-800 px-4 py-3 text-xs"
-          >
+        <section class="flex min-h-0 flex-col overflow-hidden rounded-xl border border-slate-800 bg-[#0b181e]">
+          <div class="grid grid-cols-[2fr_2fr_1fr_1fr] items-center gap-4 border-b border-slate-800 px-4 py-3 text-xs">
             <div>
               <p class="text-xs text-slate-500">
                 Select every segment that belongs to one colony or choose from
@@ -99,11 +72,9 @@
                 segments selected
               </span>
 
-              <button
-                :disabled="!selected.size || loading.identify"
+              <button :disabled="!selected.size || loading.identify"
                 class="rounded bg-teal-400 px-3 py-2 font-semibold text-[#062126] disabled:opacity-40"
-                @click="identify"
-              >
+                @click="identify">
                 {{
                   loading.identify
                     ? "Finding candidates..."
@@ -122,52 +93,24 @@
                 </span>
               </label>
 
-              <input
-                v-model.number="opacity"
-                type="range"
-                min="0"
-                max="1"
-                step=".05"
-                class="w-20 accent-teal-400"
-              />
+              <input v-model.number="opacity" type="range" min="0" max="1" step=".05" class="w-20 accent-teal-400" />
             </div>
 
             <div class="ml-auto">
-              <button
-                class="rounded border border-slate-700 px-3 py-1.5 hover:bg-slate-800"
-                @click="picker?.click()"
-              >
+              <button class="rounded border border-slate-700 px-3 py-1.5 hover:bg-slate-800" @click="picker?.click()">
                 New Image
               </button>
 
-              <input
-                ref="picker"
-                class="hidden"
-                type="file"
-                accept="image/*"
-                @change="picked"
-              />
+              <input ref="picker" class="hidden" type="file" accept="image/*" @change="picked" />
             </div>
           </div>
 
-          <div
-            class="relative flex min-h-[540px] flex-1 items-center justify-center bg-black/40 p-3"
-            @dragover.prevent
-            @drop.prevent="dropped"
-          >
-            <CoralImageViewer
-              v-if="imageUrl"
-              :image-src="imageUrl"
-              :segments="segments"
-              :selected="selected"
-              :opacity="opacity"
-              @toggle="toggle"
-            />
+          <div class="relative flex min-h-[540px] flex-1 items-center justify-center bg-black/40 p-3" @dragover.prevent
+            @drop.prevent="dropped">
+            <CoralImageViewer v-if="imageUrl" :image-src="imageUrl" :segments="segments" :selected="selected"
+              :opacity="opacity" @toggle="toggle" />
 
-            <div
-              v-else
-              class="text-center"
-            >
+            <div v-else class="text-center">
               <p class="text-base">
                 Drop an image here
               </p>
@@ -177,24 +120,15 @@
                 calculated.
               </p>
 
-              <button
-                class="mt-4 rounded bg-teal-400 px-4 py-2 text-sm font-semibold text-[#062126]"
-                @click="picker?.click()"
-              >
+              <button class="mt-4 rounded bg-teal-400 px-4 py-2 text-sm font-semibold text-[#062126]"
+                @click="picker?.click()">
                 Browse image
               </button>
             </div>
 
-            <div
-              v-if="loading.segment"
-              class="absolute inset-0 flex items-center justify-center bg-[#071116]/45"
-            >
-              <div
-                class="rounded border border-slate-700 bg-[#0d1b21] px-5 py-4 text-center"
-              >
-                <i
-                  class="mx-auto block h-5 w-5 rounded-full border-2 border-teal-300 border-t-transparent animate-spin"
-                ></i>
+            <div v-if="loading.segment || loading.identify" class="absolute inset-0 flex items-center justify-center bg-[#071116]/45">
+              <div class="rounded border border-slate-700 bg-[#0d1b21] px-5 py-4 text-center">
+                <i class="mx-auto block h-5 w-5 rounded-full border-2 border-teal-300 border-t-transparent animate-spin"></i>
 
                 <p class="mt-2 text-sm">
                   Segmenting image
@@ -209,15 +143,13 @@
         </section>
 
         <!-- Candidates -->
-        <CandidatesPanel
-          :image-url="imageUrl"
+        <CandidatesPanel :image-url="imageUrl"
           :candidates="candidates"
           :selected-count="selected.size"
-          :loading-segment="loading.segment"
-          :loading-identify="loading.identify"
+          :loading-segment="loading.segment" 
+          :loading-identify="loading.identify" 
           :loading-confirm="loading.confirm"
-          @confirm="confirm"
-        />
+          @confirm="confirm" />
       </div>
     </div>
   </main>
