@@ -1,61 +1,109 @@
 <template>
-  <main class="min-h-screen overflow-auto bg-[#071116] p-5 text-slate-100
-              xl:h-screen xl:overflow-hidden">
-    <div class="mx-auto flex h-full max-w-[1800px] min-h-0 flex-col">
-      <header class="flex items-center justify-between border-slate-800 pb-2">
+  <main
+    class="min-h-screen overflow-auto bg-[#071116] p-5 text-slate-100 xl:h-screen xl:overflow-hidden"
+  >
+    <div
+      class="mx-auto flex h-full max-w-[1800px] min-h-0 flex-col"
+    >
+      <header
+        class="flex items-center justify-between border-slate-800 pb-2"
+      >
         <div>
-          <h1 class="text-3xl font-bold">Coral Matcher</h1>
-          <p class=" text-xs text-slate-500">
+          <h1 class="text-3xl font-bold">
+            Coral Matcher
+          </h1>
+
+          <p class="text-xs text-slate-500">
             Identify and find monitored coral colonies
           </p>
         </div>
+
         <div>
-          <div v-if="error" class="
-              relative mb-3 rounded-md border border-red-400 bg-red-600/20 px-4 py-3 pr-10 text-sm text-red-100
-              ">
-            <span>{{ error }}</span>
-            <button @click="error = ''" class="absolute right-3 top-3 text-red-200 transition hover:text-white"
-              aria-label="Dismiss">
+          <div
+            v-if="error"
+            class="relative mb-3 rounded-md border border-red-400 bg-red-600/20 px-4 py-3 pr-10 text-sm text-red-100"
+          >
+            <span>
+              {{ error }}
+            </span>
+
+            <button
+              class="absolute right-3 top-3 text-red-200 transition hover:text-white"
+              aria-label="Dismiss"
+              @click="error = ''"
+            >
               ✕
             </button>
           </div>
-          <div v-if="info" class="
-              relative mb-3 rounded-md border border-white-400 bg-slate-100/10 px-4 py-3 pr-10 text-sm text-red-100
-              ">
-            <span>{{ info }}</span>
-            <button @click="info = ''" class="absolute right-3 top-3 text-white-200 transition hover:text-white"
-              aria-label="Dismiss">
+
+          <div
+            v-if="info"
+            class="relative mb-3 rounded-md border border-white-400 bg-slate-100/10 px-4 py-3 pr-10 text-sm text-red-100"
+          >
+            <span>
+              {{ info }}
+            </span>
+
+            <button
+              class="absolute right-3 top-3 text-white-200 transition hover:text-white"
+              aria-label="Dismiss"
+              @click="info = ''"
+            >
               ✕
             </button>
           </div>
-          <div v-if="success" class="
-              relative mb-3 rounded-md border border-teal-400 bg-teal-600/20 px-4 py-3 pr-10 text-sm text-red-100
-              ">
-            <span>{{ success }}</span>
-            <button @click="success = ''" class="absolute right-3 top-3 text-green-200 transition hover:text-white"
-              aria-label="Dismiss">
+
+          <div
+            v-if="success"
+            class="relative mb-3 rounded-md border border-teal-400 bg-teal-600/20 px-4 py-3 pr-10 text-sm text-red-100"
+          >
+            <span>
+              {{ success }}
+            </span>
+
+            <button
+              class="absolute right-3 top-3 text-green-200 transition hover:text-white"
+              aria-label="Dismiss"
+              @click="success = ''"
+            >
               ✕
             </button>
           </div>
         </div>
       </header>
-      <div class="grid min-h-0 flex-1 gap-4 xl:grid-cols-[3fr_2fr]">
-        <section class="flex min-h-0 flex-col overflow-hidden rounded-xl border border-slate-800 bg-[#0b181e]">
-          <div class="flex items-center justify-between border-b border-slate-800 px-4 py-3
-                      grid grid-cols-[2fr_2fr_1fr_1fr] text-xs">
+
+      <div
+        class="grid min-h-0 flex-1 gap-4 xl:grid-cols-[3fr_2fr]"
+      >
+        <!-- Image / segmentation panel -->
+        <section
+          class="flex min-h-0 flex-col overflow-hidden rounded-xl border border-slate-800 bg-[#0b181e]"
+        >
+          <div
+            class="grid grid-cols-[2fr_2fr_1fr_1fr] items-center gap-4 border-b border-slate-800 px-4 py-3 text-xs"
+          >
             <div>
               <p class="text-xs text-slate-500">
-                Select every segment that belongs to one colony or choose from past observations. Drop image to start
+                Select every segment that belongs to one colony or choose from
+                past observations. Drop image to start
               </p>
             </div>
+
             <div class="flex flex-col items-center gap-3">
               <span class="text-slate-400">
-                <b class="text-slate-200">{{ selected.size }}</b> of
-                {{ segments.length }} segments selected
+                <b class="text-slate-200">
+                  {{ selected.size }}
+                </b>
+                of
+                {{ segments.length }}
+                segments selected
               </span>
-              <button :disabled="!selected.size || loading.identify"
+
+              <button
+                :disabled="!selected.size || loading.identify"
                 class="rounded bg-teal-400 px-3 py-2 font-semibold text-[#062126] disabled:opacity-40"
-                @click="identify">
+                @click="identify"
+              >
                 {{
                   loading.identify
                     ? "Finding candidates..."
@@ -63,35 +111,95 @@
                 }}
               </button>
             </div>
-            <div class="flex flex-col text-slate-400 gap-3">
-              <label>Opacity: <span class="text-slate-200"><b>{{ Math.round(opacity * 100) }}%</b></span></label>
-              <input v-model.number="opacity" type="range" min="0" max="1" step=".05" class="w-20 accent-teal-400" />
+
+            <div class="flex flex-col gap-3 text-slate-400">
+              <label>
+                Opacity:
+                <span class="text-slate-200">
+                  <b>
+                    {{ Math.round(opacity * 100) }}%
+                  </b>
+                </span>
+              </label>
+
+              <input
+                v-model.number="opacity"
+                type="range"
+                min="0"
+                max="1"
+                step=".05"
+                class="w-20 accent-teal-400"
+              />
             </div>
+
             <div class="ml-auto">
-              <button class="rounded border border-slate-700 px-3 py-1.5 hover:bg-slate-800" @click="picker?.click()">
-                New Image</button>
-              <input ref="picker" class="hidden" type="file" accept="image/*" @change="picked" />
+              <button
+                class="rounded border border-slate-700 px-3 py-1.5 hover:bg-slate-800"
+                @click="picker?.click()"
+              >
+                New Image
+              </button>
+
+              <input
+                ref="picker"
+                class="hidden"
+                type="file"
+                accept="image/*"
+                @change="picked"
+              />
             </div>
           </div>
-          <div class="relative flex min-h-[540px] flex-1 items-center justify-center bg-black/40 p-3" @dragover.prevent
-            @drop.prevent="dropped">
-            <CoralImageViewer v-if="imageUrl" :image-src="imageUrl" :segments="segments" :selected="selected"
-              :opacity="opacity" @toggle="toggle" />
-            <div v-else class="text-center">
-              <p class="text-base">Drop an image here</p>
-              <p class="mt-2 text-sm text-slate-500">
-                Segmentation overlays appear after segmentation results are calculated.
+
+          <div
+            class="relative flex min-h-[540px] flex-1 items-center justify-center bg-black/40 p-3"
+            @dragover.prevent
+            @drop.prevent="dropped"
+          >
+            <CoralImageViewer
+              v-if="imageUrl"
+              :image-src="imageUrl"
+              :segments="segments"
+              :selected="selected"
+              :opacity="opacity"
+              @toggle="toggle"
+            />
+
+            <div
+              v-else
+              class="text-center"
+            >
+              <p class="text-base">
+                Drop an image here
               </p>
-              <button class="mt-4 rounded bg-teal-400 px-4 py-2 text-sm font-semibold text-[#062126]"
-                @click="picker?.click()">
+
+              <p class="mt-2 text-sm text-slate-500">
+                Segmentation overlays appear after segmentation results are
+                calculated.
+              </p>
+
+              <button
+                class="mt-4 rounded bg-teal-400 px-4 py-2 text-sm font-semibold text-[#062126]"
+                @click="picker?.click()"
+              >
                 Browse image
               </button>
             </div>
-            <div v-if="loading.segment" class="absolute inset-0 flex items-center justify-center bg-[#071116]/45">
-              <div class="rounded border border-slate-700 bg-[#0d1b21] px-5 py-4 text-center">
+
+            <div
+              v-if="loading.segment"
+              class="absolute inset-0 flex items-center justify-center bg-[#071116]/45"
+            >
+              <div
+                class="rounded border border-slate-700 bg-[#0d1b21] px-5 py-4 text-center"
+              >
                 <i
-                  class="mx-auto block h-5 w-5 rounded-full border-2 border-teal-300 border-t-transparent animate-spin"></i>
-                <p class="mt-2 text-sm">Segmenting image</p>
+                  class="mx-auto block h-5 w-5 rounded-full border-2 border-teal-300 border-t-transparent animate-spin"
+                ></i>
+
+                <p class="mt-2 text-sm">
+                  Segmenting image
+                </p>
+
                 <p class="text-xs text-slate-400">
                   This may take several minutes.
                 </p>
@@ -99,223 +207,195 @@
             </div>
           </div>
         </section>
-        <aside class="flex min-h-0 flex-col overflow-hidden rounded-xl border border-slate-800 bg-[#0b181e]">
-          <div class="border-b border-slate-800 bg-[#0e1d23] p-4">
-            <h2 class="text-sm font-semibold">Candidates</h2>
-            <p class="mt-1 text-xs text-slate-500">
-              Compare uploaded image with past observations
-            </p>
-            <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
-              <label>Dive site<select v-model="site"
-                  class="mt-1 block w-full rounded border border-slate-700 bg-[#091419] p-2 text-slate-200">
-                  <option>Isla Larga</option>
-                  <option>Olohuita</option>
-                </select></label><label>Coral Colony name<input v-model="name"
-                  class="mt-1 w-full rounded border border-slate-700 bg-[#091419] p-2 text-slate-200" /></label>
-            </div>
-            <div
-              class="mt-3 flex items-center justify-between rounded border border-slate-700 bg-[#091419] p-2 text-xs">
-              <span>Selection:
-                <b>{{ active?.coralName || "New Coral Colony" }}</b></span><button
-                :disabled="!selected.size || loading.confirm"
-                class="rounded bg-teal-400 px-3 py-1.5 font-semibold text-[#062126] disabled:opacity-40"
-                @click="confirm">
-                {{
-                  loading.confirm
-                    ? "Saving..."
-                    : active
-                      ? "Confirm match"
-                      : "Save as new"
-                }}
-              </button>
-            </div>
-            <button v-if="active" class="mt-2 text-xs text-teal-300" @click="activeId = ''">
-              Save as new coral instead
-            </button>
-          </div>
-          <div class="min-h-0 flex-1 overflow-y-auto p-3">
-            <div v-if="loading.segment || loading.identify"
-              class="flex h-full min-h-[180px] flex-col items-center justify-center text-sm text-slate-400">
-              <i class="h-5 w-5 rounded-full border-2 border-teal-300 border-t-transparent animate-spin"></i>
-              <p class="mt-3">Calculating possible matches...</p>
-            </div>
-            <p v-else-if="!imageUrl" class="mt-20 text-center text-sm text-slate-500">
-              Upload an image to begin comparison.
-            </p>
-            <p v-else-if="!coralObservations.length" class="mt-20 text-center text-sm text-slate-500">
-              No matching colonies found. You can save this observation as a new
-              colony.
-            </p>
-            <button v-for="coralObservation in coralObservations" v-else :key="coralObservation.coralName"
-              class="mb-1 overflow-hidden rounded-lg border text-left w-full" :class="activeId === coralObservation.coralName
-                ? 'border-teal-400 bg-teal-400/10'
-                : 'border-slate-800 bg-[#091419]'"
-                @click="coralObservationSelected(coralObservation.coralName)">
-              <div class="flex mt-2">
-                <span class="text-sm p-3 font-bold">{{ coralObservation.coralName }}</span>
-                  <div class="ml-3 inline-flex items-center bg-teal-600/20 text-xs font-medium px-1.5 rounded-md"
-                    v-if="highSimilarity(coralObservation.candidates)">
-                    <svg fill="#ffffff" width="24px" height="24px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" data-name="Layer 1">
-                      <path d="M21 4h-3V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1v1H3a1 1 0 0 0-1 1v3a4 4 0 0 0 4 4h1.54A6 6 0 0 0 11 13.91V16h-1a3 3 0 0 0-3 3v2a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-2a3 3 0 0 0-3-3h-1v-2.09A6 6 0 0 0 16.46 12H18a4 4 0 0 0 4-4V5a1 1 0 0 0-1-1M6 10a2 2 0 0 1-2-2V6h2v2a6 6 0 0 0 .35 2Zm8 8a1 1 0 0 1 1 1v1H9v-1a1 1 0 0 1 1-1Zm2-10a4 4 0 0 1-8 0V4h8Zm4 0a2 2 0 0 1-2 2h-.35A6 6 0 0 0 18 8V6h2Z"/>
-                    </svg>
-                    <span class="ml-1">Great Match</span>
-                  </div>
-              </div>
-              <div class="grid grid-cols-3">
-                <div v-for="c in coralObservation.candidates" class="mb-2 text-center">
-                  <div class="flex h-[150px] items-center justify-center">
-                    <img v-if="c.imageUrl" :src="c.imageUrl" class="h-full w-full object-contain mix-blend-screen" /><span v-else
-                      class="text-xs text-slate-600">No preview</span>
-                  </div>
-                  <div class="text-xs">
-                    <p class="text-teal-300">
-                      {{ similarityLabel(c.visualSimilarity) }}
-                    </p>
-                    <p class="text-slate-400">
-                      Session {{ c.monitoringSessionDate }}
-                    </p>
-                    <p class="text-slate-400">{{ c.diveSite }}</p>
-                  </div>
-                </div>
-              </div>
-            </button>
-          </div>
-        </aside>
+
+        <!-- Candidates -->
+        <CandidatesPanel
+          :image-url="imageUrl"
+          :candidates="candidates"
+          :selected-count="selected.size"
+          :loading-segment="loading.segment"
+          :loading-identify="loading.identify"
+          :loading-confirm="loading.confirm"
+          @confirm="confirm"
+        />
       </div>
     </div>
   </main>
 </template>
+
 <script setup lang="ts">
-import { computed, reactive, ref } from "vue";
+import {
+  reactive,
+  ref,
+} from "vue";
+
 import CoralImageViewer from "../components/CoralImageViewer.vue";
+import CandidatesPanel from "../components/CandidatesPanel.vue";
+
 import segmentation from "../services/segmentationService";
 import identifyService from "../services/identificationService";
+
 import type { Segment } from "../types/segment";
-import type { CoralCandidate, CoralObservations } from "../types/api";
+import type { CoralCandidate } from "../types/api";
 
 const picker = ref<HTMLInputElement>();
+
 const image = ref<File>();
 const imageUrl = ref("");
+
 const segments = ref<Segment[]>([]);
 const selected = ref(new Set<number>());
-const coralObservations = ref<CoralObservations[]>([]);
-const activeId = ref("");
-const active = computed(() =>
-  coralObservations.value.find((coralObservation) => coralObservation.coralName === activeId.value),
-);
+
+const candidates = ref<CoralCandidate[]>([]);
+
 const opacity = ref(0.55);
+
 const error = ref("");
 const info = ref("");
 const success = ref("");
-const site = ref("Isla Larga");
-const name = ref(`Coral-${crypto.randomUUID().slice(0, 5).toUpperCase()}`);
-const loading = reactive({ segment: false, identify: false, confirm: false });
+
+const loading = reactive({
+  segment: false,
+  identify: false,
+  confirm: false,
+});
+
 const toggle = (id: number) => {
   const next = new Set(selected.value);
-  next.has(id) ? next.delete(id) : next.add(id);
+
+  next.has(id)
+    ? next.delete(id)
+    : next.add(id);
+
   selected.value = next;
 };
+
 const MESSAGE_TYPE_INFO = "info";
 const MESSAGE_TYPE_ERROR = "error";
 const MESSAGE_TYPE_SUCCESS = "success";
 
-const notify = (message: string, type: string) => {
+const notify = (
+  message: string,
+  type: string,
+) => {
   success.value = "";
   info.value = "";
   error.value = "";
-  if (type === "error")
+
+  if (type === MESSAGE_TYPE_ERROR) {
     error.value = message;
-  else if (type === "success") {
+  } else if (type === MESSAGE_TYPE_SUCCESS) {
     success.value = message;
   } else {
     info.value = message;
   }
 };
 
-const coralObservationSelected = (coralName: string) => {
-    if (activeId.value === coralName) {
-      activeId.value = '';
-      name.value = `Coral-${crypto.randomUUID().slice(0, 5).toUpperCase()}`;
-    } else {
-      activeId.value = coralName;
-      name.value = coralName;
-    }
+const updateCandidates = (
+  nextCandidates: CoralCandidate[],
+) => {
+  candidates.value = nextCandidates;
 };
 
-const highSimilarity = (candidates: CoralCandidate[]) => {
-  return candidates
-    .filter(candidate => candidate.visualSimilarity >= 0.95)
-    .length > 0;
-}
-
-const similarityLabel = (similarity: number) => {
-  if(similarity == 1) {
-    return 'Identical'
-  } else if (similarity >= 0.95) {
-    return 'Very strong match';
-  } else if (similarity >= 0.90) {
-    return 'Strong match';
-  } else if (similarity >= 0.85) {
-    return 'Possible match';
-  } else if (similarity >= 0.70) {
-    return 'Weak match';
-  } else {
-    return 'Low similarity';
+const upload = async (
+  file: File,
+) => {
+  if (!file.type.startsWith("image/")) {
+    error.value = "Please select an image file.";
+    return;
   }
-};
 
-const upload = async (file: File) => {
-  if (!file.type.startsWith("image/"))
-    return (error.value = "Please select an image file.");
   image.value = file;
   imageUrl.value = URL.createObjectURL(file);
+
   segments.value = [];
   selected.value = new Set();
+  candidates.value = [];
+
   loading.segment = true;
-  notify("Calculating Segments...", MESSAGE_TYPE_INFO);
+
+  notify(
+    "Calculating Segments...",
+    MESSAGE_TYPE_INFO,
+  );
+
   try {
-    const uploadResult = await segmentation.segmentImage(file);
-    segments.value = uploadResult.segments;
-    notify("Segments Calculated", MESSAGE_TYPE_SUCCESS);
-    updateCandidates(uploadResult.observationCandidates)
+    const uploadResult =
+      await segmentation.segmentImage(file);
+
+    segments.value =
+      uploadResult.segments;
+
+    updateCandidates(
+      uploadResult.observationCandidates,
+    );
+
+    notify(
+      "Segments Calculated",
+      MESSAGE_TYPE_SUCCESS,
+    );
   } catch (e) {
-    notify(e instanceof Error ? e.message : "Segmentation failed.", MESSAGE_TYPE_ERROR)
+    notify(
+      e instanceof Error
+        ? e.message
+        : "Segmentation failed.",
+      MESSAGE_TYPE_ERROR,
+    );
   } finally {
     loading.segment = false;
   }
 };
 
-const picked = (e: Event) => {
-  const f = (e.target as HTMLInputElement).files?.[0];
-  if (f) void upload(f);
+const picked = (
+  e: Event,
+) => {
+  const file =
+    (e.target as HTMLInputElement)
+      .files?.[0];
+
+  if (file) {
+    void upload(file);
+  }
 };
 
-const dropped = (e: DragEvent) => {
-  const f = e.dataTransfer?.files[0];
-  if (f) void upload(f);
-};
+const dropped = (
+  e: DragEvent,
+) => {
+  const file =
+    e.dataTransfer?.files[0];
 
-const updateCandidates = (candidates: CoralCandidate[]) => {
-  const grouped = Object.groupBy(candidates, c => c.coralName);
-  coralObservations.value = Object.entries(grouped).map(([coralName, list]) => ({
-    coralName,
-    candidates: list ?? []
-  }));
+  if (file) {
+    void upload(file);
+  }
 };
 
 const identify = async () => {
-  if (!image.value) return;
-  loading.identify = true;
-  activeId.value = "";
-  notify(`Finding Candidates for ${selected.value.size} Segments...`, MESSAGE_TYPE_INFO);
-  try {
-    const result = await identifyService.identifyCoralBySegments(
-      segments.value.filter((s) => selected.value.has(s.id)),
-      image.value,
-    );
-    updateCandidates(result.candidates ? result.candidates : []);
+  if (!image.value) {
+    return;
+  }
 
-    notify("Found " + result.candidates?.length + " Candidates", MESSAGE_TYPE_SUCCESS);
+  loading.identify = true;
+
+  notify(
+    `Finding Candidates for ${selected.value.size} Segments...`,
+    MESSAGE_TYPE_INFO,
+  );
+
+  try {
+    const result =
+      await identifyService.identifyCoralBySegments(
+        segments.value.filter(
+          (segment) =>
+            selected.value.has(segment.id),
+        ),
+        image.value,
+      );
+
+    updateCandidates(
+      result.candidates ?? [],
+    );
+
+    notify(`Found ${result.candidates?.length ?? 0} Candidates`, MESSAGE_TYPE_SUCCESS);
   } catch (e) {
     notify(e instanceof Error ? e.message : "Could not find matches.", MESSAGE_TYPE_ERROR);
   } finally {
@@ -323,32 +403,43 @@ const identify = async () => {
   }
 };
 
-const confirm = async () => {
-  if (!image.value) return;
+type ConfirmPayload = {
+  selectedCandidateId: string | null;
+  diveSite: string;
+  coralName: string;
+};
+
+const confirm = async (
+  payload: ConfirmPayload,
+) => {
+  if (!image.value) {
+    return;
+  }
+
   loading.confirm = true;
-  const tmpCoralObservations = coralObservations.value;
-  const tmpActiveId = activeId.value;
-  const tmpSelected = selected.value;
+
+  const previousCandidates = candidates.value;
+  const previousSelected = selected.value;
+
   notify("Saving Observation...", MESSAGE_TYPE_INFO);
+
   try {
-    coralObservations.value = [];
-    activeId.value = "";
-    const coralName = name.value;
+    candidates.value = [];
     selected.value = new Set();
+
     await identifyService.confirmCoral({
       image: image.value,
-      selectedSegments: segments.value.filter((s) => tmpSelected.has(s.id)),
-      selectedCandidateId: tmpActiveId || null,
-      diveSite: site.value,
-      coralName: coralName,
+      selectedSegments: segments.value.filter((segment) => previousSelected.has(segment.id)),
+      selectedCandidateId: payload.selectedCandidateId,
+      diveSite: payload.diveSite,
+      coralName: payload.coralName,
     });
-    notify("Observation for " + coralName + " has been successfully saved", MESSAGE_TYPE_SUCCESS);
-    name.value = `Coral-${crypto.randomUUID().slice(0, 5).toUpperCase()}`;
+
+    notify(`Observation for ${payload.coralName} has been successfully saved`, MESSAGE_TYPE_SUCCESS);
   } catch (e) {
     notify(e instanceof Error ? e.message : "Could not save Observation", MESSAGE_TYPE_ERROR);
-    coralObservations.value = tmpCoralObservations;
-    activeId.value = tmpActiveId;
-    selected.value = tmpSelected;
+    candidates.value = previousCandidates;
+    selected.value = previousSelected;
   } finally {
     loading.confirm = false;
   }
