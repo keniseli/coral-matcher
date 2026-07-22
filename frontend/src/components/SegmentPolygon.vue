@@ -36,9 +36,9 @@ const points = computed(() =>
 
 const color = computed(() =>
   props.selected
-    ? { fill: "#43A047", stroke: "#1B5E20", width: 3.2 }
+    ? { fill: "rgb(13 148 136)", stroke: "rgb(45 212 191)", width: 3.2 }
     : hover.value
       ? { fill: "#FFB300", stroke: "#EF6C00", width: 2.8 }
-      : { fill: "#4FC3F7", stroke: "#0288D1", width: 2 },
+      : { fill: "white", stroke: "#9ca3af", width: 2 },
 );
 </script>
