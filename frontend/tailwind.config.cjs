@@ -23,12 +23,6 @@ module.exports = {
           "primary-text": colors.slate[100],
           
           "secondary-text": colors.slate[500],
-
-
-          border: "#1C3037",
-          "border-strong": "#29434B",
-
-          muted: "#64748B",
         },
       },
     }

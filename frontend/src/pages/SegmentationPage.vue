@@ -12,52 +12,18 @@
           </p>
         </div>
 
-        <div>
-          <div v-if="error"
-            class="relative mb-3 rounded border border-red-400 bg-red-600/20 px-4 py-3 pr-10 text-sm text-red-100">
-            <span>
-              {{ error }}
-            </span>
 
-            <button class="absolute right-3 top-3 text-red-200 transition hover:text-white" aria-label="Dismiss"
-              @click="error = ''">
-              ✕
-            </button>
-          </div>
-
-          <div v-if="info"
-            class="relative mb-3 rounded border border-white-400 bg-slate-100/10 px-4 py-3 pr-10 text-sm text-red-100">
-            <span>
-              {{ info }}
-            </span>
-
-            <button class="absolute right-3 top-3 text-white-200 transition hover:text-white" aria-label="Dismiss"
-              @click="info = ''">
-              ✕
-            </button>
-          </div>
-
-          <div v-if="success"
-            class="relative mb-3 rounded border border-coral-primary bg-coral-primary-bg px-4 py-3 pr-10 text-sm text-red-100">
-            <span>
-              {{ success }}
-            </span>
-
-            <button class="absolute right-3 top-3 text-green-200 transition hover:text-white" aria-label="Dismiss"
-              @click="success = ''">
-              ✕
-            </button>
-          </div>
-        </div>
       </header>
       <div class="grid min-h-0 flex-1 gap-4 xl:grid-cols-[3fr_2fr]">
         <!-- Image / segmentation panel -->
-        <section class="flex min-h-0 flex-col overflow-hidden rounded border border-coral-surface-border bg-coral-surface">
-          <div class="grid grid-cols-[2fr_2fr_1fr_1fr] items-center gap-4 border-b border-coral-surface-border px-4 py-3 text-xs">
+        <section
+          class="flex min-h-0 flex-col overflow-hidden rounded border border-coral-surface-border bg-coral-surface">
+          <div
+            class="grid grid-cols-[2fr_2fr_1fr_1fr] items-center gap-4 border-b border-coral-surface-border px-4 py-3 text-xs">
             <div>
               <p class="text-xs text-coral-secondary-text">
-                Select every segment that belongs to one colony or choose from
-                past observations. Drop image to start
+                Select segments belonging to one colony.<br />
+                Create an observation for a known or a new coral colony by browsing the candidates.<br />
               </p>
             </div>
 
@@ -92,7 +58,8 @@
                 </span>
               </label>
 
-              <input v-model.number="opacity" type="range" min="0" max="1" step=".05" class="w-20 accent-coral-primary" />
+              <input v-model.number="opacity" type="range" min="0" max="1" step=".05"
+                class="w-20 accent-coral-primary" />
             </div>
 
             <div class="ml-auto">
@@ -104,8 +71,8 @@
             </div>
           </div>
 
-          <div class="relative flex min-h-[540px] flex-1 items-center justify-center bg-coral-surface p-3" @dragover.prevent
-            @drop.prevent="dropped">
+          <div class="relative flex min-h-[540px] flex-1 items-center justify-center bg-coral-surface p-3"
+            @dragover.prevent @drop.prevent="dropped">
             <CoralImageViewer v-if="imageUrl" :image-src="imageUrl" :segments="segments" :selected="selected"
               :opacity="opacity" @toggle="toggle" />
 
@@ -119,7 +86,8 @@
                 calculated.
               </p>
 
-              <button class="mt-4 rounded bg-coral-primary px-4 py-2 text-sm font-semibold text-coral-primary-button-text"
+              <button
+                class="mt-4 rounded bg-coral-primary px-4 py-2 text-sm font-semibold text-coral-primary-button-text"
                 @click="picker?.click()">
                 Browse image
               </button>
@@ -149,7 +117,7 @@
           <!-- Candidates -->
           <CandidatesPanel :image-url="imageUrl" :candidates="candidates" :selected-count="selected.size"
             :loading-segment="loading.segment" :loading-identify="loading.identify" :loading-confirm="loading.confirm"
-            @confirm="confirm" />
+            @confirm="confirm" :selectedMonitoringSession="selectedMonitoringSession" />
         </div>
       </div>
     </div>
@@ -161,6 +129,8 @@ import {
   reactive,
   ref,
 } from "vue";
+
+import { useNotificationStore } from "../stores/notification";
 
 import CoralImageViewer from "../components/CoralImageViewer.vue";
 import CandidatesPanel from "../components/CandidatesPanel.vue";
@@ -196,6 +166,8 @@ const loading = reactive({
 });
 
 const selectedMonitoringSession = ref<MonitoringSession | null>(null);
+const notificationStore = useNotificationStore();
+
 
 const toggle = (id: number) => {
   const next = new Set(selected.value);
@@ -205,27 +177,6 @@ const toggle = (id: number) => {
     : next.add(id);
 
   selected.value = next;
-};
-
-const MESSAGE_TYPE_INFO = "info";
-const MESSAGE_TYPE_ERROR = "error";
-const MESSAGE_TYPE_SUCCESS = "success";
-
-const notify = (
-  message: string,
-  type: string,
-) => {
-  success.value = "";
-  info.value = "";
-  error.value = "";
-
-  if (type === MESSAGE_TYPE_ERROR) {
-    error.value = message;
-  } else if (type === MESSAGE_TYPE_SUCCESS) {
-    success.value = message;
-  } else {
-    info.value = message;
-  }
 };
 
 const updateCandidates = (
@@ -251,10 +202,7 @@ const upload = async (
 
   loading.segment = true;
 
-  notify(
-    "Calculating Segments...",
-    MESSAGE_TYPE_INFO,
-  );
+  notificationStore.info("Calculating Segments...");
 
   try {
     const uploadResult =
@@ -267,16 +215,9 @@ const upload = async (
       uploadResult.observationCandidates,
     );
 
-    notify(
-      "Segments Calculated",
-      MESSAGE_TYPE_SUCCESS,
-    );
+    notificationStore.success("Segments Calculated");
   } catch (e) {
-    notify(
-      e instanceof Error
-        ? e.message
-        : "Segmentation failed.",
-      MESSAGE_TYPE_ERROR,
+    notificationStore.error(e instanceof Error ? e.message : "Segmentation failed."
     );
   } finally {
     loading.segment = false;
@@ -313,10 +254,7 @@ const identify = async () => {
 
   loading.identify = true;
 
-  notify(
-    `Finding Candidates for ${selected.value.size} Segments...`,
-    MESSAGE_TYPE_INFO,
-  );
+  notificationStore.info(`Finding Candidates for ${selected.value.size} Segments...`);
 
   try {
     const result =
@@ -332,9 +270,9 @@ const identify = async () => {
       result.candidates ?? [],
     );
 
-    notify(`Found ${result.candidates?.length ?? 0} Candidates`, MESSAGE_TYPE_SUCCESS);
+    notificationStore.success(`Found ${result.candidates?.length ?? 0} Candidates`);
   } catch (e) {
-    notify(e instanceof Error ? e.message : "Could not find matches.", MESSAGE_TYPE_ERROR);
+    notificationStore.error(e instanceof Error ? e.message : "Could not find matches.");
   } finally {
     loading.identify = false;
   }
@@ -346,9 +284,7 @@ type ConfirmPayload = {
   coralName: string;
 };
 
-const confirm = async (
-  payload: ConfirmPayload,
-) => {
+const confirm = async (payload: ConfirmPayload) => {
   if (!image.value) {
     return;
   }
@@ -358,7 +294,7 @@ const confirm = async (
   const previousCandidates = candidates.value;
   const previousSelected = selected.value;
 
-  notify("Saving Observation...", MESSAGE_TYPE_INFO);
+  notificationStore.info("Saving Observation...");
 
   try {
     candidates.value = [];
@@ -372,9 +308,9 @@ const confirm = async (
       coralName: payload.coralName,
     });
 
-    notify(`Observation for ${payload.coralName} has been successfully saved`, MESSAGE_TYPE_SUCCESS);
+    notificationStore.success(`Observation for ${payload.coralName} has been successfully saved`);
   } catch (e) {
-    notify(e instanceof Error ? e.message : "Could not save Observation", MESSAGE_TYPE_ERROR);
+    notificationStore.error(e instanceof Error ? e.message : "Could not save Observation");
     candidates.value = previousCandidates;
     selected.value = previousSelected;
   } finally {

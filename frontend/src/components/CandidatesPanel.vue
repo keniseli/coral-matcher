@@ -1,5 +1,6 @@
 <template>
-    <aside class="flex h-full min-h-0 flex-col overflow-hidden rounded border border-coral-surface-border bg-coral-surface">
+    <aside
+        class="flex h-full min-h-0 flex-col overflow-hidden rounded border border-coral-surface-border bg-coral-surface">
         <!-- Candidate controls -->
         <div class="border-b border-slate-800 p-4">
             <h2 class="text-sm font-semibold">
@@ -11,35 +12,13 @@
             </p>
 
             <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
-                <label>
-                    Dive site
 
-                    <select v-model="site"
-                        class="mt-1 block w-full rounded border border-slate-700 bg-coral-input p-2 text-coral-primary-text">
-                        <option>Isla Larga</option>
-                        <option>Olohuita</option>
-                    </select>
-                </label>
-
-                <label>
-                    Coral Colony name
-
-                    <input v-model="name"
-                        class="mt-1 w-full rounded border border-slate-700 bg-coral-input p-2 text-coral-primary-text" />
-                </label>
-            </div>
-
-            <div
-                class="mt-3 flex items-center justify-between rounded border border-slate-700 bg-coral-input p-2 text-xs">
-                <span>
-                    Selection:
-                    <b>
-                        {{ active?.coralName || "New Coral Colony" }}
-                    </b>
-                </span>
+                <input v-model="name"
+                    class="mt-1 w-full rounded border border-coral-raised-border bg-coral-input p-2 text-coral-primary-text"
+                    placeholder="Enter New Coral Colony Name" />
 
                 <button :disabled="!selectedCount || loadingConfirm"
-                    class="rounded bg-coral-primary px-3 py-1.5 font-semibold text-coral-primary-button-text disabled:opacity-40"
+                    class="rounded bg-coral-primary text-xs px-3 py-1.5 font-semibold text-coral-primary-button-text disabled:opacity-40"
                     @click="confirm">
                     {{
                         loadingConfirm
@@ -78,8 +57,8 @@
 
             <button v-for="coralObservation in coralObservations" v-else :key="coralObservation.coralName"
                 class="mb-1 ml-1 w-full overflow-hidden rounded border text-left" :class="activeId === coralObservation.coralName
-                        ? 'border-coral-primary bg-coral-primary-bg'
-                        : 'border-coral-raised-border bg-coral-raised'
+                    ? 'border-coral-primary bg-coral-primary-bg'
+                    : 'border-coral-raised-border bg-coral-raised'
                     " @click="selectCandidate(coralObservation.coralName)">
                 <div class="mt-2 flex">
                     <span class="p-2 text-sm font-semibold">
@@ -129,10 +108,13 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { useNotificationStore } from "../stores/notification";
 import type {
     CoralCandidate,
     CoralObservations,
 } from "../types/api";
+import { MonitoringSession } from "../types/monitoringSession";
+
 
 type Props = {
     imageUrl: string;
@@ -141,23 +123,21 @@ type Props = {
     loadingSegment: boolean;
     loadingIdentify: boolean;
     loadingConfirm: boolean;
+    selectedMonitoringSession: MonitoringSession
 };
 
 const props = defineProps<Props>();
-
 const emit = defineEmits<{
     confirm: [payload: {
         selectedCandidateId: string | null;
         diveSite: string;
         coralName: string;
-    }];
-}>();
+    }]}>();
 
 const site = ref("Isla Larga");
-
-const name = ref(`Coral-${crypto.randomUUID().slice(0, 5).toUpperCase()}`);
-
+const name = ref("");
 const activeId = ref("");
+const notificationStore = useNotificationStore();
 
 const coralObservations = computed<CoralObservations[]>(() => {
     const grouped = Object.groupBy(props.candidates, (candidate) => candidate.coralName);
@@ -173,10 +153,6 @@ const active = computed(() =>
     ),
 );
 
-const createNewCoralName = () => {
-    return `Coral-${crypto.randomUUID().slice(0, 5).toUpperCase()}`;
-};
-
 const selectCandidate = (coralName: string) => {
     if (activeId.value === coralName) {
         deselectCandidate();
@@ -189,18 +165,22 @@ const selectCandidate = (coralName: string) => {
 
 const deselectCandidate = () => {
     activeId.value = "";
-    name.value = createNewCoralName();
+    name.value = "";
 };
 
 const confirm = () => {
+    if (name.value.length == 0) {
+        notificationStore.error("Coral name must not be empty");
+        return;
+    }
     emit("confirm", {
         selectedCandidateId: activeId.value || null,
         diveSite: site.value,
         coralName: name.value,
     });
     activeId.value = '';
-
 };
+
 
 const hasHighSimilarity = (
     candidates: CoralCandidate[],
