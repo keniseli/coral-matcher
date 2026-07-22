@@ -307,15 +307,15 @@ const identify = async () => {
   if (!image.value) return;
   loading.identify = true;
   activeId.value = "";
-  notify("Finding Candidates...", MESSAGE_TYPE_INFO);
+  notify(`Finding Candidates for ${selected.value.size} Segments...`, MESSAGE_TYPE_INFO);
   try {
-    const r = await identifyService.identifyCoral(
+    const result = await identifyService.identifyCoralBySegments(
       segments.value.filter((s) => selected.value.has(s.id)),
       image.value,
     );
-    updateCandidates(r.candidates ? r.candidates : []);
+    updateCandidates(result.candidates ? result.candidates : []);
 
-    notify("Found " + r.candidates?.length + " Candidates", MESSAGE_TYPE_SUCCESS);
+    notify("Found " + result.candidates?.length + " Candidates", MESSAGE_TYPE_SUCCESS);
   } catch (e) {
     notify(e instanceof Error ? e.message : "Could not find matches.", MESSAGE_TYPE_ERROR);
   } finally {

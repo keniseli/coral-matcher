@@ -1,9 +1,9 @@
 import type { IdentifyApiResponse } from '../types/api'
 import type { Segment } from '../types/segment'
 
-async function identifyCoral(selectedSegments: Segment[], file: File): Promise<IdentifyApiResponse> {
+async function identifyCoralBySegments(selectedSegments: Segment[], file: File): Promise<IdentifyApiResponse> {
   const apiBase = import.meta.env.VITE_API_BASE as string
-  const url = apiBase ? `${apiBase}/api/identify` : '/api/identify-coral'
+  const url = apiBase ? `${apiBase}/api/identify-by-segments` : '/api/identify-by-segments'
   const form = new FormData()
   form.append('image', file)
   form.append('segments', JSON.stringify({ selectedSegments }))
@@ -34,4 +34,4 @@ async function confirmCoral(request: ConfirmCoralRequest): Promise<void> {
   return res.json()
 }
 
-export default { identifyCoral, confirmCoral }
+export default { identifyCoralBySegments, confirmCoral }

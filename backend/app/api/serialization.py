@@ -76,18 +76,21 @@ def parse_identify_request(request) -> IdentifyRequest:
 
     return IdentifyRequest(image=image, selected_segments=segments)
     
-def serialize_identify_response(result: IdentifyResult) -> dict:
-    success, encoded = cv2.imencode(".jpg", result.crop)
-
-    if not success:
-        raise ValueError("Failed to encode cropped image.")
-
+def serialize_observation_candidates(observations: list[ObservationCandidate]) -> dict:
     return {
-        "image": {
-            "width": result.crop.shape[1],
-            "height": result.crop.shape[0],
-        },
-        "imageData": base64.b64encode(encoded).decode("ascii")
+        "candidates": [
+            {
+                "id": candidate.observation.id,
+                "coralId": candidate.observation.id,
+                "coralName": candidate.observation.coral_name,
+                "monitoringSessionDate": candidate.observation.created_at,
+                "visualSimilarity": candidate.similarity,
+                "diveSite": candidate.observation.dive_site,
+                # intentionally return a smaller, cropped image
+                "imageUrl": candidate.observation.cropped_image_path,
+            }
+            for candidate in observations
+        ]
     }
     
 def parse_confirm_request(request) -> ConfirmRequest:

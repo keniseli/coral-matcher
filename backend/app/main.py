@@ -8,7 +8,7 @@ from functools import reduce
 
 from app.orchestration.coral_service import CoralService
 from app.persistence.storage import decode_image_stream
-from app.api.serialization import parse_identify_request, serialize_identify_response, serialize_image_upload_response, parse_confirm_request
+from app.api.serialization import parse_identify_request, serialize_observation_candidates, serialize_image_upload_response, parse_confirm_request
 
 
 logger = logging.getLogger(__name__)
@@ -55,15 +55,14 @@ def process_coral_upload(request: Request):
                 lambda segment, other: segment if segment.score() > other.score() else other,
                 segmentation.segments
             )
-            candidates = service.find_similar_observations(image, segment)
+            candidates = service.find_similar_observations(image, [segment])
             response = serialize_image_upload_response(segmentation, candidates)
             return add_cors_headers(response)
 
-        if request.path == "/api/identify-coral":
+        if request.path == "/api/identify-by-segments":
             identify_request = parse_identify_request(request)
-            # TODO instead of identify, call observations and pass a merged segment from all selected ones
-            result = service.identify(identify_request.image, identify_request.selected_segments)
-            response = serialize_identify_response(result)
+            observationCandidates = service.find_similar_observations(identify_request.image, identify_request.selected_segments)
+            response = serialize_observation_candidates(observationCandidates)
             return add_cors_headers(response)
         
         if request.path == "/api/confirm-coral":

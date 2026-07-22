@@ -46,14 +46,14 @@ class CoralService:
 
         return self.segmenter.segment(image, filename)
 
-    def find_similar_observations(self, image: np.ndarray, segment: Segment) -> list[ObservationCandidate]:
+    def find_similar_observations(self, image: np.ndarray, segments: list[Segment]) -> list[ObservationCandidate]:
         """
-        Finds similar observations by first detecting the embedding and then comparing it against
+        Finds similar observations by first calculating the embedding and then comparing it against
         what is stored in the db.
         """
-        
-        identify_result = self.identify(image, [segment])
-        
+
+        identify_result = self.identify(image, segments)
+
         candidates = self.observation_repository.find_similar(identify_result.embedding)
 
         return self.apply_embedding_distance_filter(candidates)
