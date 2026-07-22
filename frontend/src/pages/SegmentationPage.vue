@@ -1,20 +1,20 @@
 <template>
-  <main class="min-h-screen overflow-auto bg-[#071116] p-5 text-slate-100 xl:h-screen xl:overflow-hidden">
+  <main class="min-h-screen overflow-auto bg-coral-bg p-5 text-coral-primary-text xl:h-screen xl:overflow-hidden">
     <div class="mx-auto flex h-full max-w-[1800px] min-h-0 flex-col">
-      <header class="flex items-center justify-between border-slate-800 pb-2">
+      <header class="flex items-center justify-between pb-2">
         <div>
           <h1 class="text-3xl font-bold">
             Coral Matcher
           </h1>
 
-          <p class="text-xs text-slate-500">
+          <p class="text-xs text-coral-secondary-text">
             Identify and find monitored coral colonies
           </p>
         </div>
 
         <div>
           <div v-if="error"
-            class="relative mb-3 rounded-md border border-red-400 bg-red-600/20 px-4 py-3 pr-10 text-sm text-red-100">
+            class="relative mb-3 rounded border border-red-400 bg-red-600/20 px-4 py-3 pr-10 text-sm text-red-100">
             <span>
               {{ error }}
             </span>
@@ -26,7 +26,7 @@
           </div>
 
           <div v-if="info"
-            class="relative mb-3 rounded-md border border-white-400 bg-slate-100/10 px-4 py-3 pr-10 text-sm text-red-100">
+            class="relative mb-3 rounded border border-white-400 bg-slate-100/10 px-4 py-3 pr-10 text-sm text-red-100">
             <span>
               {{ info }}
             </span>
@@ -38,7 +38,7 @@
           </div>
 
           <div v-if="success"
-            class="relative mb-3 rounded-md border border-teal-400 bg-teal-600/20 px-4 py-3 pr-10 text-sm text-red-100">
+            class="relative mb-3 rounded border border-coral-primary bg-coral-primary-bg px-4 py-3 pr-10 text-sm text-red-100">
             <span>
               {{ success }}
             </span>
@@ -52,18 +52,18 @@
       </header>
       <div class="grid min-h-0 flex-1 gap-4 xl:grid-cols-[3fr_2fr]">
         <!-- Image / segmentation panel -->
-        <section class="flex min-h-0 flex-col overflow-hidden rounded-xl border border-slate-800 bg-[#0b181e]">
-          <div class="grid grid-cols-[2fr_2fr_1fr_1fr] items-center gap-4 border-b border-slate-800 px-4 py-3 text-xs">
+        <section class="flex min-h-0 flex-col overflow-hidden rounded border border-coral-surface-border bg-coral-surface">
+          <div class="grid grid-cols-[2fr_2fr_1fr_1fr] items-center gap-4 border-b border-coral-surface-border px-4 py-3 text-xs">
             <div>
-              <p class="text-xs text-slate-500">
+              <p class="text-xs text-coral-secondary-text">
                 Select every segment that belongs to one colony or choose from
                 past observations. Drop image to start
               </p>
             </div>
 
             <div class="flex flex-col items-center gap-3">
-              <span class="text-slate-400">
-                <b class="text-slate-200">
+              <span class="text-coral-secondary-text">
+                <b class="text-coral-primary-text">
                   {{ selected.size }}
                 </b>
                 of
@@ -72,7 +72,7 @@
               </span>
 
               <button :disabled="!selected.size || loading.identify"
-                class="rounded bg-teal-400 px-3 py-2 font-semibold text-[#062126] disabled:opacity-40"
+                class="rounded bg-coral-primary px-3 py-2 font-semibold text-[#062126] disabled:opacity-40"
                 @click="identify">
                 {{
                   loading.identify
@@ -82,17 +82,17 @@
               </button>
             </div>
 
-            <div class="flex flex-col gap-3 text-slate-400">
+            <div class="flex flex-col gap-3 text-coral-secondary-text">
               <label>
                 Opacity:
-                <span class="text-slate-200">
+                <span class="text-coral-primary-text">
                   <b>
                     {{ Math.round(opacity * 100) }}%
                   </b>
                 </span>
               </label>
 
-              <input v-model.number="opacity" type="range" min="0" max="1" step=".05" class="w-20 accent-teal-400" />
+              <input v-model.number="opacity" type="range" min="0" max="1" step=".05" class="w-20 accent-coral-primary" />
             </div>
 
             <div class="ml-auto">
@@ -104,7 +104,7 @@
             </div>
           </div>
 
-          <div class="relative flex min-h-[540px] flex-1 items-center justify-center bg-black/40 p-3" @dragover.prevent
+          <div class="relative flex min-h-[540px] flex-1 items-center justify-center bg-coral-surface p-3" @dragover.prevent
             @drop.prevent="dropped">
             <CoralImageViewer v-if="imageUrl" :image-src="imageUrl" :segments="segments" :selected="selected"
               :opacity="opacity" @toggle="toggle" />
@@ -114,12 +114,12 @@
                 Drop an image here
               </p>
 
-              <p class="mt-2 text-sm text-slate-500">
+              <p class="mt-2 text-xs text-coral-secondary-text">
                 Segmentation overlays appear after segmentation results are
                 calculated.
               </p>
 
-              <button class="mt-4 rounded bg-teal-400 px-4 py-2 text-sm font-semibold text-[#062126]"
+              <button class="mt-4 rounded bg-coral-primary px-4 py-2 text-sm font-semibold text-coral-primary-button-text"
                 @click="picker?.click()">
                 Browse image
               </button>
@@ -129,13 +129,13 @@
               class="absolute inset-0 flex items-center justify-center bg-[#071116]/45">
               <div class="rounded border border-slate-700 bg-[#0d1b21] px-5 py-4 text-center">
                 <i
-                  class="mx-auto block h-5 w-5 rounded-full border-2 border-teal-300 border-t-transparent animate-spin"></i>
+                  class="mx-auto block h-5 w-5 rounded-full border-2 border-coral-primary border-t-transparent animate-spin"></i>
 
                 <p class="mt-2 text-sm">
                   Segmenting image
                 </p>
 
-                <p class="text-xs text-slate-400">
+                <p class="text-xs text-coral-secondary-text">
                   This may take several minutes.
                 </p>
               </div>
@@ -144,7 +144,7 @@
         </section>
 
         <!-- Monitoring Session Selector-->
-        <div>
+        <div class="flex min-h-0 flex-col">
           <MonitoringSessionSelector v-model="selectedMonitoringSession" class="mb-2" />
           <!-- Candidates -->
           <CandidatesPanel :image-url="imageUrl" :candidates="candidates" :selected-count="selected.size"

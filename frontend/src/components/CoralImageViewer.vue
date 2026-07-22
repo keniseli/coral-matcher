@@ -1,6 +1,6 @@
 <template>
   <div
-    class="relative h-full w-full overflow-hidden rounded-lg border border-slate-800"
+    class="relative h-full w-full overflow-hidden rounded border border-slate-800"
   >
     <img
       v-if="imageSrc"
@@ -65,6 +65,6 @@ const area = (segment: Segment) =>
   );
 
 const ordered = computed(() =>
-  [...props.segments].sort((first, second) => area(first) - area(second)),
+  [...props.segments].sort((first, second) => area(second) - area(first)),
 );
 </script>

@@ -38,7 +38,7 @@ const color = computed(() =>
   props.selected
     ? { fill: "rgb(13 148 136)", stroke: "rgb(45 212 191)", width: 3.2 }
     : hover.value
-      ? { fill: "#FFB300", stroke: "#EF6C00", width: 2.8 }
-      : { fill: "white", stroke: "#9ca3af", width: 2 },
+      ? { fill: "#F26419", stroke: "#D4520C", width: 2.8 }
+      : { fill: "#E5E1EE", stroke: "#5B4983", width: 2 },
 );
 </script>

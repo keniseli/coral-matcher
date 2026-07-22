@@ -1,12 +1,12 @@
 <template>
-    <aside class="flex min-h-0 flex-col overflow-hidden rounded-xl border border-slate-800 bg-[#0b181e]">
+    <aside class="flex h-full min-h-0 flex-col overflow-hidden rounded border border-coral-surface-border bg-coral-surface">
         <!-- Candidate controls -->
-        <div class="border-b border-slate-800 bg-[#0e1d23] p-4">
+        <div class="border-b border-slate-800 p-4">
             <h2 class="text-sm font-semibold">
                 Candidates
             </h2>
 
-            <p class="mt-1 text-xs text-slate-500">
+            <p class="mt-1 text-xs text-coral-secondary-text">
                 Compare uploaded image with past observations
             </p>
 
@@ -15,7 +15,7 @@
                     Dive site
 
                     <select v-model="site"
-                        class="mt-1 block w-full rounded border border-slate-700 bg-[#091419] p-2 text-slate-200">
+                        class="mt-1 block w-full rounded border border-slate-700 bg-coral-input p-2 text-coral-primary-text">
                         <option>Isla Larga</option>
                         <option>Olohuita</option>
                     </select>
@@ -25,12 +25,12 @@
                     Coral Colony name
 
                     <input v-model="name"
-                        class="mt-1 w-full rounded border border-slate-700 bg-[#091419] p-2 text-slate-200" />
+                        class="mt-1 w-full rounded border border-slate-700 bg-coral-input p-2 text-coral-primary-text" />
                 </label>
             </div>
 
             <div
-                class="mt-3 flex items-center justify-between rounded border border-slate-700 bg-[#091419] p-2 text-xs">
+                class="mt-3 flex items-center justify-between rounded border border-slate-700 bg-coral-input p-2 text-xs">
                 <span>
                     Selection:
                     <b>
@@ -39,7 +39,7 @@
                 </span>
 
                 <button :disabled="!selectedCount || loadingConfirm"
-                    class="rounded bg-teal-400 px-3 py-1.5 font-semibold text-[#062126] disabled:opacity-40"
+                    class="rounded bg-coral-primary px-3 py-1.5 font-semibold text-coral-primary-button-text disabled:opacity-40"
                     @click="confirm">
                     {{
                         loadingConfirm
@@ -59,7 +59,7 @@
         <!-- Candidate list -->
         <div class="min-h-0 flex-1 overflow-y-auto p-3">
             <div v-if="loadingSegment || loadingIdentify"
-                class="flex h-full min-h-[180px] flex-col items-center justify-center text-sm text-slate-400">
+                class="flex h-full min-h-[180px] flex-col items-center justify-center text-xs text-coral-secondary-text">
                 <i class="h-5 w-5 rounded-full border-2 border-teal-300 border-t-transparent animate-spin"></i>
 
                 <p class="mt-3">
@@ -67,27 +67,27 @@
                 </p>
             </div>
 
-            <p v-else-if="!imageUrl" class="mt-20 text-center text-sm text-slate-500">
+            <p v-else-if="!imageUrl" class="mt-20 text-center text-xs text-coral-secondary-text">
                 Upload an image to begin comparison.
             </p>
 
-            <p v-else-if="!coralObservations.length" class="mt-20 text-center text-sm text-slate-500">
+            <p v-else-if="!coralObservations.length" class="mt-20 text-center text-xs text-coral-secondary-text">
                 No matching colonies found. You can save this observation as a new
                 colony.
             </p>
 
             <button v-for="coralObservation in coralObservations" v-else :key="coralObservation.coralName"
-                class="mb-1 w-full overflow-hidden rounded-lg border text-left" :class="activeId === coralObservation.coralName
-                        ? 'border-teal-400 bg-teal-400/10'
-                        : 'border-slate-800 bg-[#091419]'
+                class="mb-1 ml-1 w-full overflow-hidden rounded border text-left" :class="activeId === coralObservation.coralName
+                        ? 'border-coral-primary bg-coral-primary-bg'
+                        : 'border-coral-raised-border bg-coral-raised'
                     " @click="selectCandidate(coralObservation.coralName)">
                 <div class="mt-2 flex">
-                    <span class="p-3 text-sm font-bold">
+                    <span class="p-2 text-sm font-semibold">
                         {{ coralObservation.coralName }}
                     </span>
 
                     <div v-if="hasHighSimilarity(coralObservation.candidates)"
-                        class="ml-3 inline-flex items-center rounded-md bg-teal-600/20 px-1.5 text-xs font-medium">
+                        class="ml-3 inline-flex items-center rounded bg-coral-primary-bg px-1.5 text-xs font-medium">
                         <svg fill="#ffffff" width="24px" height="24px" viewBox="0 0 24 24"
                             xmlns="http://www.w3.org/2000/svg">
                             <path
@@ -106,7 +106,7 @@
                             <img v-if="candidate.imageUrl" :src="candidate.imageUrl"
                                 class="h-full w-full object-contain mix-blend-screen" />
 
-                            <span v-else class="text-xs text-slate-600">
+                            <span v-else class="text-xs text-coral-primary-text">
                                 No preview
                             </span>
                         </div>
@@ -116,12 +116,8 @@
                                 {{ similarityLabel(candidate.visualSimilarity) }}
                             </p>
 
-                            <p class="text-slate-400">
-                                Session {{ candidate.monitoringSessionDate }}
-                            </p>
-
-                            <p class="text-slate-400">
-                                {{ candidate.diveSite }}
+                            <p class="text-coral-secondary-text">
+                                Monitoring Session TODO {{ candidate.monitoringSessionDate }}
                             </p>
                         </div>
                     </div>

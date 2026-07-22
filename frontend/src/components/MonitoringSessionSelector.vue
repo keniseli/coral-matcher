@@ -3,14 +3,17 @@
         
         <!-- Selector button -->
         <button type="button"
-            class="mt-1 flex w-full items-center justify-between rounded border border-slate-700 bg-[#091419] p-2 text-left hover:border-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
+            class="flex w-full items-center justify-between rounded 
+            border border-coral-surface-border bg-coral-input p-2 text-left 
+            hover:border-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
             :disabled="loading" @click="toggleDropdown">
             <div>
-                <p v-if="selectedSession" class="text-sm text-slate-200">
+                <p v-if="selectedSession" class="text-xs text-coral-primary-text font-semibold">
+                    <span>Monitoring Session</span>
                     {{ sessionLabel(selectedSession) }}
                 </p>
 
-                <p v-if="selectedSession" class="mt-0.5 text-xs text-slate-500">
+                <p v-if="selectedSession" class="mt-0.5 text-xs text-coral-secondary-text">
                     {{ selectedSession.diveSite.name }}
                     ·
                     {{ selectedSession.observationCount }}
@@ -22,7 +25,7 @@
                 </p>
 
 
-                <p v-else class="text-sm text-slate-500">
+                <p v-else class="text-xs text-coral-secondary-text">
                     {{
                         loading
                             ? "Loading monitoring sessions..."
@@ -31,7 +34,7 @@
                 </p>
             </div>
 
-            <span class="ml-3 text-slate-500 transition-transform" :class="open ? 'rotate-180' : ''">
+            <span class="ml-3 text-coral-secondary-text transition-transform" :class="open ? 'rotate-180' : ''">
                 ▼
             </span>
         </button>
@@ -43,22 +46,25 @@
 
         <!-- Dropdown -->
         <div v-if="open"
-            class="absolute z-40 mt-1 w-full overflow-hidden rounded border border-slate-700 bg-[#0d1b21] shadow-xl">
+            class="absolute z-40 mt-1 w-full overflow-hidden rounded border border-coral-surface-border bg-coral-surface shadow-xl">
             <!-- Loading -->
-            <div v-if="loading" class="px-3 py-4 text-center text-sm text-slate-500">
+            <div v-if="loading" class="px-3 py-4 text-center text-xs text-coral-secondary-text bg-coral-raised">
                 Loading sessions...
             </div>
 
             <!-- Existing sessions -->
             <div v-else-if="sessions.length" class="max-h-72 overflow-y-auto">
                 <button v-for="session in sessions" :key="session.id" type="button"
-                    class="w-full border-b border-slate-800 px-3 py-2 text-left transition hover:bg-slate-800" :class="session.id === selectedSession?.id
-                        ? 'bg-teal-400/10'
+                    class="w-full border-b border-coral-raised-border
+                    px-3 py-2 text-left transition 
+                    bg-coral-raised hover:bg-coral-primary-bg" 
+                    :class="session.id === selectedSession?.id
+                        ? 'bg-coral-primary-bg'
                         : ''
                         " @click="selectSession(session)">
                     <div class="flex items-center justify-between">
-                        <p class="text-sm text-slate-200">
-                            <span class="text-sm text-slate-300">
+                        <p class="text-xs text-coral-primary-text">
+                            <span class="text-xs text-coral-primary-text">
                                 Monitoring Session:
                             </span>
                             {{ sessionLabel(session) }}
@@ -71,7 +77,7 @@
                         </span>
                     </div>
 
-                    <p class="mt-0.5 text-xs text-slate-500">
+                    <p class="mt-0.5 text-xs text-coral-secondary-text">
                         {{ session.diveSite.name }}
                         ·
                         {{ session.observationCount }}
@@ -85,13 +91,14 @@
             </div>
 
             <!-- Empty state -->
-            <p v-else class="px-3 py-4 text-center text-sm text-slate-500">
+            <p v-else class="px-3 py-4 text-center text-xs text-coral-secondary-text">
                 No monitoring sessions yet.
             </p>
 
             <!-- Create new session -->
             <button type="button"
-                class="w-full border-t border-slate-700 px-3 py-3 text-left text-sm font-medium text-teal-300 transition hover:bg-teal-400/10"
+                class="w-full border-coral-raised-border px-3 py-3 text-left text-xs font-medium text-teal-300 transition
+                bg-coral-raised hover:bg-coral-primary-bg"
                 @click="openCreateDialog">
                 ＋ Create new monitoring session
             </button>
