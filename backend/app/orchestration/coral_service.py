@@ -87,10 +87,13 @@ class CoralService:
             selected_segments=segments,
         )
 
-    def confirm_observation(self, image: np.ndarray,
-        segments: list[Segment],
-        dive_site: str,
-        coral_name: str) -> ConfirmResult:
+    def confirm_observation(self, 
+            image: np.ndarray,
+            segments: list[Segment],
+            dive_site: str,
+            coral_name: str,
+            monitoring_session_id: str
+        ) -> ConfirmResult:
         
         identifyResult = self.identify(image, segments)
         
@@ -115,8 +118,7 @@ class CoralService:
             identifyResult.masked_image, f"{directory_in_bucket}/masked_{observation.created_at}"
         )
 
-        # TODO: fix this once monitoring sessions are a feature        
-        observation.monitoring_session_id = uuid.UUID("75e06e38-78cd-41bb-aa4e-409ba4fb5c91")
+        observation.monitoring_session_id = uuid.UUID(monitoring_session_id)
 
         self.observation_repository.save(observation)
 

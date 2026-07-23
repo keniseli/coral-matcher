@@ -8,8 +8,11 @@ from functools import reduce
 
 from app.orchestration.coral_service import CoralService
 from app.persistence.storage import decode_image_stream
-from app.api.serialization import parse_identify_request, serialize_observation_candidates, serialize_image_upload_response, parse_confirm_request
-
+from app.persistence.monitoring_session_repository import MonitoringSessionRepository
+from app.persistence.observation_repository import ObservationRepository
+from app.api.serialization import parse_identify_request, serialize_observation_candidates, serialize_image_upload_response, parse_confirm_request, parse_monitoring_session, serialize_monitoring_sessions
+from app.api.models import DiveSiteResponse, MonitoringSessionResponse
+from app.domain.monitoring_session import MonitoringSession
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +24,8 @@ logging.basicConfig(
     )
 
 service = CoralService()
+monitoring_session_repository = MonitoringSessionRepository()
+observation_repository = ObservationRepository()
 
 def add_cors_headers(body, status=200):
     headers = {
@@ -62,18 +67,46 @@ def process_coral_upload(request: Request):
         if request.path == "/api/identify-by-segments":
             identify_request = parse_identify_request(request)
             observationCandidates = service.find_similar_observations(identify_request.image, identify_request.selected_segments)
+            
+            # TODO: access monitoring session to show actual monitoring date instead of created_at
             response = serialize_observation_candidates(observationCandidates)
             return add_cors_headers(response)
         
         if request.path == "/api/confirm-coral":
             confirm_request = parse_confirm_request(request)
-            observation = service.confirm_observation(confirm_request.image,
+            observation = service.confirm_observation(
+                confirm_request.image,
                 confirm_request.selected_segments,
                 confirm_request.dive_site,
-                confirm_request.coral_name
+                confirm_request.coral_name,
+                confirm_request.monitoring_session_id
             ).observation
             return add_cors_headers({"observationId": observation.id})
 
+        if request.path == "/api/monitoring-sessions" and request.method == "POST":
+            monitoring_session: MonitoringSession = parse_monitoring_session(request)
+            monitoring_session = monitoring_session_repository.save(monitoring_session)
+            return add_cors_headers({"monitoringSessionId": monitoring_session.id})
+
+        if request.path == "/api/monitoring-sessions" and request.method == "GET":
+            sessions = monitoring_session_repository.find_all()
+            monitoring_observation_counts = observation_repository.find_amount_per_session()
+            logger.info(monitoring_observation_counts)
+            response = [
+                MonitoringSessionResponse(
+                    id=session.id,
+                    name=session.name,
+                    timestamp=session.timestamp,
+                    dive_site=DiveSiteResponse(
+                        id=session.dive_site,
+                        name=session.dive_site,
+                    ),
+                    observation_count=monitoring_observation_counts.get(str(session.id), 0),
+                ).model_dump(by_alias=True)
+                for session in sessions
+            ]
+            return add_cors_headers(response)
+        
         return add_cors_headers({"error": "Unknown endpoint."}, 404)
 
     except ValueError as ex:

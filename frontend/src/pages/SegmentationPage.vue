@@ -131,6 +131,7 @@ import {
 } from "vue";
 
 import { useNotificationStore } from "../stores/notification";
+import { useCoralDataStore } from "../stores/coral";
 
 import CoralImageViewer from "../components/CoralImageViewer.vue";
 import CandidatesPanel from "../components/CandidatesPanel.vue";
@@ -167,7 +168,7 @@ const loading = reactive({
 
 const selectedMonitoringSession = ref<MonitoringSession | null>(null);
 const notificationStore = useNotificationStore();
-
+const coralDataStore = useCoralDataStore();
 
 const toggle = (id: number) => {
   const next = new Set(selected.value);
@@ -205,15 +206,11 @@ const upload = async (
   notificationStore.info("Calculating Segments...");
 
   try {
-    const uploadResult =
-      await segmentation.segmentImage(file);
+    const uploadResult = await segmentation.segmentImage(file);
 
-    segments.value =
-      uploadResult.segments;
+    segments.value = uploadResult.segments;
 
-    updateCandidates(
-      uploadResult.observationCandidates,
-    );
+    updateCandidates(uploadResult.observationCandidates);
 
     notificationStore.success("Segments Calculated");
   } catch (e) {
@@ -306,6 +303,7 @@ const confirm = async (payload: ConfirmPayload) => {
       selectedCandidateId: payload.selectedCandidateId,
       diveSite: payload.diveSite,
       coralName: payload.coralName,
+      monitoringSessionId: coralDataStore.getSelectedMonitoringSessionId(),
     });
 
     notificationStore.success(`Observation for ${payload.coralName} has been successfully saved`);

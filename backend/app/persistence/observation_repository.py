@@ -1,4 +1,4 @@
-from sqlmodel import Session, select
+from sqlmodel import Session, select, func
 import uuid
 
 from app.domain.observation import Observation
@@ -39,3 +39,17 @@ class ObservationRepository:
     def find_by_id(self, id: str) -> Observation:
         session = get_session()
         return session.get(Observation, uuid.UUID(id))
+    
+    def find_amount_per_session(self) -> dict[str, int]:
+        statement = (
+            select(
+                Observation.monitoring_session_id,
+                func.count(Observation.id)
+            ).group_by(Observation.monitoring_session_id)
+        )
+        observations_per_session = get_session().exec(statement).all()
+        
+        return {
+            str(session_id): count
+            for session_id, count in observations_per_session
+        }

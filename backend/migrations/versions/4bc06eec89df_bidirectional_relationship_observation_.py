@@ -1,8 +1,8 @@
-"""try fixing observations <> monitoring sessions relationship
+"""bidirectional relationship observation x monitoringsession
 
-Revision ID: cf9cda8ba19b
-Revises: 40c92a7b9ac1
-Create Date: 2026-07-17 00:28:44.354795
+Revision ID: 4bc06eec89df
+Revises: 75b0695be4f9
+Create Date: 2026-07-22 12:47:51.632107
 
 """
 from typing import Sequence, Union
@@ -11,9 +11,10 @@ from alembic import op
 import sqlalchemy as sa
 import sqlmodel
 
+
 # revision identifiers, used by Alembic.
-revision: str = 'cf9cda8ba19b'
-down_revision: Union[str, Sequence[str], None] = '40c92a7b9ac1'
+revision: str = '4bc06eec89df'
+down_revision: Union[str, Sequence[str], None] = '75b0695be4f9'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

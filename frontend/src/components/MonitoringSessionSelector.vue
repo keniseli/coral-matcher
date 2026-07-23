@@ -124,30 +124,35 @@ import { MonitoringSession } from "../types/monitoringSession"
 import CreateMonitoringSessionDialog from "./CreateMonitoringSessionDialog.vue";
 import diveSiteService from "../services/diveSiteService"
 import { DiveSite } from "../types/diveSite"
+import { useNotificationStore } from "../stores/notification";
+import { useCoralDataStore } from "../stores/coral";
+
 type Props = {
     modelValue: MonitoringSession | null;
 };
 
 const props = defineProps<Props>();
-
-const emit = defineEmits<{
-    "update:modelValue": [
-        session: MonitoringSession | null,
-    ];
+    
+    const emit = defineEmits<{
+        "update:modelValue": [
+            session: MonitoringSession | null,
+        ];
 }>();
 
 const container =
-    ref<HTMLElement | null>(null);
-
-const open = ref(false);
-const loading = ref(false);
-const error = ref("");
-const showCreateDialog = ref(false);
-const sessions = ref<MonitoringSession[]>([]);
-const diveSites = ref<DiveSite[]>([]);
-const selectedSession = computed(() => props.modelValue);
-
-const toggleDropdown = () => {
+ref<HTMLElement | null>(null);
+    
+    const open = ref(false);
+    const loading = ref(false);
+    const error = ref("");
+    const showCreateDialog = ref(false);
+    const sessions = ref<MonitoringSession[]>([]);
+    const diveSites = ref<DiveSite[]>([]);
+    const selectedSession = computed(() => props.modelValue);
+    const notificationStore = useNotificationStore();
+    const coralDataStore = useCoralDataStore();
+    
+    const toggleDropdown = () => {
     if (loading.value) {
         return;
     }
@@ -155,10 +160,8 @@ const toggleDropdown = () => {
 };
 
 const selectSession = (session: MonitoringSession) => {
-    emit(
-        "update:modelValue",
-        session,
-    );
+    emit("update:modelValue", session);
+    coralDataStore.selectMonitoringSession(session);
     open.value = false;
 };
 
@@ -170,15 +173,18 @@ const openCreateDialog = () => {
 const loadSessions = async () => {
     loading.value = true;
     error.value = "";
-
+    
     try {
-        sessions.value =
-            await monitoringSessionService.getAll();
+        sessions.value = await monitoringSessionService.getAll();
+        if (sessions.value.length > 0) {
+            selectSession(sessions.value[0]);
+        }
     } catch (e) {
-        error.value =
-            e instanceof Error
-                ? e.message
-                : "Could not load monitoring sessions.";
+        if (e instanceof Error) {
+            notificationStore.error(e.message);
+        } else {
+            notificationStore.error("Could not load monitoring sessions.");
+        }
     } finally {
         loading.value = false;
     }
@@ -211,6 +217,7 @@ const createSession = async (payload: MonitoringSession) => {
 
         // Automatically select the newly-created session.
         emit("update:modelValue", created);
+        coralDataStore.selectMonitoringSession(created);
     } catch (e) {
         error.value =
             e instanceof Error

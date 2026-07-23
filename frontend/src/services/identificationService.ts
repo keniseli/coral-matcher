@@ -1,5 +1,6 @@
 import type { IdentifyApiResponse } from '../types/api'
 import type { Segment } from '../types/segment'
+import monitoringSessionService from './monitoringSessionService'
 
 async function identifyCoralBySegments(selectedSegments: Segment[], file: File): Promise<IdentifyApiResponse> {
   const apiBase = import.meta.env.VITE_API_BASE as string
@@ -18,6 +19,7 @@ interface ConfirmCoralRequest {
   selectedCandidateId: string | null
   diveSite: string
   coralName: string
+  monitoringSessionId: string
 }
 
 async function confirmCoral(request: ConfirmCoralRequest): Promise<void> {
@@ -29,6 +31,7 @@ async function confirmCoral(request: ConfirmCoralRequest): Promise<void> {
   form.append('selectedCandidateId', request.selectedCandidateId ?? '')
   form.append('diveSite', request.diveSite)
   form.append('coralName', request.coralName)
+  form.append('monitoringSessionId', request.monitoringSessionId)
   const res = await fetch(url, { method: 'POST', body: form })
   if (!res.ok) throw new Error('Confirmation request failed.')
   return res.json()

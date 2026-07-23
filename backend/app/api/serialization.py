@@ -10,6 +10,7 @@ from app.persistence.storage import decode_image_stream
 from app.segmentation.models import SegmentationResult
 from app.orchestration.models import IdentifyRequest, ConfirmRequest
 from app.domain.observation import Observation
+from app.domain.monitoring_session import MonitoringSession
 from app.domain.models import ObservationCandidate
 
 
@@ -93,7 +94,7 @@ def serialize_observation_candidates(observations: list[ObservationCandidate]) -
         ]
     }
     
-def parse_confirm_request(request) -> ConfirmRequest:
+def parse_confirm_request(request: Request) -> ConfirmRequest:
     """
     Convert the http request into a ConfirmRequest for processing
     """
@@ -108,8 +109,9 @@ def parse_confirm_request(request) -> ConfirmRequest:
 
     dive_site = request.form["diveSite"]
     coral_name = request.form["coralName"]
+    monitoring_session_id = request.form["monitoringSessionId"]
     
-    return ConfirmRequest(image, segments, dive_site, coral_name)
+    return ConfirmRequest(image, segments, dive_site, coral_name, monitoring_session_id)
 
 def parse_segments(segments_json_array):
     return [
@@ -134,3 +136,26 @@ def parse_segments(segments_json_array):
         for segment in segments_json_array
     ]
     
+def parse_monitoring_session(request: Request) -> MonitoringSession:
+    body = request.json
+    monitoring_session = MonitoringSession()
+    monitoring_session.name = body["name"]
+    monitoring_session.timestamp = body["timestamp"]
+    monitoring_session.dive_site = body["diveSite"]
+    return monitoring_session
+            
+def serialize_monitoring_sessions(sessions: list[MonitoringSession]):
+    return {
+        "sessions": [
+            {
+                "id": session.id,
+                "diveSite": { 
+                    "name" : session.dive_site,
+                    "id": session.dive_site
+                    },
+                "name": session.name,
+                "timestamp": session.timestamp,
+            }
+            for session in sessions
+        ]
+    }

@@ -35,7 +35,7 @@ $ conda activate coral-matcher
 $ alembic init migrations
 # then edit alembic.ini for connection to your supabase
 
-# to create the initial schema
+# to iterate on the schema git-commit-like
 $ alembic revision --autogenerate -m "Initial schema"
 
 # actually create the database and run the migration path

@@ -158,6 +158,7 @@ const create = () => {
         return;
     }
 
+    const localDate = new Date(timestamp.value);
     emit("create", {
         id: "",
         name: name.value.trim() || null,
@@ -165,7 +166,7 @@ const create = () => {
             id: diveSite.value,
             name: props.diveSites.find(d => d.id == diveSite.value)?.name || diveSite.value
         },
-        timestamp: timestamp.value,
+        timestamp: localDate.toISOString(),
         observationCount: 0
     });
 };

@@ -1,15 +1,9 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
-
 import uuid
 from datetime import datetime
-
-from app.domain.observation import Observation
-
 from sqlmodel import Field, SQLModel
+from pydantic import PrivateAttr
 
-if TYPE_CHECKING:
-    from app.domain.observation import Observation
 
 class MonitoringSession(SQLModel, table=True):
     __tablename__ = "monitoring_sessions"
@@ -19,4 +13,7 @@ class MonitoringSession(SQLModel, table=True):
         primary_key=True,
     )
     
+    name: str = Field(default="", sa_column_kwargs={"server_default": ""})
     timestamp: datetime
+    dive_site: str = Field(default="", sa_column_kwargs={"server_default": ""})
+    

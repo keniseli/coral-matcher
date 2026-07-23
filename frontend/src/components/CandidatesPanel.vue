@@ -46,11 +46,11 @@
                 </p>
             </div>
 
-            <p v-else-if="!imageUrl" class="mt-20 text-center text-xs text-coral-secondary-text">
+            <p v-else-if="!imageUrl" class="mt-2 text-center text-xs text-coral-secondary-text">
                 Upload an image to begin comparison.
             </p>
 
-            <p v-else-if="!coralObservations.length" class="mt-20 text-center text-xs text-coral-secondary-text">
+            <p v-else-if="!coralObservations.length" class="mt-2 text-center text-xs text-coral-secondary-text">
                 No matching colonies found. You can save this observation as a new
                 colony.
             </p>
