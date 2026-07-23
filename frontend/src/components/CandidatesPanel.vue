@@ -96,7 +96,7 @@
                             </p>
 
                             <p class="text-coral-secondary-text">
-                                Monitoring Session TODO {{ candidate.monitoringSessionDate }}
+                                {{ formatDate(candidate.monitoringSessionDate) }}
                             </p>
                         </div>
                     </div>
@@ -109,12 +109,9 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useNotificationStore } from "../stores/notification";
-import type {
-    CoralCandidate,
-    CoralObservations,
-} from "../types/api";
+import type { CoralCandidate, CoralObservations} from "../types/api";
 import { MonitoringSession } from "../types/monitoringSession";
-
+import { format } from "date-fns";
 
 type Props = {
     imageUrl: string;
@@ -152,6 +149,11 @@ const active = computed(() =>
             coralObservation.coralName === activeId.value,
     ),
 );
+
+const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return format(date, "dd. MMM yyyy 'at' p");
+}
 
 const selectCandidate = (coralName: string) => {
     if (activeId.value === coralName) {

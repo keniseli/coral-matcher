@@ -47,7 +47,7 @@ def serialize_image_upload_response(result: SegmentationResult, observation_cand
                 "id": candidate.observation.id,
                 "coralId": candidate.observation.id,
                 "coralName": candidate.observation.coral_name,
-                "monitoringSessionDate": candidate.observation.created_at,
+                "monitoringSessionDate": candidate.observation.monitoring_session.timestamp,
                 "visualSimilarity": candidate.similarity,
                 "diveSite": candidate.observation.dive_site,
                 # intentionally return a smaller image
@@ -84,7 +84,7 @@ def serialize_observation_candidates(observations: list[ObservationCandidate]) -
                 "id": candidate.observation.id,
                 "coralId": candidate.observation.id,
                 "coralName": candidate.observation.coral_name,
-                "monitoringSessionDate": candidate.observation.created_at,
+                "monitoringSessionDate": candidate.observation.monitoring_session.timestamp,
                 "visualSimilarity": candidate.similarity,
                 "diveSite": candidate.observation.dive_site,
                 # intentionally return a smaller, cropped image

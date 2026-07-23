@@ -35,9 +35,9 @@ class Observation(SQLModel, table=True):
     
     monitoring_session: MonitoringSession = Relationship(
         sa_relationship_kwargs={
-            "lazy": "select",
-    }
-    )
+            "lazy": "joined",
+    })
+    
     coral_name: str
     dive_site: str
     image_path: str

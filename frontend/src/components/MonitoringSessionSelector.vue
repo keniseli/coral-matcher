@@ -1,28 +1,26 @@
 <template>
     <div ref="container" class="relative">
-        
-        <!-- Selector button -->
-        <button type="button"
-            class="flex w-full items-center justify-between rounded 
-            border border-coral-surface-border bg-coral-input p-2 text-left 
-            hover:border-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
-            :disabled="loading" @click="toggleDropdown">
-            <div>
-                <p v-if="selectedSession" class="text-xs text-coral-primary-text font-semibold">
-                    <span>Monitoring Session</span>
-                    {{ sessionLabel(selectedSession) }}
-                </p>
 
-                <p v-if="selectedSession" class="mt-0.5 text-xs text-coral-secondary-text">
-                    {{ selectedSession.diveSite.name }}
-                    ·
+        <!-- Selector button -->
+        <button type="button" class="flex w-full items-center justify-between rounded 
+            border border-coral-surface-border bg-coral-input p-2 text-left 
+            hover:border-slate-600 disabled:cursor-not-allowed disabled:opacity-50" :disabled="loading"
+            @click="toggleDropdown">
+            <div class="grid grid-cols-[3fr_1fr] w-full text-xs text-coral-primary-text font-semibold m-1">
+                <span v-if="selectedSession">
+                    <span class="text-coral-secondary-text font-normal">Monitoring Session</span>
+                    {{ formatDate(selectedSession.timestamp) }} · {{ selectedSession.diveSite.name }}
+                    <span v-if="selectedSession.name"> · {{ selectedSession.name }}</span>
+                </span>
+
+                <span v-if="selectedSession" class="ml-auto text-coral-secondary-text font-normal">
                     {{ selectedSession.observationCount }}
                     observation{{
                         selectedSession.observationCount === 1
                             ? ""
                             : "s"
                     }}
-                </p>
+                </span>
 
 
                 <p v-else class="text-xs text-coral-secondary-text">
@@ -54,39 +52,28 @@
 
             <!-- Existing sessions -->
             <div v-else-if="sessions.length" class="max-h-72 overflow-y-auto">
-                <button v-for="session in sessions" :key="session.id" type="button"
-                    class="w-full border-b border-coral-raised-border
+                <button v-for="session in sessions" :key="session.id" type="button" class="w-full border-b border-coral-raised-border
                     px-3 py-2 text-left transition 
-                    bg-coral-raised hover:bg-coral-primary-bg" 
-                    :class="session.id === selectedSession?.id
+                    hover:bg-coral-primary-bg" :class="session.id === selectedSession?.id
                         ? 'bg-coral-primary-bg'
-                        : ''
+                        : 'bg-coral-raised'
                         " @click="selectSession(session)">
-                    <div class="flex items-center justify-between">
-                        <p class="text-xs text-coral-primary-text">
-                            <span class="text-xs text-coral-primary-text">
-                                Monitoring Session:
-                            </span>
-                            {{ sessionLabel(session) }}
-                        </p>
+                    <div class="grid grid-cols-[3fr_1fr] w-full text-xs text-coral-primary-text font-semibold m-1">
+                        <span v-if="selectedSession">
+                            <span class="text-coral-secondary-text font-normal">Monitoring Session</span>
+                            {{ formatDate(session.timestamp) }} · {{ session.diveSite.name }}
+                            <span v-if="session.name"> · {{ session.name }}</span>
+                        </span>
 
-                        <span v-if="
-                            session.id === selectedSession?.id
-                        " class="text-xs text-teal-300">
-                            Active
+                        <span v-if="session" class="ml-auto text-coral-secondary-text font-normal">
+                            {{ session.observationCount }}
+                            observation{{
+                                session.observationCount === 1
+                                    ? ""
+                                    : "s"
+                            }}
                         </span>
                     </div>
-
-                    <p class="mt-0.5 text-xs text-coral-secondary-text">
-                        {{ session.diveSite.name }}
-                        ·
-                        {{ session.observationCount }}
-                        observation{{
-                            session.observationCount === 1
-                                ? ""
-                                : "s"
-                        }}
-                    </p>
                 </button>
             </div>
 
@@ -96,10 +83,8 @@
             </p>
 
             <!-- Create new session -->
-            <button type="button"
-                class="w-full border-coral-raised-border px-3 py-3 text-left text-xs font-medium text-teal-300 transition
-                bg-coral-raised hover:bg-coral-primary-bg"
-                @click="openCreateDialog">
+            <button type="button" class="w-full border-coral-raised-border px-3 py-3 text-left text-xs font-medium text-teal-300 transition
+                bg-coral-raised hover:bg-coral-primary-bg" @click="openCreateDialog">
                 ＋ Create new monitoring session
             </button>
         </div>
@@ -126,33 +111,34 @@ import diveSiteService from "../services/diveSiteService"
 import { DiveSite } from "../types/diveSite"
 import { useNotificationStore } from "../stores/notification";
 import { useCoralDataStore } from "../stores/coral";
+import { format } from "date-fns";
 
 type Props = {
     modelValue: MonitoringSession | null;
 };
 
 const props = defineProps<Props>();
-    
-    const emit = defineEmits<{
-        "update:modelValue": [
-            session: MonitoringSession | null,
-        ];
+
+const emit = defineEmits<{
+    "update:modelValue": [
+        session: MonitoringSession | null,
+    ];
 }>();
 
 const container =
-ref<HTMLElement | null>(null);
-    
-    const open = ref(false);
-    const loading = ref(false);
-    const error = ref("");
-    const showCreateDialog = ref(false);
-    const sessions = ref<MonitoringSession[]>([]);
-    const diveSites = ref<DiveSite[]>([]);
-    const selectedSession = computed(() => props.modelValue);
-    const notificationStore = useNotificationStore();
-    const coralDataStore = useCoralDataStore();
-    
-    const toggleDropdown = () => {
+    ref<HTMLElement | null>(null);
+
+const open = ref(false);
+const loading = ref(false);
+const error = ref("");
+const showCreateDialog = ref(false);
+const sessions = ref<MonitoringSession[]>([]);
+const diveSites = ref<DiveSite[]>([]);
+const selectedSession = computed(() => props.modelValue);
+const notificationStore = useNotificationStore();
+const coralDataStore = useCoralDataStore();
+
+const toggleDropdown = () => {
     if (loading.value) {
         return;
     }
@@ -173,7 +159,7 @@ const openCreateDialog = () => {
 const loadSessions = async () => {
     loading.value = true;
     error.value = "";
-    
+
     try {
         sessions.value = await monitoringSessionService.getAll();
         if (sessions.value.length > 0) {
@@ -230,23 +216,16 @@ const createSession = async (payload: MonitoringSession) => {
 
 const sessionLabel = (session: MonitoringSession) => {
     if (session.name) {
-        return `${formatDate(session.timestamp)} · ${session.diveSite.name} · ${session.name}`;
+        return `${formatDate(session.timestamp)} · ${session.name} · ${session.diveSite.name}`;
     }
 
     return `${formatDate(session.timestamp)} · ${session.diveSite.name}`;
 };
 
 const formatDate = (timestamp: string) => {
-    return new Intl.DateTimeFormat(
-        undefined,
-        {
-            dateStyle: "medium",
-            timeStyle: "short",
-        },
-    ).format(
-        new Date(timestamp),
-    );
-};
+    const date = new Date(timestamp);
+    return format(date, "dd. MMM yyyy 'at' p");
+}
 
 const handleClickOutside = (event: MouseEvent) => {
     if (container.value &&
