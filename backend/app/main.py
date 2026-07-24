@@ -68,7 +68,6 @@ def process_coral_upload(request: Request):
             identify_request = parse_identify_request(request)
             observationCandidates = service.find_similar_observations(identify_request.image, identify_request.selected_segments)
             
-            # TODO: access monitoring session to show actual monitoring date instead of created_at
             response = serialize_observation_candidates(observationCandidates)
             return add_cors_headers(response)
         
