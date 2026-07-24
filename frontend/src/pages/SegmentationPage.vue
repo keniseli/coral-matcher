@@ -71,7 +71,7 @@
             </div>
           </div>
 
-          <div class="relative flex min-h-[540px] flex-1 items-center justify-center bg-coral-surface p-3"
+          <div class="relative flex min-h-0 flex-1 items-center justify-center bg-coral-surface p-3"
             @dragover.prevent @drop.prevent="dropped">
             <CoralImageViewer v-if="imageUrl" :image-src="imageUrl" :segments="segments" :selected="selected"
               :opacity="opacity" @toggle="toggle" />
