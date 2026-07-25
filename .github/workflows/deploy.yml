@@ -30,6 +30,13 @@ jobs:
       run: |
         cd backend
         pip install -r requirements.txt
+        pip list | grep -i psycopg
+
+    - name: Verify database driver installation
+      run: |
+        pip show psycopg
+        pip show psycopg-binary
+        python -c "import psycopg; print(psycopg.__version__)"
 
     # NEW: Fetch model parameters on GitHub's fast runners to skip underwater cloud timeouts
     - name: Download and Bundle Model Weights Natively
