@@ -79,21 +79,36 @@ jobs:
   # ==========================================
   deploy-frontend:
     runs-on: ubuntu-latest
-    needs: deploy-backend # Ensures frontend deployment only triggers if backend tests pass
+    needs: deploy-backend
     environment: MCCR-MVP
+
     steps:
     - name: Checkout Repository Source Tree
       uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Install Frontend Dependencies
+      working-directory: frontend
+      run: npm ci
+
+    - name: Build Vue Production Application
+      working-directory: frontend
+      run: npm run build
 
     - name: Authenticate to Google Cloud Engine
       uses: google-github-actions/auth@v2
       with:
         credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-    # Uploads your static index files straight to a public-facing GCS static web hosting container bucket
-    - name: Synchronize Static Frontend Workspace Code Assets
+    - name: Synchronize Compiled Frontend Assets
       uses: google-github-actions/upload-cloud-storage@v3
       with:
-        path: ./frontend
+        path: ./frontend/dist
         destination: ${{ vars.GCP_STATIC_WEB_BUCKET_NAME }}
         parent: false
