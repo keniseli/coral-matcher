@@ -35,6 +35,7 @@ jobs:
     - name: Download and Bundle Model Weights Natively
       run: |
         cd backend
+        cd app
         python download_weights.py
 
 #    - name: Run Automated Quality Matrix Verification Checks
