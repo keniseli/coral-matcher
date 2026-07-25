@@ -67,6 +67,7 @@ jobs:
           SUPABASE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           BUCKET_NAME=${{ vars.GCP_BUCKET_NAME }}
           GOOGLE_CLOUD_PROJECT=${{ vars.GCP_PROJECT_ID }}
+          DATABASE_URL=${{ secrets.DATABASE_URL }}
     
     - name: Configure Public Invocations IAM Permissions
       run: |
