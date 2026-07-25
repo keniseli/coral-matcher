@@ -50,3 +50,8 @@ class Observation(SQLModel, table=True):
         default_factory=datetime.now,
         nullable=False,
     )
+    
+    segments: dict | list | None = Field(
+        default=None,
+        sa_column=Column(JSONB)
+    )

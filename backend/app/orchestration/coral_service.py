@@ -5,6 +5,8 @@ import uuid
 from app.orchestration.models import IdentifyRequest, IdentifyResult
 import numpy as np
 import os
+from sqlalchemy.dialects.postgresql import JSONB
+from dataclasses import asdict
 
 from app.cropping.cropper import BoundingBoxCropper
 from app.embedding.embedding import EmbeddingService
@@ -86,6 +88,12 @@ class CoralService:
             embedding=original_embedding,
             selected_segments=segments,
         )
+        
+    def prepare_segments_for_db(self, segments: list[Segment]) -> JSONB:
+        return [
+            asdict(segment)
+            for segment in segments
+        ]
 
     def confirm_observation(self, 
             image: np.ndarray,
@@ -120,7 +128,11 @@ class CoralService:
 
         observation.monitoring_session_id = uuid.UUID(monitoring_session_id)
 
+        observation.segments = self.prepare_segments_for_db(segments)
+        
         self.observation_repository.save(observation)
 
         result = ConfirmResult(observation)
         return result
+    
+    
