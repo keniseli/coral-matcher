@@ -63,7 +63,7 @@ jobs:
         name: coral-upload-pipeline
         runtime: python312
         environment: GEN_2
-        memory: 1G
+        memory: 2G
         source_dir: ./backend
         entry_point: process_coral_upload
         region: us-central1
