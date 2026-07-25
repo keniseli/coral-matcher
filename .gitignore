@@ -12,6 +12,7 @@ env/
 ENV/
 pyvenv.cfg
 .Python
+coralscop-env/
 
 # === Computer Vision / Temporary Media ===
 # Ignore raw source videos, test uploads, or output frames stored locally
@@ -33,8 +34,19 @@ __pycache__/
 *.pyo
 *.pyd
 .pytest_cache/
-backend/weights/
+*.pth
+
 
 # === Operating System Noise ===
 .DS_Store
 Thumbs.db
+
+# === Frontend build / local files ===
+/frontend/node_modules/
+/frontend/dist/
+/frontend/.vite/
+/frontend/.env*
+/frontend/npm-debug.log*
+/frontend/yarn-debug.log*
+/frontend/yarn-error.log*
+/frontend/coverage/
