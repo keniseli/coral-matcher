@@ -5,7 +5,7 @@ import torchvision.models as models
 def pre_stage_weights():
     print("Pre-downloading ResNet-18 weight parameters for serverless bundling...")
     # Force weights checkpoint down into local folder path reference strings
-    target_dir = os.path.join(os.getcwd(), "weights")
+    target_dir = os.path.join(os.getcwd(), "../weights")
     os.makedirs(target_dir, exist_ok=True)
     
     # Trigger native download to local runtime caches
