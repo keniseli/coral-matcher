@@ -5,8 +5,11 @@ import uuid
 from app.orchestration.models import IdentifyRequest, IdentifyResult
 import numpy as np
 import os
+import torch
 from sqlalchemy.dialects.postgresql import JSONB
 from dataclasses import asdict
+import logging
+import time
 
 from app.cropping.cropper import BoundingBoxCropper
 from app.embedding.embedding import EmbeddingService
@@ -19,6 +22,7 @@ from app.domain.models import Segment, ObservationCandidate
 from app.persistence.storage import upload_image_to_bucket
 from app.vision.vision import VisionService
 
+
 class CoralService:
     """
     Business logic for coral segmentation and identification.
@@ -28,12 +32,18 @@ class CoralService:
     
     EMBEDDING_VECTOR_DISTANCE_THRESHOLD = float(os.environ.get("EMBEDDING_VECTOR_DISTANCE_THRESHOLD", "0.2"))
 
+    
+
     def __init__(self) -> None:
         self.segmenter = get_segmentation_provider()
         self.cropper = BoundingBoxCropper()
         self.embedding_service = EmbeddingService()
         self.vision_service = VisionService()
         self.observation_repository = ObservationRepository()
+        self.logger = logging.getLogger(__name__)
+        self.logger.info(f"CPU count: {os.cpu_count()}")
+        self.logger.info(f"PyTorch threads: {torch.get_num_threads()}")
+        self.logger.info(f"PyTorch interop threads: {torch.get_num_interop_threads()}")
 
     def segment_image(
         self,
@@ -45,8 +55,12 @@ class CoralService:
 
         Returns SegmentationResult.
         """
-
-        return self.segmenter.segment(image, filename)
+        self.logger.info("starting segmentation")
+        start = time.perf_counter()
+        result = self.segmenter.segment(image, filename)
+        elapsed = time.perf_counter() - start
+        self.logger.info(f"Segmentation took {elapsed:.2f}s")
+        return result
 
     def find_similar_observations(self, image: np.ndarray, segments: list[Segment]) -> list[ObservationCandidate]:
         """

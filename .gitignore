@@ -1,7 +1,6 @@
 # === Private Configuration / App Secrets ===
 .env
 .env.local
-.env.*
 secrets.json
 run_local.bat
 

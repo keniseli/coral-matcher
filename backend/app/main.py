@@ -2,7 +2,6 @@ import logging
 import sys
 import functions_framework
 from flask import Request
-
 import numpy as np
 from functools import reduce
 
