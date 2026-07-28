@@ -60,9 +60,9 @@
                     ? 'border-coral-primary bg-coral-primary-bg'
                     : 'border-coral-raised-border bg-coral-raised'
                     " @click="selectCandidate(coralObservation.coralName)">
-                <div class="mt-2 flex">
+                <div class="mt-2 flex ">
                     <span class="p-2 text-sm font-semibold">
-                        {{ coralObservation.coralName }}
+                        Coral {{ coralObservation.coralName }}
                     </span>
 
                     <div v-if="hasHighSimilarity(coralObservation.candidates)"

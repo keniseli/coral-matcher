@@ -4,7 +4,7 @@
       <header class="flex items-center justify-between pb-2">
         <div>
           <h1 class="text-3xl font-bold">
-            Coral Matcher
+            Coral Companion
           </h1>
 
           <p class="text-xs text-coral-secondary-text">
