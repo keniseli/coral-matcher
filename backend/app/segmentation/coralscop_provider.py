@@ -42,7 +42,7 @@ class CoralScopProvider(SegmentationProvider):
         with performance_stage("create mask generator"):
             self.mask_generator = SamAutomaticMaskGenerator(
                 model=sam,
-                points_per_side=10,
+                points_per_side=12,
                 pred_iou_thresh=0.75,
                 stability_score_thresh=0.75,
                 crop_n_layers=0,
