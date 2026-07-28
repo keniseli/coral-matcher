@@ -63,7 +63,7 @@ jobs:
         name: coral-upload-pipeline
         runtime: python312
         environment: GEN_2
-        memory: 8G
+        memory: '8G'
         cpu: 4
         max_instance_count: 5
         source_dir: ./backend
