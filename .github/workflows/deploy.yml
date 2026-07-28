@@ -65,6 +65,7 @@ jobs:
         environment: GEN_2
         memory: 8G
         cpu: 8
+        max_instances: 10
         source_dir: ./backend
         entry_point: process_coral_upload
         region: us-central1
