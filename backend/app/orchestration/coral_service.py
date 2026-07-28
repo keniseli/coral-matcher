@@ -10,6 +10,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from dataclasses import asdict
 import logging
 import time
+import resource
 
 from app.cropping.cropper import BoundingBoxCropper
 from app.embedding.embedding import EmbeddingService
@@ -21,6 +22,7 @@ from app.persistence.observation_repository import ObservationRepository
 from app.domain.models import Segment, ObservationCandidate
 from app.persistence.storage import upload_image_to_bucket
 from app.vision.vision import VisionService
+from app.utils.performance_profiler import log_memory
 
 
 class CoralService:
@@ -56,10 +58,12 @@ class CoralService:
         Returns SegmentationResult.
         """
         self.logger.info("starting segmentation")
+        log_memory("before segmentation")
         start = time.perf_counter()
         result = self.segmenter.segment(image, filename)
         elapsed = time.perf_counter() - start
         self.logger.info(f"Segmentation took {elapsed:.2f}s")
+        log_memory("after segmentation")
         return result
 
     def find_similar_observations(self, image: np.ndarray, segments: list[Segment]) -> list[ObservationCandidate]:
@@ -70,7 +74,9 @@ class CoralService:
 
         identify_result = self.identify(image, segments)
 
+        log_memory("before finding similar in db")
         candidates = self.observation_repository.find_similar(identify_result.embedding)
+        log_memory("after finding similar in db")
 
         return self.apply_embedding_distance_filter(candidates)
 
@@ -90,11 +96,15 @@ class CoralService:
         if not segments:
             raise ValueError("No segments selected.")
 
+        log_memory("before masking")
         mask_result = self.vision_service.mask(image=image, segments=segments)
+        log_memory("after masking, before cropping")
         
         crop_result = self.cropper.crop(image=mask_result.masked_image, segments=segments)
+        log_memory("after cropping, before embedding")
 
         original_embedding = self.embedding_service.generate_vector_embedding(crop_result.crop)
+        log_memory("after embedding")
 
         return IdentifyResult(
             crop=crop_result.crop,
@@ -148,5 +158,5 @@ class CoralService:
 
         result = ConfirmResult(observation)
         return result
-    
+
     

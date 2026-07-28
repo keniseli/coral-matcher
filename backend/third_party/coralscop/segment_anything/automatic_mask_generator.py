@@ -10,6 +10,8 @@ from torchvision.ops.boxes import batched_nms, box_area  # type: ignore
 import torch.nn.functional as F
 from typing import Any, Dict, List, Optional, Tuple
 
+from app.utils.performance_profiler import performance_stage
+
 from .modeling import Sam
 from .predictor import SamPredictor
 from .utils.amg import (
@@ -158,74 +160,87 @@ class SamAutomaticMaskGenerator:
         """
 
         # Generate masks
-        mask_data = self._generate_masks(image)
+        with performance_stage("mask generation"):
+            mask_data = self._generate_masks(image)
+            
 
         # Filter small disconnected regions and holes in masks
-        if self.min_mask_region_area > 0:
-            mask_data = self.postprocess_small_regions(
-                mask_data,
-                self.min_mask_region_area,
-                max(self.box_nms_thresh, self.crop_nms_thresh),
-            )
+        with performance_stage("filter holes in masks"):
+            if self.min_mask_region_area > 0:
+                mask_data = self.postprocess_small_regions(
+                    mask_data,
+                    self.min_mask_region_area,
+                    max(self.box_nms_thresh, self.crop_nms_thresh),
+                )
 
         # Encode masks
-        if self.output_mode == "coco_rle":
-            mask_data["segmentations"] = [coco_encode_rle(rle) for rle in mask_data["rles"]]
-        elif self.output_mode == "binary_mask":
-            mask_data["segmentations"] = [rle_to_mask(rle) for rle in mask_data["rles"]]
-        else:
-            mask_data["segmentations"] = mask_data["rles"]
+        with performance_stage("encoding masks"):
+            if self.output_mode == "coco_rle":
+                mask_data["segmentations"] = [coco_encode_rle(rle) for rle in mask_data["rles"]]
+            elif self.output_mode == "binary_mask":
+                mask_data["segmentations"] = [rle_to_mask(rle) for rle in mask_data["rles"]]
+            else:
+                mask_data["segmentations"] = mask_data["rles"]
 
         # Write mask records
-        curr_anns = []
-        for idx in range(len(mask_data["segmentations"])):
-            ann = {
-                "segmentation": mask_data["segmentations"][idx],
-                "area": area_from_rle(mask_data["rles"][idx]),
-                "bbox": box_xyxy_to_xywh(mask_data["boxes"][idx]).tolist(),
-                "predicted_iou": mask_data["iou_preds"][idx].item(),
-                "cate_preds": mask_data["cate_preds"][idx].item(),
-                "fc_features": mask_data["fc_features"][idx].tolist(),
-                "similarity": mask_data["similarity"][idx].tolist(),
-                "point_coords": [mask_data["points"][idx].tolist()],
-                "stability_score": mask_data["stability_score"][idx].item(),
-                "crop_box": box_xyxy_to_xywh(mask_data["crop_boxes"][idx]).tolist(),
-            }
-            curr_anns.append(ann)
+        with performance_stage("writing mask records"):
+            curr_anns = []
+            for idx in range(len(mask_data["segmentations"])):
+                ann = {
+                    "segmentation": mask_data["segmentations"][idx],
+                    "area": area_from_rle(mask_data["rles"][idx]),
+                    "bbox": box_xyxy_to_xywh(mask_data["boxes"][idx]).tolist(),
+                    "predicted_iou": mask_data["iou_preds"][idx].item(),
+                    "cate_preds": mask_data["cate_preds"][idx].item(),
+                    "fc_features": mask_data["fc_features"][idx].tolist(),
+                    "similarity": mask_data["similarity"][idx].tolist(),
+                    "point_coords": [mask_data["points"][idx].tolist()],
+                    "stability_score": mask_data["stability_score"][idx].item(),
+                    "crop_box": box_xyxy_to_xywh(mask_data["crop_boxes"][idx]).tolist(),
+                }
+                curr_anns.append(ann)
 
         return curr_anns
 
     def _generate_masks(self, image: np.ndarray) -> MaskData:
         orig_size = image.shape[:2]
-        crop_boxes, layer_idxs = generate_crop_boxes(
-            orig_size, self.crop_n_layers, self.crop_overlap_ratio
-        )
+        
+        with performance_stage("generating crop boxes"):
+            crop_boxes, layer_idxs = generate_crop_boxes(
+                orig_size, self.crop_n_layers, self.crop_overlap_ratio
+            )
 
         # Iterate over image crops
         data = MaskData()
         for crop_box, layer_idx in zip(crop_boxes, layer_idxs):
-            crop_data = self._process_crop(image, crop_box, layer_idx, orig_size)
-            data.cat(crop_data)
+            with performance_stage(f"processing crop {layer_idx} {crop_box}"):
+                crop_data = self._process_crop(image, crop_box, layer_idx, orig_size)
+                data.cat(crop_data)
 
         # Remove duplicate masks between crops
-        if len(crop_boxes) > 1:
-            # Prefer masks from smaller crops
-            print("DEBUG crop_boxes:", data["crop_boxes"])
-            print("DEBUG shape:", data["crop_boxes"].shape)
-            scores = 1 / box_area(data["crop_boxes"])
-            scores = scores.to(data["boxes"].device)
-            keep_by_nms = batched_nms(
-                data["boxes"].float(),
-                scores,
-                torch.zeros_like(data["boxes"][:, 0]),  # categories
-                iou_threshold=self.crop_nms_thresh,
-            )
-            data.filter(keep_by_nms)
-        fc_features=F.normalize(data["fc_features"],dim=-1)
-        similarity=fc_features.mm(fc_features.t())
-        similarity.fill_diagonal_(-np.inf)
-        data["similarity"]=similarity
-        data.to_numpy()
+        with performance_stage("removing duplicate masks"):
+            if len(crop_boxes) > 1:
+                # Prefer masks from smaller crops
+                print("DEBUG crop_boxes:", data["crop_boxes"])
+                print("DEBUG shape:", data["crop_boxes"].shape)
+                scores = 1 / box_area(data["crop_boxes"])
+                scores = scores.to(data["boxes"].device)
+                keep_by_nms = batched_nms(
+                    data["boxes"].float(),
+                    scores,
+                    torch.zeros_like(data["boxes"][:, 0]),  # categories
+                    iou_threshold=self.crop_nms_thresh,
+                )
+                data.filter(keep_by_nms)
+        
+        with performance_stage("normalizing fc features"):
+            fc_features=F.normalize(data["fc_features"],dim=-1)
+        with performance_stage("calculating similarity"):
+            similarity=fc_features.mm(fc_features.t())
+            similarity.fill_diagonal_(-np.inf)
+            data["similarity"]=similarity
+        with performance_stage("transform data to numpy"):
+            data.to_numpy()
         return data
 
     def _process_crop(
@@ -236,33 +251,42 @@ class SamAutomaticMaskGenerator:
         orig_size: Tuple[int, ...],
     ) -> MaskData:
         # Crop the image and calculate embeddings
-        x0, y0, x1, y1 = crop_box
-        cropped_im = image[y0:y1, x0:x1, :]
-        cropped_im_size = cropped_im.shape[:2]
-        self.predictor.set_image(cropped_im)
+        with performance_stage("cropping image"):
+            x0, y0, x1, y1 = crop_box
+            cropped_im = image[y0:y1, x0:x1, :]
+            cropped_im_size = cropped_im.shape[:2]
+            self.predictor.set_image(cropped_im)
+
         # Get points for this crop
-        points_scale = np.array(cropped_im_size)[None, ::-1]
-        points_for_image = self.point_grids[crop_layer_idx] * points_scale
+        with performance_stage("getting points for crop"):
+            points_scale = np.array(cropped_im_size)[None, ::-1]
+            points_for_image = self.point_grids[crop_layer_idx] * points_scale
+        
         # Generate masks for this crop in batches
-        data = MaskData()
-        for (points,) in batch_iterator(self.points_per_batch, points_for_image):
-            batch_data = self._process_batch(points, cropped_im_size, crop_box, orig_size)
-            data.cat(batch_data)
-            del batch_data
-        self.predictor.reset_image()
+        with performance_stage("generating masks for crop"):
+            data = MaskData()
+            for (points,) in batch_iterator(self.points_per_batch, points_for_image):
+                batch_data = self._process_batch(points, cropped_im_size, crop_box, orig_size)
+                data.cat(batch_data)
+                del batch_data
+            self.predictor.reset_image()
+        
         # Remove duplicates within this crop.
-        keep_by_nms = batched_nms(
-            data["boxes"].float(),
-            data["iou_preds"],
-            torch.zeros_like(data["boxes"][:, 0]),  # categories
-            iou_threshold=self.box_nms_thresh,
-        )
-        data.filter(keep_by_nms)
+        with performance_stage("removing duplicates within crop"):
+            keep_by_nms = batched_nms(
+                data["boxes"].float(),
+                data["iou_preds"],
+                torch.zeros_like(data["boxes"][:, 0]),  # categories
+                iou_threshold=self.box_nms_thresh,
+            )    
+            data.filter(keep_by_nms)
+        
         # Return to the original image frame
-        data["boxes"] = uncrop_boxes_xyxy(data["boxes"], crop_box)
-        data["points"] = uncrop_points(data["points"], crop_box)
-        data["crop_boxes"] = torch.tensor([crop_box for _ in range(len(data["rles"]))])
-        return data
+        with performance_stage("return to original image frame"):
+            data["boxes"] = uncrop_boxes_xyxy(data["boxes"], crop_box)
+            data["points"] = uncrop_points(data["points"], crop_box)
+            data["crop_boxes"] = torch.tensor([crop_box for _ in range(len(data["rles"]))])
+            return data
 
     def _process_batch(
         self,
@@ -273,24 +297,33 @@ class SamAutomaticMaskGenerator:
     ) -> MaskData:
         orig_h, orig_w = orig_size
         # Run model on this batch
-        transformed_points = self.predictor.transform.apply_coords(points, im_size)
-        in_points = torch.as_tensor(transformed_points, device=self.predictor.device)
-        in_labels = torch.ones(in_points.shape[0], dtype=torch.int, device=in_points.device)
-        masks, iou_preds, cate_preds,fc_features = self.predictor.predict_torch(
-            in_points[:, None, :],
-            in_labels[:, None],
-            multimask_output=False,
-            return_logits=True,
-        )
+        
+        with performance_stage(f"transform.apply_cords"):
+            transformed_points = self.predictor.transform.apply_coords(points, im_size)
+
+        with performance_stage("process_batch: torch.as_tensor"):
+            in_points = torch.as_tensor(transformed_points, device=self.predictor.device)
+        with performance_stage("process_batch: torch.ones"):
+            in_labels = torch.ones(in_points.shape[0], dtype=torch.int, device=in_points.device)
+
+        with performance_stage("process_batch: predictor.predict_torch"):
+            masks, iou_preds, cate_preds,fc_features = self.predictor.predict_torch(
+                in_points[:, None, :],
+                in_labels[:, None],
+                multimask_output=False,
+                return_logits=True,
+            )
+        
         cate_preds = torch.argmax(cate_preds, dim=2)
         # Serialize predictions and store in MaskData
-        data = MaskData(
-            masks=masks.flatten(0, 1),
-            iou_preds=iou_preds.flatten(0, 1),
-            cate_preds = cate_preds.flatten(0,1),
-            fc_features = fc_features.flatten(0,1),
-            points=torch.as_tensor(points.repeat(masks.shape[1], axis=0)),
-        )
+        with performance_stage("process_batch: serialize predictions"):
+            data = MaskData(
+                masks=masks.flatten(0, 1),
+                iou_preds=iou_preds.flatten(0, 1),
+                cate_preds = cate_preds.flatten(0,1),
+                fc_features = fc_features.flatten(0,1),
+                points=torch.as_tensor(points.repeat(masks.shape[1], axis=0)),
+            )
 
         del masks
         del fc_features

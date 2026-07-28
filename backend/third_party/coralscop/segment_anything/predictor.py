@@ -13,6 +13,8 @@ from typing import Optional, Tuple
 
 from .utils.transforms import ResizeLongestSide
 
+from app.utils.performance_profiler import performance_stage
+
 class SamPredictor:
     def __init__(
         self,
@@ -52,9 +54,14 @@ class SamPredictor:
             image = image[..., ::-1]
 
         # Transform the image to the form expected by the model
-        input_image = self.transform.apply_image(image)
-        input_image_torch = torch.as_tensor(input_image, device=self.device)
-        input_image_torch = input_image_torch.permute(2, 0, 1).contiguous()[None, :, :, :]
+        with performance_stage("transform.apply_image"):        
+          input_image = self.transform.apply_image(image)
+        
+        with performance_stage("torch.as_tensor"):
+          input_image_torch = torch.as_tensor(input_image, device=self.device)
+        
+        with performance_stage("permute"):        
+          input_image_torch = input_image_torch.permute(2, 0, 1).contiguous()[None, :, :, :]
 
         self.set_torch_image(input_image_torch, image.shape[:2])
 
@@ -84,8 +91,11 @@ class SamPredictor:
 
         self.original_size = original_image_size
         self.input_size = tuple(transformed_image.shape[-2:])
-        input_image = self.model.preprocess(transformed_image)
-        self.features = self.model.image_encoder(input_image)
+        with performance_stage("model.preprocess"):
+          input_image = self.model.preprocess(transformed_image)
+        
+        with performance_stage("apply image to transform"):
+          self.features = self.model.image_encoder(input_image)
         self.is_image_set = True
 
     def predict(
