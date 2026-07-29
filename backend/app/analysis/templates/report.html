@@ -22,17 +22,16 @@
         }
 
         h2 {
-            color: #5EEAD4;
+            color: #2bd4bd;
             font-size: 1.4rem;
             font-weight: 600;
-            margin-top: 2.5rem;
             margin-bottom: 1rem;
             border-bottom: 1px solid #334155;
             padding-bottom: 0.5rem;
         }
 
         p {
-            color: #94a3b8;
+            color: #e2e8f0;
         }
 
         table {
@@ -47,7 +46,7 @@
 
         th {
             background-color: #13262D;
-            color: #5EEAD4;
+            color: #2bd4bd;
             text-align: left;
             font-weight: 600;
             padding: 0.75rem 1rem;
@@ -127,15 +126,8 @@
             color: #94a3b8;
         }
 
-        .badge {
-            display: inline-block;
-            background-color: rgba(43, 212, 189, 0.1);
-            color: #2bd4bd;
-            border: 1px solid #2bd4bd;
-            border-radius: 9999px;
-            padding: 0.15rem 0.6rem;
-            font-size: 0.8rem;
-            font-weight: 600;
+        .orange {
+            color: #d76a0a;
         }
 
         .metric-tooltip {
@@ -178,6 +170,7 @@
             padding: 1rem;
 
             margin-top: 1rem;
+            margin-bottom: 1rem;
 
             color: #cbd5e1;
         }
@@ -185,8 +178,12 @@
 
         .explanation summary {
             cursor: pointer;
-            color: #2bd4bd;
+            color: #889CB4;
             font-weight: 600;
+        }
+
+        .title {
+            color: #2bd4bd;
         }
     </style>
 </head>
@@ -195,63 +192,55 @@
     {% macro explanation(title, text) %}
 
     <details class="explanation">
-
         <summary>
             About {{ title }}
         </summary>
-
         <p class="mt-3 mb-3">
             {{ text }}
         </p>
-
     </details>
     {% endmacro %}
 
     <div class="max-w-7xl mx-auto px-6 py-10">
 
-        <header class="mb-10">
+        <header class="mb-2">
             <h1 class="text-4xl font-bold tracking-tight text-teal-800">
                 Coral Comparison Report
             </h1>
         </header>
 
-
-        <!-- Metrics -->
-
-        <section class="card rounded-xl shadow-sm border border-gray-200 p-6 mb-10">
-
-            <h2 class="text-2xl font-semibold text-teal-700 mb-5">
-                Metrics
+        <section class="card rounded-xs shadow-sm border border-gray-200 p-6 mb-2">
+            <h2 class="text-2xl font-semibold text-teal-700 mb-2">
+                Original Images
             </h2>
+            <img src="{{ figures.images }}" class="rounded-xs border border-gray-900 shadow-sm max-w-full">
+        </section>
 
-            <div class="overflow-x-auto">
 
+        <details open class="card rounded-xs border border-slate-700 mb-2">
+            <summary
+                class="title cursor-pointer select-none px-6 py-4 text-xl font-semibold rounded-xs">
+                <span>Metrics</span>
+            </summary>
+            <div class="overflow-x-auto p-6">
                 <table class="w-full text-sm text-left">
-
                     <thead class="bg-gray-100 text-gray-700 uppercase text-xs">
-
                         <tr>
                             <th class="px-4 py-3">Metric</th>
                             <th class="px-4 py-3">Image A</th>
                             <th class="px-4 py-3">Image B</th>
                             <th class="px-4 py-3">Difference</th>
                         </tr>
-
                     </thead>
 
-
                     <tbody class="divide-y divide-gray-200">
-
                         {% for row in metrics %}
-
                         <tr class="hover:bg-gray-50">
-
                             <td class="px-4 py-3 font-medium">
                                 <span class="metric-tooltip" data-tooltip="{{ metric_explanations[row.name] }}">
                                     {{ row.name }}
                                 </span>
                             </td>
-
                             <td class="px-4 py-3 font-mono text-gray-700">
                                 {{ "%.4f"|format(row.before) if row.before is number else row.before }}
                             </td>
@@ -261,185 +250,136 @@
                             </td>
 
                             <td class="px-4 py-3 font-mono
-                            {% if row.delta is number and row.delta > 0 %}
-                                text-green-700
-                            {% elif row.delta is number and row.delta < 0 %}
-                                text-red-700
-                            {% endif %}
-                        ">
+                                {% if row.delta is number and (row.ratio_percentage > 20 or row.ratio_percentage < -20) %}
+                                    orange
+                                {% endif %}
+                            ">
                                 {% if row.delta is number %}
-                                {{ "%+.4f"|format(row.delta) }}
+                                {{ "%+.4f"|format(row.delta) }} ({{ "%+.4f"|format(row.ratio_percentage) }}%)
                                 {% endif %}
                             </td>
                         </tr>
-
                         {% endfor %}
-
                     </tbody>
-
                 </table>
-
             </div>
-
-        </section>
-
-
-        <!-- Images -->
-
-        <section class="card rounded-xl shadow-sm border border-gray-200 p-6 mb-10">
-
-            <h2 class="text-2xl font-semibold text-teal-700 mb-5">
-                Original Images
-            </h2>
-
-            <img src="{{ figures.images }}" class="rounded-lg border border-gray-200 shadow-sm max-w-full">
-
-        </section>
+        </details>
 
 
-
-        <!-- Distribution plots -->
-
-        <section class="grid md:grid-cols-2 gap-6 mb-10">
-
-            <div class="card rounded-xl shadow-sm border border-gray-200 p-5">
-
-                <h2 class="text-xl font-semibold text-teal-700 mb-4">
+        <section class="grid md:grid-cols-2 gap-6 mb-2">
+            <div class="card rounded-xs shadow-sm border border-gray-200 p-5">
+                <h2 class="text-xl font-semibold text-teal-700 mb-2">
                     Brightness Histogram
                 </h2>
-
-                <img src="{{ figures.histogram }}" class="rounded-lg">
                 {{ explanation(
                 "Brightness histogram",
-                "The histogram shows how brightness values are distributed across the coral area. "
-                "A shift towards darker values may indicate tissue loss, shading, sediment coverage or bleaching-related changes. "
+                "Is the coral mostly one brightness, or does it contain many different brightness levels?"
+                "Shows how brightness is distributed throughout the coral. "
+                "A shift towards darker values may indicate tissue loss, shading, sediment coverage."
+                "A right-shift towards brighter colors could indicate bleaching-related changes (but also image lighting). "
                 "Comparisons are meaningful when images have similar lighting conditions."
                 ) }}
+                <img src="{{ figures.histogram }}" class="rounded-xs">
             </div>
 
-
-            <div class="card rounded-xl shadow-sm border border-gray-200 p-5">
-
-                <h2 class="text-xl font-semibold text-teal-700 mb-4">
+            <div class="card rounded-xs shadow-sm border border-gray-200 p-5">
+                <h2 class="text-xl font-semibold text-teal-700 mb-2">
                     Lab Colour Distribution
                 </h2>
-
-                <img src="{{ figures.lab }}" class="rounded-lg">
                 {{ explanation(
                 "LAB colour distribution",
                 "The LAB colour space separates brightness (L) from colour information. "
-                "The L channel is especially useful because perceived brightness changes are often linked to bleaching or tissue changes. "
+                "The L channel is especially useful because perceived brightness changes are often linked to bleaching"
+                "or tissue changes. "
                 "Comparing distributions rather than single values reduces sensitivity to local variations."
                 ) }}
+                <img src="{{ figures.lab }}" class="rounded-xs">
             </div>
-
         </section>
 
 
-
-        <!-- Texture -->
-
-        <section class="card rounded-xl shadow-sm border border-gray-200 p-6 mb-10">
-
-            <h2 class="text-2xl font-semibold text-teal-700 mb-5">
-                Texture Analysis
+        <section class="card rounded-xs shadow-sm border border-gray-200 p-6 mb-2">
+            <h2 class="text-2xl font-semibold text-teal-700 mb-2">
+                Sobel Gradient
             </h2>
-
-
             <div class="grid md:grid-cols-2 gap-6">
-                
+                <div class="col-span-2">
+                    {{ explanation(
+                    "Sobel gradient map",
+                    "'How different is a pixel to its neighbours? ⇨ How smooth is the surface? Typically "
+                    "a healthy coral image is made up of lots of polyps, sharp textures and edges. Less of it could indicate "
+                    "smoother surface due to bleached or damaged tissue. "
+                    "The Sobel filter detects rapid brightness changes between neighbouring pixels. "
+                    "Bright areas represent strong edges such as coral structures, ridges or boundaries. "
+                    ) }}
+                </div>
                 <div>
                     <h3 class="text-sm font-medium text-gray-500 mb-2">
                         Sobel Gradient
                     </h3>
-                    
-                    <img src="{{ figures.sobel_before }}" class="rounded-lg border">
-                    
+                    <img src="{{ figures.sobel_before }}" class="rounded-xs border">
                 </div>
-                
-                
                 <div>
-                    
                     <h3 class="text-sm font-medium text-gray-500 mb-2">
                         Sobel Gradient After
                     </h3>
-                    
-                    <img src="{{ figures.sobel_after }}" class="rounded-lg border">
-                    
+                    <img src="{{ figures.sobel_after }}" class="rounded-xs border">
                 </div>
-                <div class="col-span-2">
-                    {{ explanation(
-                    "Sobel gradient map",
-                    "The Sobel filter detects rapid brightness changes between neighbouring pixels. "
-                    "Bright areas represent strong edges such as coral structures, ridges or boundaries. "
-                    "Changes may indicate differences in morphology, tissue condition or image alignment."
-                    ) }}
-                </div>    
-            </div>  
+            </div>
+        </section>
+
+
+        <section class="card rounded-xs shadow-sm border border-gray-200 p-6 mb-2">
+            <h2 class="text-2xl font-semibold text-teal-700 mb-2">
+                Laplacian Response
+            </h2>
             <div class="grid md:grid-cols-2 gap-6">
-                <div>
-
-                    <h3 class="text-sm font-medium text-gray-500 mb-2">
-                        Laplacian Before
-                    </h3>
-
-                    <img src="{{ figures.laplacian_before }}" class="rounded-lg border">
-
-                </div>
-
-
-                <div>
-
-                    <h3 class="text-sm font-medium text-gray-500 mb-2">
-                        Laplacian After
-                    </h3>
-
-                    <img src="{{ figures.laplacian_after }}" class="rounded-lg border">
-
-                </div>
                 <div class="col-span-2">
                     {{ explanation(
                     "Laplacian response",
-                    "The Laplacian measures second-order image changes and highlights fine structural details. "
-                    "The variance of the Laplacian is commonly used as a sharpness or texture indicator. "
-                    "Higher values generally mean more high-frequency detail."
+                    "The Laplacian is similar to the Sobel gradient but it highlights fine structural details. "
+                    "That means it shows how sharp or abrupt the identified edges are. It ignores gradual shading / lighting"
+                    "while focusing on how sudden changes are in the image. Higher values generally mean more high-frequency detail."
                     ) }}
+                </div>
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 mb-2">
+                        Laplacian Before
+                    </h3>
+                    <img src="{{ figures.laplacian_before }}" class="rounded-xs border">
+                </div>
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 mb-2">
+                        Laplacian After
+                    </h3>
+                    <img src="{{ figures.laplacian_after }}" class="rounded-xs border">
                 </div>
             </div>
 
         </section>
 
+        <section class="grid md:grid-cols-2 gap-6 mb-2">
 
-
-        <!-- Difference maps -->
-
-        <section class="grid md:grid-cols-2 gap-6 mb-10">
-
-
-            <div class="card rounded-xl shadow-sm border border-gray-200 p-5">
-
-                <h2 class="text-xl font-semibold text-teal-700 mb-4">
-                    Brightness Difference
+            <div class="card rounded-xs shadow-sm border border-gray-200 p-5">
+                <h2 class="text-xl font-semibold text-teal-700 mb-2">
+                    Brightness Change Map
                 </h2>
-
-                <img src="{{ figures.brightness_difference }}" class="rounded-lg">
                 {{ explanation(
-                "Brightness difference map",
-                "This image shows where brightness increased or decreased between observations. "
-                "Blue and red regions represent opposite changes. "
-                "Interpretation requires caution because shadows, camera angle and water conditions can influence brightness."
-                ) }}
+                    "Brightness change map",
+                    "This image shows where brightness increased or decreased between observations. "
+                    "Blue and red regions represent opposite changes. "
+                    "Interpretation requires caution because shadows, camera angle and water conditions can influence "
+                    "brightness. Caution: This will only be meaningful if the images were taken from very similar angles"
+                    ) }}
+                <img src="{{ figures.brightness_difference }}" class="rounded-xs">
             </div>
 
-
-            <div class="card rounded-xl shadow-sm border border-gray-200 p-5">
-
-                <h2 class="text-xl font-semibold text-teal-700 mb-4">
+            <div class="card rounded-xs shadow-sm border border-gray-200 p-5">
+                <h2 class="text-xl font-semibold text-teal-700 mb-2">
                     Texture Difference
                 </h2>
                 <p>not yet implemented</p>
-                <img src="{{ figures.texture_difference }}" class="rounded-lg">
-
+                <img src="{{ figures.texture_difference }}" class="rounded-xs">
             </div>
         </section>
     </div>

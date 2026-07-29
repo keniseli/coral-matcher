@@ -102,11 +102,11 @@ def save_histogram(
     
     style_dark_figure(fig, ax)
 
-    ax.plot(centres, hist_a, label="Image A")
-    ax.plot(centres, hist_b, label="Image B")
+    ax.plot(centres, hist_a, label="First Coral")
+    ax.plot(centres, hist_b, label="Second Coral")
 
     ax.set_xlabel("Lightness (L)")
-    ax.set_ylabel("Density")
+    ax.set_ylabel("Relative frequency")
 
     ax.legend()
 
@@ -152,17 +152,17 @@ def save_lab_scatter(
     ax.scatter(
         a_a,
         b_a,
-        s=2,
+        s=3,
         alpha=0.25,
-        label="Image A",
+        label="First Coral",
     )
 
     ax.scatter(
         a_b,
         b_b,
-        s=2,
+        s=3,
         alpha=0.25,
-        label="Image B",
+        label="Second Coral",
     )
 
     ax.set_xlabel("a (green ↔ red)")
@@ -194,7 +194,7 @@ def save_sobel(
 
     im = ax.imshow(
         sobel,
-        cmap="inferno",
+        cmap="turbo",
         vmin=0,
         vmax=vmax,
     )
@@ -235,7 +235,7 @@ def save_laplacian(
 
     im = ax.imshow(
         lap,
-        cmap="berlin",
+        cmap="twilight",
         vmin=-vmax,
         vmax=vmax,
     )
@@ -262,14 +262,18 @@ def save_brightness_difference(
 ):
     COMPARE_SIZE = (512, 512)
 
+    lab_a_image = lab_image(image_a)[:, :, 0].astype(np.float32)
+    lab_a_image *= 100 / 255
     lab_a = cv2.resize(
-        lab_image(image_a)[:, :, 0].astype(np.float32),
+        lab_a_image,
         COMPARE_SIZE,
         interpolation=cv2.INTER_AREA,
     )
 
+    lab_b_image = lab_image(image_b)[:, :, 0].astype(np.float32)
+    lab_b_image *= 100 / 255
     lab_b = cv2.resize(
-        lab_image(image_b)[:, :, 0].astype(np.float32),
+        lab_b_image,
         COMPARE_SIZE,
         interpolation=cv2.INTER_AREA,
     )
@@ -297,20 +301,22 @@ def save_brightness_difference(
 
     fig, ax = plt.subplots(figsize=(6, 6), 
     facecolor="#071116")
-    
-    style_dark_figure(fig, ax)
 
-    ax.imshow(
+    im = ax.imshow(
         diff_display,
-        cmap="RdBu_r",
+        cmap="twilight",
         vmin=-vmax,
         vmax=vmax,
     )
     
+    cbar = fig.colorbar(im, ax=ax, shrink=0.8, label="Brightness Difference")
+    
+    style_colorbar(cbar)
+    style_dark_figure(fig, ax)
+
     ax.axis("off")
-
+    
     _save(fig, filename)
-
 
 def save_texture_difference(
     image_a: np.ndarray,
@@ -359,33 +365,33 @@ def save_texture_difference(
         pad=0.04,
         label="Sobel gradient magnitude"
     )
-    style_dark_figure(fig, ax)
+    style_dark_figure(fig, axes)
 
     
     vmin = 0
     
-    ax.imshow(
+    axes.imshow(
         sobel_a,
         cmap="RdBu_r",
         vmin=vmin,
         vmax=vmax
     )
     
-    ax.imshow(
+    axes.imshow(
         sobel_b,
         cmap="RdBu_r",
         vmin=vmin,
         vmax=vmax
     )
     
-    #ax.imshow(
+    #axes.imshow(
     #    diff,
     #    cmap="RdBu_r",
     #    vmin=-vmax,
     #    vmax=vmax,
     #)
 
-    ax.axis("off")
+    axes.axis("off")
 
     _save(fig, filename)
 
