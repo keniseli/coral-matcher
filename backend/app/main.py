@@ -55,13 +55,18 @@ def process_coral_upload(request: Request):
                 image=image,
                 filename=uploaded_file.filename or "uploaded.jpg"
             )
-            segment = reduce(
-                lambda segment, other: segment if segment.score() > other.score() else other,
-                segmentation.segments
-            )
-            candidates = service.find_similar_observations(image, [segment])
-            response = serialize_image_upload_response(segmentation, candidates)
-            return add_cors_headers(response)
+            
+            candidates = []
+            if (len(segmentation.segments) > 0):
+                segment = reduce(
+                    lambda segment, other: segment if segment.score() > other.score() else other,
+                    segmentation.segments
+                )
+                candidates = service.find_similar_observations(image, [segment])
+                response = serialize_image_upload_response(segmentation, candidates)
+            else:
+                logger.warning(f"Segments are empty {segmentation} for {uploaded_file.filename}")
+            return add_cors_headers(serialize_image_upload_response(segmentation, candidates))
 
         if request.path == "/api/identify-by-segments":
             identify_request = parse_identify_request(request)

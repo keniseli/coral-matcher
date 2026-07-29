@@ -57,6 +57,7 @@ class CoralService:
 
         Returns SegmentationResult.
         """
+<<<<<<< Updated upstream
         self.logger.info("starting segmentation")
         log_memory("before segmentation")
         start = time.perf_counter()
@@ -64,6 +65,12 @@ class CoralService:
         elapsed = time.perf_counter() - start
         self.logger.info(f"Segmentation took {elapsed:.2f}s")
         log_memory("after segmentation")
+=======
+        
+        with performance_stage("Full Segmentation"):
+            result = self.segmenter.segment(image, filename)
+
+>>>>>>> Stashed changes
         return result
 
     def find_similar_observations(self, image: np.ndarray, segments: list[Segment]) -> list[ObservationCandidate]:
