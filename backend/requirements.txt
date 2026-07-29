@@ -4,7 +4,6 @@ numpy==1.26.4
 torch==2.2.2
 torchvision==0.17.2
 
-opencv-python-headless==4.10.0.84
 Pillow==10.4.0
 
 google-cloud-storage==2.17.0
@@ -19,3 +18,9 @@ python-dotenv==1.0.1
 
 pytest==8.2.2
 psutil
+
+
+opencv-python==4.11.0.86
+matplotlib==3.10.3
+scikit-image==0.25.2
+Jinja2==3.1.6
