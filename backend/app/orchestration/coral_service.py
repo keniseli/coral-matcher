@@ -22,7 +22,7 @@ from app.persistence.observation_repository import ObservationRepository
 from app.domain.models import Segment, ObservationCandidate
 from app.persistence.storage import upload_image_to_bucket
 from app.vision.vision import VisionService
-from app.utils.performance_profiler import log_memory
+from app.utils.performance_profiler import log_memory, performance_stage
 
 
 class CoralService:
@@ -57,20 +57,10 @@ class CoralService:
 
         Returns SegmentationResult.
         """
-<<<<<<< Updated upstream
-        self.logger.info("starting segmentation")
-        log_memory("before segmentation")
-        start = time.perf_counter()
-        result = self.segmenter.segment(image, filename)
-        elapsed = time.perf_counter() - start
-        self.logger.info(f"Segmentation took {elapsed:.2f}s")
-        log_memory("after segmentation")
-=======
         
         with performance_stage("Full Segmentation"):
             result = self.segmenter.segment(image, filename)
 
->>>>>>> Stashed changes
         return result
 
     def find_similar_observations(self, image: np.ndarray, segments: list[Segment]) -> list[ObservationCandidate]:
