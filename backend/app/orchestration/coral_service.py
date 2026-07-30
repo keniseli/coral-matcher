@@ -22,7 +22,7 @@ from app.persistence.observation_repository import ObservationRepository
 from app.domain.models import Segment, ObservationCandidate
 from app.persistence.storage import upload_image_to_bucket
 from app.vision.vision import VisionService
-from app.utils.performance_profiler import performance_stage
+from app.utils.performance_profiler import log_memory, performance_stage
 
 
 class CoralService:
@@ -53,7 +53,6 @@ class CoralService:
 
         Returns SegmentationResult.
         """
-        
         
         with performance_stage("Full Segmentation"):
             result = self.segmenter.segment(image, filename)
