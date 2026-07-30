@@ -131,13 +131,12 @@ const emit = defineEmits<{
         coralName: string;
     }]}>();
 
-const site = ref("Isla Larga");
 const name = ref("");
 const activeId = ref("");
 const notificationStore = useNotificationStore();
 
 const coralObservations = computed<CoralObservations[]>(() => {
-    const grouped = Object.groupBy(props.candidates, (candidate) => candidate.coralName);
+    const grouped = Object.groupBy(props.candidates, (candidate: CoralCandidate) => candidate.coralName);
 
     return Object.entries(grouped).map(
         ([coralName, candidates]) => ({ coralName, candidates: candidates ?? [] }));
@@ -177,7 +176,7 @@ const confirm = () => {
     }
     emit("confirm", {
         selectedCandidateId: activeId.value || null,
-        diveSite: site.value,
+        diveSite: props.selectedMonitoringSession.diveSite.name,
         coralName: name.value,
     });
     activeId.value = '';

@@ -47,11 +47,7 @@ class CoralService:
         self.logger.info(f"PyTorch threads: {torch.get_num_threads()}")
         self.logger.info(f"PyTorch interop threads: {torch.get_num_interop_threads()}")
 
-    def segment_image(
-        self,
-        image: np.ndarray,
-        filename: str,
-    ) -> SegmentationResult :
+    def segment_image(self, image: np.ndarray, filename: str) -> SegmentationResult :
         """
         Runs CoralSCOP (or fixture provider) to find coral segment(s) in the given picture.
 
@@ -71,9 +67,7 @@ class CoralService:
 
         identify_result = self.identify(image, segments)
 
-        log_memory("before finding similar in db")
         candidates = self.observation_repository.find_similar(identify_result.embedding)
-        log_memory("after finding similar in db")
 
         return self.apply_embedding_distance_filter(candidates)
 
@@ -93,15 +87,11 @@ class CoralService:
         if not segments:
             raise ValueError("No segments selected.")
 
-        log_memory("before masking")
         mask_result = self.vision_service.mask(image=image, segments=segments)
-        log_memory("after masking, before cropping")
         
         crop_result = self.cropper.crop(image=mask_result.masked_image, segments=segments)
-        log_memory("after cropping, before embedding")
 
         original_embedding = self.embedding_service.generate_vector_embedding(crop_result.crop)
-        log_memory("after embedding")
 
         return IdentifyResult(
             crop=crop_result.crop,
@@ -125,7 +115,7 @@ class CoralService:
         ) -> ConfirmResult:
         
         identifyResult = self.identify(image, segments)
-        
+
         observation = Observation()
         observation.coral_name = coral_name
         observation.dive_site = dive_site
@@ -153,6 +143,9 @@ class CoralService:
         
         self.observation_repository.save(observation)
 
+        corrected_image = self.vision_service.apply_underwater_corrections(image)
+        upload_image_to_bucket(corrected_image, f"{directory_in_bucket}/color_corrected_{observation.created_at}")
+        
         result = ConfirmResult(observation)
         return result
 

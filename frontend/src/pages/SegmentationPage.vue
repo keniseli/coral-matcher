@@ -117,7 +117,7 @@
           <!-- Candidates -->
           <CandidatesPanel :image-url="imageUrl" :candidates="candidates" :selected-count="selected.size"
             :loading-segment="loading.segment" :loading-identify="loading.identify" :loading-confirm="loading.confirm"
-            @confirm="confirm" :selectedMonitoringSession="selectedMonitoringSession" />
+            @confirm="confirm" :selected-monitoring-session="selectedMonitoringSession" />
         </div>
       </div>
     </div>

@@ -55,3 +55,33 @@ class VisionService:
 
         raise ValueError(f"Unsupported rotation angle: {angle}")
     
+    def apply_underwater_corrections(self, img_matrix: np.ndarray) -> np.ndarray:
+        """
+        Applies CLAHE local contrast enhancement and Gray World color balancing
+        to recover lost red channel data signatures underwater.
+        """
+        if img_matrix is None or img_matrix.size == 0:
+            raise ValueError("Empty image matrix passed to processing engine.")
+        
+        # 1. CLAHE Contrast Equalization
+        lab = cv2.cvtColor(img_matrix, cv2.COLOR_BGR2LAB)
+        l_channel, a_channel, b_channel = cv2.split(lab)
+        clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
+        cl = clahe.apply(l_channel)
+        enhanced_lab = cv2.merge((cl, a_channel, b_channel))
+        bgr_enhanced = cv2.cvtColor(enhanced_lab, cv2.COLOR_LAB2BGR)
+
+        # 2. Gray World Channel Normalization (Red Recovery)
+        b, g, r = cv2.split(bgr_enhanced)
+        mean_b, mean_g, mean_r = np.mean(b), np.mean(g), np.mean(r)
+        mean_gray = (mean_b + mean_g + mean_r) / 3.0
+        
+        scale_b = mean_gray / mean_b if mean_b > 0 else 1.0
+        scale_g = mean_gray / mean_g if mean_g > 0 else 1.0
+        scale_r = mean_gray / mean_r if mean_r > 0 else 1.0
+        
+        b_bal = np.clip((b * scale_b), 0, 255).astype(np.uint8)
+        g_bal = np.clip((g * scale_g), 0, 255).astype(np.uint8)
+        r_bal = np.clip((r * scale_r), 0, 255).astype(np.uint8)
+        
+        return cv2.merge((b_bal, g_bal, r_bal))
