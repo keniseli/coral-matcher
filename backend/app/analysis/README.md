@@ -15,7 +15,7 @@ $ conda activate coral-matcher
 The following will produce 0-n cropped images each with one found segment on black background. Depending on configuration of CoralSCOP, there are more or less images produced. For convenience the script takes a whole directory to process images for.
 ```
 $ cd backend
-$ python -m app.scripts.mass_mask_crop --input_directory ~/coral-images/directory-with-coral-images/ --output_directory ~/coral-images/processed/
+$ python -m app.scripts.mass_mask_crop ~/coral-images/directory-with-coral-images/ ~/coral-images/results/
 ```
 
 ### Produce Reports

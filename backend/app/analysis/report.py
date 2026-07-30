@@ -7,29 +7,37 @@ from .metrics import Metric
 
 def metric_table(metrics_a: dict, metrics_b: dict):
 
-    rows = []
+    groups = []
 
-    for key in sorted(metrics_a):
+    for group in metrics_a:
+        rows = []
+        print(group)
+        for key in metrics_a[group]:
+            print(key)
+            value_a = metrics_a[group][key]
+            value_b = metrics_b[group][key]
 
-        value_a = metrics_a[key]
-        value_b = metrics_b[key]
+            if isinstance(value_a, float):
+                delta = value_b - value_a
+                ratio_percentage = 100 * (1 - value_a / value_b)
+            else:
+                delta = ""
+                ratio_percentage = ""
 
-        if isinstance(value_a, float):
-            delta = value_b - value_a
-            ratio_percentage = 100 * (1 - value_a / value_b)
-        else:
-            delta = ""
-            ratio_percentage = ""
+            rows.append({
+                "name": key,
+                "before": value_a,
+                "after": value_b,
+                "delta": delta,
+                "ratio_percentage": ratio_percentage,
+            })
 
-        rows.append({
-            "name": key,
-            "before": value_a,
-            "after": value_b,
-            "delta": delta,
-            "ratio_percentage": ratio_percentage,
+        groups.append({
+            "name": group,
+            "rows": rows
         })
 
-    return rows
+    return groups
 
 
 def build_context(image_a, image_b):

@@ -3,7 +3,6 @@ import argparse
 import cv2
 import numpy as np
 
-from .metrics import compute_metrics
 from .visualization import generate_all_figures
 from .report import create_report
 
@@ -46,9 +45,6 @@ def main():
 
     output_dir = Path(args.output)
     output_dir.mkdir(parents=True, exist_ok=True)
-
-    metrics_before = compute_metrics(image_before)
-    metrics_after = compute_metrics(image_after)
 
     generate_all_figures(
         image_before,
