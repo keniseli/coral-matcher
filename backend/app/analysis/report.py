@@ -11,9 +11,7 @@ def metric_table(metrics_a: dict, metrics_b: dict):
 
     for group in metrics_a:
         rows = []
-        print(group)
         for key in metrics_a[group]:
-            print(key)
             value_a = metrics_a[group][key]
             value_b = metrics_b[group][key]
 

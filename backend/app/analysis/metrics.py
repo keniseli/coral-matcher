@@ -9,7 +9,6 @@ class Metric(str, Enum):
     MEAN_L = "Mean LAB Lightness value [1-100]"
     MEDIAN_L = "Median LAB Lightness value [1-100]"
     STD_L = "Standard Deviation LAB Lightness [1-100]"
-    DYNAMIC_RANGE_L = "Dynamic Range LAB Lightness [1-100]"
     P5_L = "5th Percentile LAB Lightness [1-100]"
     P10_L = "10th Percentile LAB Lightness [1-100]"
     P15_L = "15th Percentile LAB Lightness [1-100]"
@@ -18,6 +17,7 @@ class Metric(str, Enum):
     P85_L = "85th Percentile LAB Lightness [1-100]"
     P90_L = "90th Percentile LAB Lightness [1-100]"
     P95_L = "95th Percentile LAB Lightness [1-100]"
+    DYNAMIC_RANGE_L = "Dynamic Range LAB Lightness [1-100]"
     MEAN_A = "Mean Red-Green Color Value [-127-127]"
     MEAN_B = "Mean Blue-Yellow Color Value [-127-127]"
     STD_A = "Red-Green Variation"
@@ -26,7 +26,7 @@ class Metric(str, Enum):
     SOBEL_STD = "Sobel Gradient Standard Deviation"
     SOBEL_MEDIAN = "Sobel Gradient Median"
     SOBEL_P95 = "Sobel 95th Percentile"
-    LAPLACIAN_VARIANCE = "Laplacian Variance"
+    LAPLACIAN_VARIANCE = "Laplacian Variable"
 
 
 def coral_mask(image: np.ndarray) -> np.ndarray:
@@ -57,12 +57,12 @@ def brightness_metrics(image: np.ndarray) -> dict:
         Metric.STD_L.value: float(np.std(pixels)),
     }
 
+    for p in [5, 10, 15, 25, 75, 85, 90, 95]:
+        metrics[Metric[f"P{p}_L"].value] = float(np.percentile(pixels, p))
+
     metrics[Metric.DYNAMIC_RANGE_L.value] = (
         metrics[Metric.P95_L.value] - metrics[Metric.P5_L.value]
     )
-
-    for p in [5, 10, 15, 25, 75, 85, 90, 95]:
-        metrics[Metric[f"P{p}_L"].value] = float(np.percentile(pixels, p))
 
     return metrics
 
