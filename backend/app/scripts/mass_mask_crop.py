@@ -32,13 +32,13 @@ def process_directory(input_dir: Path, output_dir: Path):
     for image_file in image_files:
         print(f"\nProcessing {image_file.name}")
 
-        image = cv2.imread(str(image_file), cv2.IMREAD_UNCHANGED)
+        image = cv2.imread(str(image_file))
 
         if image is None:
             print("  Could not read image.")
             continue
 
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGBA)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
         try:
             segmentation = coral_service.segment_image(image=image, filename=image_file.name)
@@ -54,8 +54,8 @@ def process_directory(input_dir: Path, output_dir: Path):
 
                 cropped = identify_result.crop
                 image_path = Path(image_file.name)
-                output_path = output_dir / f"{image_path.stem}_crop_{index+1}{image_path.suffix}"
-                cropped_bgr = cv2.cvtColor(cropped, cv2.COLOR_RGB2BGR)
+                output_path = output_dir / f"{image_path.stem}-crop-{index+1}.png"
+                cropped_bgr = cv2.cvtColor(cropped, cv2.COLOR_RGBA2BGRA)
                 cv2.imwrite(str(output_path), cropped_bgr)
 
                 print(f"  Saved {output_path.name}")

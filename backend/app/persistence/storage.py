@@ -19,6 +19,7 @@ def decode_image_bytes(image_bytes: bytes) -> np.ndarray:
 def decode_image_stream(file_obj) -> np.ndarray:
     return decode_image_bytes(file_obj.read())
 
+# TODO: make this png for transparency support
 def encode_image(image: np.ndarray, image_format: str = ".jpg") -> bytes:
     success, encoded_buffer = cv2.imencode(image_format, image)
     if not success:
