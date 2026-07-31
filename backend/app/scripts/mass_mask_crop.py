@@ -32,13 +32,13 @@ def process_directory(input_dir: Path, output_dir: Path):
     for image_file in image_files:
         print(f"\nProcessing {image_file.name}")
 
-        image = cv2.imread(str(image_file))
+        image = cv2.imread(str(image_file), cv2.IMREAD_UNCHANGED)
 
         if image is None:
             print("  Could not read image.")
             continue
 
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGBA)
 
         try:
             segmentation = coral_service.segment_image(image=image, filename=image_file.name)
