@@ -9,10 +9,6 @@ class VisionService:
     Provides vision-related functions
     """
     
-    def __init__(self) -> None:
-        print("nothing yet")
-
-    
     def mask(self, image: np.ndarray, segments: list[Segment]) -> MaskResult:
         """
         Masks the image with the given segments. The rest of the picture will be black
