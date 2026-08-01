@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
-import SegmentationPage from "./pages/SegmentationPage.vue";
+import ObservationPage from "./pages/ObservationPage.vue";
 import MonitoringPage from "./pages/MonitoringPage.vue";
 
 const router = createRouter({
@@ -7,11 +7,11 @@ const router = createRouter({
     routes: [
         {
             path: "/",
-            component: SegmentationPage,
+            redirect: '/observe',
         },
         {
             path: "/observe",
-            component: SegmentationPage,
+            component: ObservationPage,
         },
         {
             path: "/monitor",
