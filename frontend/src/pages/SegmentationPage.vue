@@ -1,124 +1,106 @@
 <template>
-  <main class="min-h-screen overflow-auto bg-coral-bg p-5 text-coral-primary-text xl:h-screen xl:overflow-hidden">
-    <div class="mx-auto flex h-full max-w-[1800px] min-h-0 flex-col">
-      <header class="flex items-center justify-between pb-2">
-        <div>
-          <h1 class="text-3xl font-bold">
-            Coral Companion
-          </h1>
+  <!--
+    <main class="h-fit min-h-full bg-coral-bg p-5 text-coral-primary-text xl:overflow-hidden mx-auto flex max-w-[1800px] flex-col">
+  -->
+  <main class="flex flex-col xl:flex-row xl:h-full min-h-0 bg-coral-bg p-3 text-coral-primary-text">
+    <div class="grid flex-1 gap-4 xl:grid-cols-[3fr_2fr]">
+      <!-- Image / segmentation panel -->
+      <section class="flex flex-col overflow-hidden rounded border border-coral-surface-border bg-coral-surface">
+        <div
+          class="grid grid-cols-[1fr_1fr_1fr] items-center gap-4 border-b border-coral-surface-border px-4 py-3 text-xs">
 
-          <p class="text-xs text-coral-secondary-text">
-            Identify and find monitored coral colonies
-          </p>
-        </div>
+          <div class="mr-auto">
+            <button class="px-3 py-1.5 rounded border border-coral-button-border hover:bg-coral-button-hover"
+              @click="picker?.click()">
+              New Image
+            </button>
+            <input ref="picker" class="hidden" type="file" accept="image/*" @change="picked" />
+          </div>
 
-
-      </header>
-      <div class="grid min-h-0 flex-1 gap-4 xl:grid-cols-[3fr_2fr]">
-        <!-- Image / segmentation panel -->
-        <section
-          class="flex min-h-0 flex-col overflow-hidden rounded border border-coral-surface-border bg-coral-surface">
-          <div
-            class="grid grid-cols-[2fr_2fr_1fr_1fr] items-center gap-4 border-b border-coral-surface-border px-4 py-3 text-xs">
-            <div>
-              <p class="text-xs text-coral-secondary-text">
-                Select segments belonging to one colony.<br />
-                Create an observation for a known or a new coral colony by browsing the candidates.<br />
-              </p>
-            </div>
-
-            <div class="flex flex-col items-center gap-3">
-              <span class="text-coral-secondary-text">
-                <b class="text-coral-primary-text">
-                  {{ selected.size }}
+          <div class="flex flex-col items-center gap-3 text-coral-secondary-text">
+            <label>
+              Opacity:
+              <span class="text-coral-primary-text">
+                <b>
+                  {{ Math.round(opacity * 100) }}%
                 </b>
-                of
-                {{ segments.length }}
-                segments selected
               </span>
-
-              <button :disabled="!selected.size || loading.identify"
-                class="rounded bg-coral-primary px-3 py-2 font-semibold text-[#062126] disabled:opacity-40"
-                @click="identify">
-                {{
-                  loading.identify
-                    ? "Finding candidates..."
-                    : "Find coral colony for selection"
-                }}
-              </button>
-            </div>
-
-            <div class="flex flex-col gap-3 text-coral-secondary-text">
-              <label>
-                Opacity:
-                <span class="text-coral-primary-text">
-                  <b>
-                    {{ Math.round(opacity * 100) }}%
-                  </b>
-                </span>
-              </label>
-
-              <input v-model.number="opacity" type="range" min="0" max="1" step=".05"
-                class="w-20 accent-coral-primary" />
-            </div>
-
-            <div class="ml-auto">
-              <button class="rounded border border-slate-700 px-3 py-1.5 hover:bg-slate-800" @click="picker?.click()">
-                New Image
-              </button>
-
-              <input ref="picker" class="hidden" type="file" accept="image/*" @change="picked" />
-            </div>
+            </label>
+            <input :disabled="loading.segment || loading.identify || segments?.length == 0"
+                  v-model.number="opacity" type="range" min="0" max="1" step=".05"
+                  class="w-20 accent-coral-primary disabled:opacity-40" />
           </div>
 
-          <div class="relative flex min-h-0 flex-1 items-center justify-center bg-coral-surface p-3"
-            @dragover.prevent @drop.prevent="dropped">
-            <CoralImageViewer v-if="imageUrl" :image-src="imageUrl" :segments="segments" :selected="selected"
-              :opacity="opacity" @toggle="toggle" />
+          <div class="flex flex-col items-center ml-auto gap-3">
+            <span class="text-coral-secondary-text">
+              <b class="text-coral-primary-text">
+                {{ selected.size }}
+              </b>
+              of
+              {{ segments.length }}
+              segments selected
+            </span>
 
-            <div v-else class="text-center">
-              <p class="text-base">
-                Drop an image here
-              </p>
-
-              <p class="mt-2 text-xs text-coral-secondary-text">
-                Segmentation overlays appear after segmentation results are
-                calculated.
-              </p>
-
-              <button
-                class="mt-4 rounded bg-coral-primary px-4 py-2 text-sm font-semibold text-coral-primary-button-text"
-                @click="picker?.click()">
-                Browse image
-              </button>
-            </div>
-
-            <div v-if="loading.segment || loading.identify"
-              class="absolute inset-0 flex items-center justify-center bg-[#071116]/45">
-              <div class="rounded border border-slate-700 bg-[#0d1b21] px-5 py-4 text-center">
-                <i
-                  class="mx-auto block h-5 w-5 rounded-full border-2 border-coral-primary border-t-transparent animate-spin"></i>
-
-                <p class="mt-2 text-sm">
-                  Segmenting image
-                </p>
-
-                <p class="text-xs text-coral-secondary-text">
-                  This may take several minutes.
-                </p>
-              </div>
-            </div>
+            <button :disabled="!selected.size || loading.identify"
+              class="px-3 py-2 rounded border border-coral-button-border hover:bg-coral-button-hover disabled:opacity-40"
+              @click="identify">
+              {{
+                loading.identify
+                  ? "Finding candidates..."
+                  : "Find coral colony for selection"
+              }}
+            </button>
           </div>
-        </section>
 
-        <!-- Monitoring Session Selector-->
-        <div class="flex min-h-0 flex-col">
-          <MonitoringSessionSelector v-model="selectedMonitoringSession" class="mb-2" />
-          <!-- Candidates -->
-          <CandidatesPanel :image-url="imageUrl" :candidates="candidates" :selected-count="selected.size"
-            :loading-segment="loading.segment" :loading-identify="loading.identify" :loading-confirm="loading.confirm"
-            @confirm="confirm" :selected-monitoring-session="selectedMonitoringSession" />
         </div>
+
+        <div class="relative flex min-h-0 flex-1 items-center justify-center bg-coral-surface p-3" @dragover.prevent
+          @drop.prevent="dropped">
+          <CoralImageViewer v-if="imageUrl" :image-src="imageUrl" :segments="segments" :selected="selected"
+            :opacity="opacity" @toggle="toggle" />
+
+          <div v-else class="text-center">
+            <p class="text-base">
+              Drop an image here
+            </p>
+
+            <p class="mt-2 text-xs text-coral-secondary-text">
+              Segmentation overlays appear after segmentation results are
+              calculated.
+            </p>
+
+            <button class="mt-4 rounded bg-coral-primary px-4 py-2 text-sm font-semibold text-coral-primary-button-text"
+              @click="picker?.click()">
+              Browse image
+            </button>
+          </div>
+
+          <div v-if="loading.segment || loading.identify"
+            class="absolute inset-0 flex items-center justify-center bg-[#071116]/45">
+            <div class="rounded border border-slate-700 bg-[#0d1b21] px-5 py-4 text-center">
+              <i
+                class="mx-auto block h-5 w-5 rounded-full border-2 border-coral-primary border-t-transparent animate-spin"></i>
+
+              <p class="mt-2 text-sm">
+                Segmenting image
+              </p>
+
+              <p class="text-xs text-coral-secondary-text">
+                This may take several minutes.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 
+        <div class="flex min-h-0 flex-col">
+      -->
+      <div class="shrink-0 h-full flex flex-col min-h-0">
+        <MonitoringSessionSelector v-model="selectedMonitoringSession" class="mb-2" />
+        <CandidatesPanel :image-url="imageUrl" :candidates="candidates" :selected-count="selected.size"
+          :loading-segment="loading.segment" :loading-identify="loading.identify" :loading-confirm="loading.confirm"
+          @confirm="confirm" :selected-monitoring-session="selectedMonitoringSession" />
       </div>
     </div>
   </main>
@@ -189,11 +171,6 @@ const updateCandidates = (
 const upload = async (
   file: File,
 ) => {
-  if (!file.type.startsWith("image/")) {
-    error.value = "Please select an image file.";
-    return;
-  }
-
   image.value = file;
   imageUrl.value = URL.createObjectURL(file);
 

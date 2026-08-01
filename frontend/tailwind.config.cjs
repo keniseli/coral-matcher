@@ -23,6 +23,9 @@ module.exports = {
           "primary-text": colors.slate[100],
           
           "secondary-text": colors.slate[500],
+
+          "button-hover": colors.slate[800],
+          "button-border": colors.slate[700],
         },
       },
     }

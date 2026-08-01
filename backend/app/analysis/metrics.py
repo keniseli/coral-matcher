@@ -33,11 +33,13 @@ def coral_mask(image: np.ndarray) -> np.ndarray:
     """
     Returns True for every non-black coral pixel.
     """
+    if image.shape[2] == 4:
+        return image[:, :, 3] > 0
+
     return np.any(image != 0, axis=2)
 
-
 def lab_image(image: np.ndarray) -> np.ndarray:
-    return cv2.cvtColor(image, cv2.COLOR_RGB2LAB)
+    return cv2.cvtColor(image[:, :, :3], cv2.COLOR_RGB2LAB)
 
 
 def valid_pixels(channel: np.ndarray, mask: np.ndarray) -> np.ndarray:

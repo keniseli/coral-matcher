@@ -11,9 +11,11 @@
   "dependencies": {
     "date-fns": "^4.4.0",
     "pinia": "^4.0.2",
-    "vue": "^3.3.0"
+    "vue": "^3.3.0",
+    "vue-router": "^4.6.0"
   },
   "devDependencies": {
+    "@types/node": "^26.1.1",
     "@vitejs/plugin-vue": "^4.0.0",
     "autoprefixer": "^10.0.0",
     "postcss": "^8.0.0",

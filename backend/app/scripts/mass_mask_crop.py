@@ -54,8 +54,8 @@ def process_directory(input_dir: Path, output_dir: Path):
 
                 cropped = identify_result.crop
                 image_path = Path(image_file.name)
-                output_path = output_dir / f"{image_path.stem}_crop_{index+1}{image_path.suffix}"
-                cropped_bgr = cv2.cvtColor(cropped, cv2.COLOR_RGB2BGR)
+                output_path = output_dir / f"{image_path.stem}-crop-{index+1}.png"
+                cropped_bgr = cv2.cvtColor(cropped, cv2.COLOR_RGBA2BGRA)
                 cv2.imwrite(str(output_path), cropped_bgr)
 
                 print(f"  Saved {output_path.name}")

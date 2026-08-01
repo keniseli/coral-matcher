@@ -34,10 +34,13 @@ class EmbeddingService:
     
     
 
-    def generate_vector_embedding(self, cv2_image):
+    def generate_vector_embedding(self, image):
         """ Transforms an OpenCV image matrix into a 512-dimension spatial vector array. """
-        rgb_img = cv2.cvtColor(cv2_image, cv2.COLOR_BGR2RGB)
-        
+        # TODO: decide how to proceed with transparency. Maybe use a tighter mask using alpha? For now ignore alpha channel.
+        if image.shape[2] == 4:
+            rgb_img = cv2.cvtColor(image, cv2.COLOR_BGRA2RGB)
+        else:
+            rgb_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)        
         tensor_img = transform_pipeline(rgb_img).unsqueeze(0).to(device)
         
         with torch.inference_mode():

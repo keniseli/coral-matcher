@@ -8,24 +8,33 @@ from .report import create_report
 
 def load_image(path: str | Path) -> tuple[np.ndarray, np.ndarray]:
     """
-    Load an RGB image and create a foreground mask.
+    Load an image and create a foreground mask.
 
-    Assumes the cropped image has a black background (0,0,0).
     Returns:
-        image_rgb : H x W x 3 uint8
-        mask      : H x W bool (True = coral pixels)
+        image : RGB or RGBA image
+        mask  : H x W bool (True = coral pixels)
     """
-    image = cv2.imread(str(path), cv2.IMREAD_COLOR)
+
+    image = cv2.imread(str(path), cv2.IMREAD_UNCHANGED)
 
     if image is None:
         raise FileNotFoundError(path)
 
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    if image.ndim != 3:
+        raise ValueError(f"Expected color image: {path}")
 
-    # Ignore pure black pixels introduced by masking
-    mask = np.any(image != 0, axis=2)
+    if image.shape[2] == 4:
+        image = cv2.cvtColor(image, cv2.COLOR_BGRA2RGBA)
+        mask = image[:, :, 3] > 0
 
-    if mask.sum() == 0:
+    elif image.shape[2] == 3:
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        mask = np.any(image != 0, axis=2)
+
+    else:
+        raise ValueError(f"Unsupported image format ({image.shape[2]} channels): {path}")
+
+    if not np.any(mask):
         raise ValueError(f"No foreground pixels found in {path}")
 
     return image, mask
