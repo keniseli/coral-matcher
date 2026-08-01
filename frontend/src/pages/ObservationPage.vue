@@ -120,7 +120,7 @@ import CandidatesPanel from "../components/CandidatesPanel.vue";
 import MonitoringSessionSelector from "../components/MonitoringSessionSelector.vue";
 
 import segmentation from "../services/segmentationService";
-import identifyService from "../services/identificationService";
+import observationService from "../services/observationService";
 
 import type { Segment } from "../types/segment";
 import type { CoralCandidate } from "../types/api";
@@ -232,7 +232,7 @@ const identify = async () => {
 
   try {
     const result =
-      await identifyService.identifyCoralBySegments(
+      await observationService.identifyCoralBySegments(
         segments.value.filter(
           (segment) =>
             selected.value.has(segment.id),
@@ -274,7 +274,7 @@ const confirm = async (payload: ConfirmPayload) => {
     candidates.value = [];
     selected.value = new Set();
 
-    await identifyService.confirmCoral({
+    await observationService.confirmCoral({
       image: image.value,
       selectedSegments: segments.value.filter((segment) => previousSelected.has(segment.id)),
       selectedCandidateId: payload.selectedCandidateId,
