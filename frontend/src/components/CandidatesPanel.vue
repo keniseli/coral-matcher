@@ -14,7 +14,7 @@
             <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
 
                 <input v-model="name"
-                    class="mt-1 w-full rounded border border-coral-raised-border bg-coral-input p-2 text-coral-primary-text"
+                    class="w-full rounded border border-coral-raised-border bg-coral-input p-2 text-coral-primary-text"
                     placeholder="Enter New Coral Colony Name" />
 
                 <button :disabled="!selectedCount || loadingConfirm"
@@ -46,11 +46,11 @@
                 </p>
             </div>
 
-            <p v-else-if="!imageUrl" class="mt-2 h-full flex justify-center items-center text-xs text-coral-secondary-text">
+            <p v-else-if="!imageUrl" class="h-full flex justify-center items-center text-xs text-coral-secondary-text">
                 Upload an image to begin comparison.
             </p>
 
-            <p v-else-if="!coralObservations.length" class="mt-2 h-full flex justify-center items-center text-xs text-coral-secondary-text">
+            <p v-else-if="!coralObservations.length" class="h-full flex justify-center items-center text-xs text-coral-secondary-text">
                 No matching colonies found. You can save this observation as a new
                 colony.
             </p>
