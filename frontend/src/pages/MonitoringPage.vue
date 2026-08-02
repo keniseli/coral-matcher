@@ -15,8 +15,8 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 
-import MonitoringSidebar from "../components/monitoring/MonitoringSidebar.vue";
-import MonitoringWorkspace from "../components/monitoring/MonitoringWorkspace.vue";
+import MonitoringSidebar from "../components/monitoring/Sidebar.vue";
+import MonitoringWorkspace from "../components/monitoring/Workspace.vue";
 import { mockObservations } from "../services/observationService.js";
 import { compareAsc } from "date-fns";
 const selectedObservationIds = ref<string[]>([]);
