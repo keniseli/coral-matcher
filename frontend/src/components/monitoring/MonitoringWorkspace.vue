@@ -21,9 +21,10 @@
                 Metrics
             </h2>
             Metric grid placeholder
+            {{ selectedObservations }}
         </div>
 
-        <div class="h-72 shrink-0 overflow-auto p-6">
+        <div class="min-h-0 shrink-0 overflow-auto p-6">
             <h2 class="mb-4 text-lg font-semibold">
                 Visualizations
             </h2>
@@ -35,4 +36,11 @@
 </template>
 
 <script setup lang="ts">
+import { ObservationSummary } from '@/types/observationSummary';
+
+
+const props = defineProps<{
+    selectedObservations: ObservationSummary[];
+}>();
+
 </script>

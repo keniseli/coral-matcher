@@ -36,17 +36,19 @@
             <div class="overflow-y-auto rounded border border-coral-surface-border">
 
                 <label
-                    v-for="i in 12" :key="i"
+                    v-for="observationSummary in observations"
                     class="flex items-center gap-3 border-b border-coral-surface-border p-2 hover:bg-coral-bg">
                     
-                    <input type="checkbox">
+                    <input type="checkbox"
+                        :checked="props.selectedObservationIds.includes(observationSummary.id)"
+                        @change="toggleObservation(observationSummary.id)" />
                     <div>
                         <div class="semibold text-sm">
-                            Coral c00{{ i  }}
+                            {{ observationSummary.coralName }}
                         </div>
 
                         <div class="text-xs text-coral-secondary-text">
-                            2026-07-18
+                            {{ observationSummary.observedAt }}
                         </div>
                     </div>
                 </label>
@@ -57,4 +59,30 @@
 </template>
 
 <script setup lang="ts">
+import { ObservationSummary } from '../../types/observationSummary';
+
+
+const props = defineProps<{
+    selectedObservationIds: string[];
+    observations: ObservationSummary[];
+}>();
+
+const emit = defineEmits<{
+    (e: "update:selectedObservationIds", value: string[]): void;
+}>();
+
+function toggleObservation(id: string) {
+    const selected = props.selectedObservationIds;
+    const index = selected.indexOf(id);
+
+    if (index >= 0) {
+        selected.splice(index, 1);
+    } else {
+        selected.push(id);
+    }
+
+    emit("update:selectedObservationIds", selected);
+}
+
+
 </script>

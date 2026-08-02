@@ -1,6 +1,7 @@
 import type { IdentifyApiResponse } from '../types/api'
 import type { Segment } from '../types/segment'
 import monitoringSessionService from './monitoringSessionService'
+import type { ObservationSummary } from "../types/observationSummary";
 
 async function identifyCoralBySegments(selectedSegments: Segment[], file: File): Promise<IdentifyApiResponse> {
   const apiBase = import.meta.env.VITE_API_BASE as string
@@ -36,5 +37,33 @@ async function confirmCoral(request: ConfirmCoralRequest): Promise<void> {
   if (!res.ok) throw new Error('Confirmation request failed.')
   return res.json()
 }
+
+
+export const mockObservations: ObservationSummary[] = [
+  {
+    id: "1",
+    coralName: "C001",
+    monitoringSessionSummary: "07. July 2026 at 9:30 AM · Isla Larga",
+    diveSite: { id: "islalarga", name: "Isla Larga" },
+    observedAt: "2026-07-07",
+  },
+
+  {
+    id: "2",
+    coralName: "Bongo",
+    monitoringSessionSummary: "07. July 2026 at 10:30 AM · Isla Larga · Anne's Monitoring",
+    diveSite: { id: "islalarga", name: "Isla Larga" },
+    observedAt: "2026-07-21",
+  },
+
+  {
+    id: "3",
+    coralName: "C002",
+    monitoringSessionSummary: "21. July 2026 at 9:30 AM · Olohuita",
+    diveSite: { id: "olohuita", name: "Olohuita" },
+    observedAt: "2026-07-21",
+  }
+
+];
 
 export default { identifyCoralBySegments, confirmCoral }
