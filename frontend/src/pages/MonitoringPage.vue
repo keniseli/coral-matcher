@@ -7,7 +7,7 @@
             v-model:selectedObservationIds="selectedObservationIds"/>
 
         <MonitoringWorkspace 
-            :selectedObservations="selectedObservations"/>
+            :observations="selectedObservations"/>
 
     </div>
 </template>
@@ -18,12 +18,13 @@ import { ref, computed } from "vue";
 import MonitoringSidebar from "../components/monitoring/MonitoringSidebar.vue";
 import MonitoringWorkspace from "../components/monitoring/MonitoringWorkspace.vue";
 import { mockObservations } from "../services/observationService.js";
+import { compareAsc } from "date-fns";
 const selectedObservationIds = ref<string[]>([]);
 
 const selectedObservations = computed(() =>
     mockObservations.filter(o =>
         selectedObservationIds.value.includes(o.id)
-    )
+    ).sort((a, b) => compareAsc(a.observedAt, b.observedAt))
 );
 
 </script>
