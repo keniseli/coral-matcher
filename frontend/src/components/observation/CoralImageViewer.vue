@@ -30,7 +30,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import SegmentPolygon from "./SegmentPolygon.vue";
-import type { Segment, SegmentPoint } from "../types/segment";
+import type { Segment, SegmentPoint } from "../../types/segment.js";
 
 const props = defineProps<{
   imageSrc?: string;

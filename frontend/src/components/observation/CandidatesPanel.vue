@@ -108,9 +108,9 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { useNotificationStore } from "../stores/notification";
-import type { CoralCandidate, CoralObservations} from "../types/api";
-import { MonitoringSession } from "../types/monitoringSession";
+import { useNotificationStore } from "../../stores/notification";
+import type { CoralCandidate, CoralObservations} from "../../types/api";
+import { MonitoringSession } from "../../types/monitoringSession";
 import { format } from "date-fns";
 
 type Props = {

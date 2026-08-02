@@ -115,9 +115,9 @@ import {
 import { useNotificationStore } from "../stores/notification";
 import { useCoralDataStore } from "../stores/coral";
 
-import CoralImageViewer from "../components/CoralImageViewer.vue";
-import CandidatesPanel from "../components/CandidatesPanel.vue";
-import MonitoringSessionSelector from "../components/MonitoringSessionSelector.vue";
+import CoralImageViewer from "../components/observation/CoralImageViewer.vue";
+import CandidatesPanel from "../components/observation/CandidatesPanel.vue";
+import MonitoringSessionSelector from "../components/observation/MonitoringSessionSelector.vue";
 
 import segmentation from "../services/segmentationService";
 import observationService from "../services/observationService";

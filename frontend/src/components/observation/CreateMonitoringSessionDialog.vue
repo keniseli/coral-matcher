@@ -85,8 +85,8 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { DiveSite } from "../types/diveSite";
-import { MonitoringSession } from "../types/monitoringSession";
+import { DiveSite } from "../../types/diveSite";
+import { MonitoringSession } from "../../types/monitoringSession";
 
 type Props = {
     diveSites: DiveSite[];

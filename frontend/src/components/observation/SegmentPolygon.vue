@@ -14,7 +14,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import type { SegmentPoint } from "../types/segment";
+import type { SegmentPoint } from "../../types/segment";
 
 const props = defineProps<{
   segment: { polygon: SegmentPoint[] };

@@ -104,13 +104,13 @@ import {
 } from "vue";
 
 
-import monitoringSessionService from "../services/monitoringSessionService";
-import { MonitoringSession } from "../types/monitoringSession"
+import monitoringSessionService from "../../services/monitoringSessionService";
+import { MonitoringSession } from "../../types/monitoringSession"
 import CreateMonitoringSessionDialog from "./CreateMonitoringSessionDialog.vue";
-import diveSiteService from "../services/diveSiteService"
-import { DiveSite } from "../types/diveSite"
-import { useNotificationStore } from "../stores/notification";
-import { useCoralDataStore } from "../stores/coral";
+import diveSiteService from "../../services/diveSiteService"
+import { DiveSite } from "../../types/diveSite"
+import { useNotificationStore } from "../../stores/notification";
+import { useCoralDataStore } from "../../stores/coral";
 import { format } from "date-fns";
 
 type Props = {
