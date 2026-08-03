@@ -2,32 +2,19 @@
 
     <section class="flex-1 min-w-0 min-h-0 flex flex-col bg-coral-bg overflow-auto">
 
-            <ObservationSummaryRow :observations="observations" />
+        <ObservationSummaryRow :observations="observations" />
 
-            <div class="h-auto shrink-0 border-b border-coral-surface-border p-6">
+        <MetricGraph :metric-series="metricsSeries" :metric-definitions="metricDefinitions" />
 
-                <h2 class="mb-4 text-lg font-semibold">
-                    Metric Trend
-                </h2>
+        <MetricGrid :observationComparisons :metric-definitions="metricDefinitions"
+            v-model:selectedMetricIds="selectedMetricIds" />
 
-                <div class="flex h-auto items-center justify-center 
-                rounded border border-dashed border-coral-surface-border ">
-                    Graph placeholder
-                </div>
-
-            </div>
-
-            <MetricGrid 
-                :observationComparisons 
-                :metric-definitions="metricDefinitions"
-                v-model:selectedMetricIds="selectedMetricIds" />
-
-            <div class="min-h-0 shrink-0 overflow-auto p-6">
-                <h2 class="mb-4 text-lg font-semibold">
-                    Visualizations
-                </h2>
-                Visualization placeholder
-            </div>
+        <div class="min-h-0 shrink-0 overflow-auto p-6">
+            <h2 class="mb-4 text-lg font-semibold">
+                Visualizations
+            </h2>
+            Visualization placeholder
+        </div>
 
     </section>
 
@@ -41,8 +28,8 @@ import MetricGrid from './MetricGrid.vue';
 
 import { ObservationSummary } from '@/types/observationSummary';
 import { produceComparisonMocks } from '@/types/observationComparison.js';
-import { metricDefinitions } from '@/types/monitoring.js';
-
+import { metricDefinitions, Metric } from '@/types/monitoring';
+import MetricGraph from './MetricGraph.vue';
 
 const props = defineProps<{
     observations: ObservationSummary[];
@@ -53,5 +40,20 @@ const selectedMetricIds = ref<string[]>([]);
 const observationComparisons = computed(() =>
     produceComparisonMocks(props.observations)
 );
+
+const metricsSeries = computed(() => {
+    const series: Map<string, Metric[]> = new Map();
+    observationComparisons.value.forEach(comparison => {
+        comparison.metrics
+            .filter(metric => selectedMetricIds.value.includes(metric.id))
+            .forEach(metric => {
+                if (!series.get(metric.id)) {
+                    series.set(metric.id, []);
+                }
+                series.get(metric.id)?.push(metric);
+            });
+    });
+    return series;
+});
 
 </script>
