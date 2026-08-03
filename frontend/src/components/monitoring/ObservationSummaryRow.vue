@@ -1,7 +1,9 @@
 <template>
     <div class="flex">
-
-        <div v-for="observation in observations" class="flex w-60 shrink-0 flex-col
+        <div class="flex-col shrink-0 w-monitoring-metric-label-column">
+            &nbsp;
+        </div>
+        <div v-for="observation in observations" class="flex w-monitoring-metric-value-column shrink-0 flex-col
         rounded-xs border border-coral-surface-border bg-coral-surface p-3">
 
             <img src="https://storage.googleapis.com/coral-matcher-media/Isla larga/c004/cropped_2026-07-24 20:28:02.795031"

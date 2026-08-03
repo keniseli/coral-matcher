@@ -19,6 +19,7 @@ import MonitoringSidebar from "../components/monitoring/Sidebar.vue";
 import MonitoringWorkspace from "../components/monitoring/Workspace.vue";
 import { mockObservations } from "../services/observationService.js";
 import { compareAsc } from "date-fns";
+
 const selectedObservationIds = ref<string[]>([]);
 
 const selectedObservations = computed(() =>

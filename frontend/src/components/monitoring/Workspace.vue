@@ -17,13 +17,7 @@
 
             </div>
 
-            <div class="flex-1 min-h-0 overflow-auto border-b border-coral-surface-border p-6 ">
-                <h2 class="mb-4 text-lg font-semibold">
-                    Metrics
-                </h2>
-                Metric grid placeholder
-                {{ observations }}
-            </div>
+            <MetricGrid :observationComparisons :metric-definitions="metricDefinitions" />
 
             <div class="min-h-0 shrink-0 overflow-auto p-6">
                 <h2 class="mb-4 text-lg font-semibold">
@@ -37,12 +31,22 @@
 </template>
 
 <script setup lang="ts">
-import { ObservationSummary } from '@/types/observationSummary';
+import { computed } from 'vue';
+
 import ObservationSummaryRow from './ObservationSummaryRow.vue';
+import MetricGrid from './MetricGrid.vue';
+
+import { ObservationSummary } from '@/types/observationSummary';
+import { produceComparisonMocks } from '@/types/observationComparison.js';
+import { metricDefinitions } from '@/types/monitoring.js';
 
 
 const props = defineProps<{
     observations: ObservationSummary[];
 }>();
+
+const observationComparisons = computed(() =>
+    produceComparisonMocks(props.observations)
+);
 
 </script>

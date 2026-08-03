@@ -38,7 +38,6 @@ async function confirmCoral(request: ConfirmCoralRequest): Promise<void> {
   return res.json()
 }
 
-
 export const mockObservations: ObservationSummary[] = [
   {
     id: "1",

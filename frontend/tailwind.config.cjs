@@ -21,14 +21,20 @@ module.exports = {
           "primary-button-text": "#062126",
           "primary-hover": "#5EEAD4",
           "primary-text": colors.slate[100],
-          
+
           "secondary-text": colors.slate[500],
 
           "button-hover": colors.slate[800],
           "button-border": colors.slate[700],
+
+          "attention": "#d76a0a",
         },
       },
-    }
+      width: {
+        "monitoring-metric-label-column": "260px",
+        "monitoring-metric-value-column": "240px",
+      },
+    },
   },
   plugins: [],
 }
