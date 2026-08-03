@@ -1,6 +1,5 @@
 <template>
-    <aside
-        class="flex flex-col 
+    <aside class="flex flex-col 
         h-[65dvh] xl:h-auto xl:shrink-0 xl:w-[30vw]
             border-b xl:border-b-0 xl:border-r 
             border-coral-surface-border bg-coral-surface
@@ -11,19 +10,15 @@
                 Filters
             </h2>
 
-            <input
-                type="text"
-                placeholder="Search by coral name..."
-                class="w-full mb-2 p-2 bg-coral-input text-coral-primary-text text-xs
-                rounded border border-coral-surface-border"
-            />
-                <select class="w-full mb-2 rounded border border-coral-surface-border bg-coral-bg p-2 text-xs">
-                    <option>All Dive Sites</option>
-                </select>
+            <input type="text" placeholder="Search by coral name..." class="w-full mb-2 p-2 bg-coral-input text-coral-primary-text text-xs
+                rounded border border-coral-surface-border" />
+            <select class="w-full mb-2 rounded border border-coral-surface-border bg-coral-bg p-2 text-xs">
+                <option>All Dive Sites</option>
+            </select>
 
-                <select class="w-full mb-2 rounded border border-coral-surface-border bg-coral-bg p-2 text-xs">
-                    <option>All Monitoring Sessions</option>
-                </select>
+            <select class="w-full mb-2 rounded border border-coral-surface-border bg-coral-bg p-2 text-xs">
+                <option>All Monitoring Sessions</option>
+            </select>
 
         </section>
 
@@ -35,15 +30,25 @@
 
             <div class="overflow-y-auto rounded border border-coral-surface-border">
 
-                <label
-                    v-for="observationSummary in observations"
-                    class="flex items-center gap-3 border-b border-coral-surface-border p-2 hover:bg-coral-bg">
-                    
-                    <input type="checkbox"
-                        :checked="props.selectedObservationIds.includes(observationSummary.id)"
-                        @change="toggleObservation(observationSummary.id)" />
+                <label v-for="observationSummary in observations" :key="observationSummary.id"
+                    @click.prevent="toggleObservation(observationSummary.id)" :class="[
+                        'flex cursor-pointer items-center gap-3 border-b border-coral-surface-border p-2 transition-colors',
+                        props.selectedObservationIds.includes(observationSummary.id)
+                            ? 'bg-coral-primary-bg hover:bg-coral-overlay'
+                            : 'hover:bg-coral-primary-bg'
+                    ]">
+
+                    <input type="checkbox" :checked="props.selectedObservationIds.includes(observationSummary.id)"
+                        @change="toggleObservation(observationSummary.id)" 
+                        class="h-4 w-4 accent-coral-primary focus:ring-0" />
+
                     <div>
-                        <div class="semibold text-sm">
+                        <div :class="[
+                            'truncate text-xs font-medium',
+                            props.selectedObservationIds.includes(observationSummary.id)
+                                ? 'text-coral-primary'
+                                : 'text-coral-primary-text'
+                        ]">
                             {{ observationSummary.coralName }}
                         </div>
 
