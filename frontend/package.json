@@ -10,8 +10,10 @@
   },
   "dependencies": {
     "date-fns": "^4.4.0",
+    "echarts": "^6.1.0",
     "pinia": "^4.0.2",
     "vue": "^3.3.0",
+    "vue-echarts": "^8.0.1",
     "vue-router": "^4.6.0"
   },
   "devDependencies": {
