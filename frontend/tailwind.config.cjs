@@ -11,12 +11,12 @@ module.exports = {
           surface: "#0b181e",
           "surface-border": colors.slate[700],
 
-          raised: "#071116",
+          "raised": "#071116",
           "raised-border": colors.slate[500],
 
-          overlay: "#13262D",
+          "overlay": "#13262D",
 
-          primary: "#2bd4bd",
+          "primary": "#2bd4bd",
           "primary-bg": "rgba(43, 212, 189, 0.1)",
           "primary-button-text": "#062126",
           "primary-hover": "#5EEAD4",
@@ -31,7 +31,7 @@ module.exports = {
         },
       },
       width: {
-        "monitoring-metric-label-column": "260px",
+        "monitoring-metric-label-column": "280px",
         "monitoring-metric-value-column": "240px",
       },
     },
