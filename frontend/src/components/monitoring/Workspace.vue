@@ -17,7 +17,10 @@
 
             </div>
 
-            <MetricGrid :observationComparisons :metric-definitions="metricDefinitions" />
+            <MetricGrid 
+                :observationComparisons 
+                :metric-definitions="metricDefinitions"
+                v-model:selectedMetricIds="selectedMetricIds" />
 
             <div class="min-h-0 shrink-0 overflow-auto p-6">
                 <h2 class="mb-4 text-lg font-semibold">
@@ -31,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 import ObservationSummaryRow from './ObservationSummaryRow.vue';
 import MetricGrid from './MetricGrid.vue';
@@ -44,6 +47,8 @@ import { metricDefinitions } from '@/types/monitoring.js';
 const props = defineProps<{
     observations: ObservationSummary[];
 }>();
+
+const selectedMetricIds = ref<string[]>([]);
 
 const observationComparisons = computed(() =>
     produceComparisonMocks(props.observations)

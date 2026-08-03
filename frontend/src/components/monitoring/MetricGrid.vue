@@ -20,8 +20,14 @@
         <tbody>
             
             <tr v-for="metricDefinition in metricDefinitions"
-                class="border-b border-coral-surface-border transition-colors hover:bg-coral-primary-bg">
-
+                :key="metricDefinition.id"
+                @click="toggleMetric(metricDefinition.id)"
+                :class="[
+                    'cursor-pointer border-b border-coral-surface-border transition-colors',
+                    isSelected(metricDefinition.id)
+                        ? 'bg-coral-primary-bg'
+                        : 'hover:bg-coral-primary-bg'
+                ]">
                 <td class="w-monitoring-metric-label-column px-4 py-2 font-medium text-coral-primary-text">
                     {{ metricDefinition.label }}
                 </td>
@@ -51,13 +57,37 @@
 import { Metric, MetricDefinition } from '@/types/monitoring';
 import { ObservationComparison } from '@/types/observationComparison';
 
+// this is solely for use in the template
+var metric: Metric | undefined
 
 const props = defineProps<{
     observationComparisons: ObservationComparison[];
     metricDefinitions: MetricDefinition[];
+    selectedMetricIds: string[];
 }>();
 
-// this is for temporary use in the template
-var metric: Metric | undefined
+const emit = defineEmits<{
+    (e: "update:selectedMetricIds", value: string[]): void;
+}>();
+
+function toggleMetric(metricId: string) {
+    const selected = [...props.selectedMetricIds];
+
+    const index = selected.indexOf(metricId);
+    
+    console.log(selected);
+
+    if (index >= 0) {
+        selected.splice(index, 1);
+    } else {
+        selected.push(metricId);
+    }
+
+    emit("update:selectedMetricIds", selected);
+}
+
+function isSelected(metricId: string) {
+    return props.selectedMetricIds.includes(metricId);
+}
 
 </script>
