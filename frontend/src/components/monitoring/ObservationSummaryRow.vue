@@ -6,7 +6,7 @@
         <div v-for="observation in observations" class="flex w-monitoring-metric-value-column 
             shrink-0 flex-col p-3">
 
-            <img src="https://storage.googleapis.com/coral-matcher-media/Isla larga/c004/cropped_2026-07-24 20:28:02.795031"
+            <img :src="observation.imagePath"
                 class="mb-3 rounded object-cover" />
 
             <div class="font-semibold text-xs text-center">

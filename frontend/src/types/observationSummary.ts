@@ -12,4 +12,6 @@ export interface ObservationSummary {
 
     observedAt: string;
 
+    imagePath: string;
+
 }
