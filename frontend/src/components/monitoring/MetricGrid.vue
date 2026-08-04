@@ -59,7 +59,7 @@
                         <span v-if="observationComparison.baselineObservation" :class="metric && Math.abs(metric.changePercentage) >= 20
                             ? 'text-coral-attention'
                             : 'text-coral-secondary-text'">
-                            (<span v-if="Math.sign(metric?.changePercentage | 0) > 0">+</span>{{
+                            (<span v-if="metric?.changePercentage && (Math.sign(metric?.changePercentage | 0) > 0)">+</span>{{
                                 metric?.changePercentage.toFixed(3) }}%)
                         </span>
 
