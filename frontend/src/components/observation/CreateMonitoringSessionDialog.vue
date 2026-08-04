@@ -42,8 +42,8 @@
 
                     <select v-model="diveSite"
                         class="mt-1 block w-full rounded border border-slate-700 bg-coral-bg p-2 text-sm text-coral-primary-text focus:border-coral-primary focus:outline-none">
-                        <option v-for="site in diveSites" :key="site.id" :value="site.id">
-                            {{ site.name }}
+                        <option v-for="site in diveSites" :key="site" :value="site">
+                            {{ site }}
                         </option>
                     </select>
                 </label>
@@ -85,11 +85,10 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { DiveSite } from "../../types/diveSite";
 import { MonitoringSession } from "../../types/monitoringSession";
 
 type Props = {
-    diveSites: DiveSite[];
+    diveSites: string[];
     initialDiveSiteId?: string | null;
 };
 
@@ -112,7 +111,7 @@ const name = ref("");
 
 const diveSite = ref(
     props.initialDiveSiteId ??
-    props.diveSites[0]?.id ??
+    props.diveSites[0] ??
     "",
 );
 
@@ -151,7 +150,7 @@ const cancel = () => {
 const create = () => {
     error.value = "";
 
-    if (!diveSite.value) {
+    if (!diveSite) {
         error.value =
             "Please select a dive site.";
 
@@ -162,10 +161,7 @@ const create = () => {
     emit("create", {
         id: "",
         name: name.value.trim() || null,
-        diveSite: { 
-            id: diveSite.value,
-            name: props.diveSites.find(d => d.id == diveSite.value)?.name || diveSite.value
-        },
+        diveSite: diveSite.value,
         timestamp: localDate.toISOString(),
         observationCount: 0
     });

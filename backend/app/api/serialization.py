@@ -138,10 +138,7 @@ def parse_segments(segments_json_array):
     
 def parse_monitoring_session(request: Request) -> MonitoringSession:
     body = request.json
-    monitoring_session = MonitoringSession()
-    monitoring_session.name = body["name"]
-    monitoring_session.timestamp = body["timestamp"]
-    monitoring_session.dive_site = body["diveSite"]
+    monitoring_session = MonitoringSession(name=body["name"], timestamp=body["timestamp"], dive_site=body["diveSite"])
     return monitoring_session
             
 def serialize_monitoring_sessions(sessions: list[MonitoringSession]):
@@ -149,10 +146,7 @@ def serialize_monitoring_sessions(sessions: list[MonitoringSession]):
         "sessions": [
             {
                 "id": session.id,
-                "diveSite": { 
-                    "name" : session.dive_site,
-                    "id": session.dive_site
-                    },
+                "diveSite": session.dive_site,
                 "name": session.name,
                 "timestamp": session.timestamp,
             }

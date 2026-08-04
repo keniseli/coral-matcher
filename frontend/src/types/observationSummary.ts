@@ -8,7 +8,7 @@ export interface ObservationSummary {
 
     monitoringSessionSummary: string;
 
-    diveSite: DiveSite;
+    diveSite: string;
 
     observedAt: string;
 

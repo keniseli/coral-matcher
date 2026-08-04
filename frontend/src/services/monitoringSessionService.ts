@@ -18,7 +18,7 @@ async function create(monitoringSession: MonitoringSession): Promise<MonitoringS
         body: JSON.stringify({
             "name": monitoringSession.name,
             "timestamp": monitoringSession.timestamp,
-            "diveSite": monitoringSession.diveSite.name
+            "diveSite": monitoringSession.diveSite
         }),
         headers: {
             "Content-Type": "application/json",

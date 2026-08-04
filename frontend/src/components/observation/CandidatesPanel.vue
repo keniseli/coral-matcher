@@ -176,7 +176,7 @@ const confirm = () => {
     }
     emit("confirm", {
         selectedCandidateId: activeId.value || null,
-        diveSite: props.selectedMonitoringSession.diveSite.name,
+        diveSite: props.selectedMonitoringSession.diveSite,
         coralName: name.value,
     });
     activeId.value = '';

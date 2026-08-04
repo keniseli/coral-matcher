@@ -3,12 +3,6 @@ from sqlmodel import SQLModel
 from uuid import UUID
 from datetime import datetime
 
-class DiveSiteResponse(SQLModel):
-    model_config = ConfigDict(from_attributes=True)
-    id: str
-    name: str
-
-
 class MonitoringSessionResponse(SQLModel):
     model_config = ConfigDict(
         from_attributes=True,
@@ -19,7 +13,7 @@ class MonitoringSessionResponse(SQLModel):
     name: str | None
     timestamp: datetime
 
-    dive_site: DiveSiteResponse = Field(
+    dive_site: str = Field(
         serialization_alias="diveSite"
     )
 
@@ -42,7 +36,7 @@ class ObservationSummary(SQLModel):
     monitoring_session_name: str = Field(
         serialization_alias="monitoringSessionSummary")
     
-    dive_site: DiveSiteResponse = Field(
+    dive_site: str = Field(
         serialization_alias="diveSite"
     )
         

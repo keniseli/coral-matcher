@@ -3,7 +3,7 @@ import { DiveSite } from "./diveSite";
 export type MonitoringSession = {
     id: string;
     name: string | null;
-    diveSite: DiveSite;
+    diveSite: string;
     timestamp: string;
     observationCount: number;
 };

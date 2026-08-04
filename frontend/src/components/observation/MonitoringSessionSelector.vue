@@ -9,7 +9,7 @@
             <div class="grid grid-cols-[3fr_1fr] w-full text-xs text-coral-primary-text font-semibold m-1">
                 <span v-if="selectedSession">
                     <span class="text-coral-secondary-text font-normal">Monitoring Session</span>
-                    {{ formatDate(selectedSession.timestamp) }} · {{ selectedSession.diveSite.name }}
+                    {{ formatDate(selectedSession.timestamp) }} · {{ selectedSession.diveSite }}
                     <span v-if="selectedSession.name"> · {{ selectedSession.name }}</span>
                 </span>
 
@@ -61,7 +61,7 @@
                     <div class="grid grid-cols-[3fr_1fr] w-full text-xs text-coral-primary-text font-semibold m-1">
                         <span v-if="selectedSession">
                             <span class="text-coral-secondary-text font-normal">Monitoring Session</span>
-                            {{ formatDate(session.timestamp) }} · {{ session.diveSite.name }}
+                            {{ formatDate(session.timestamp) }} · {{ session.diveSite }}
                             <span v-if="session.name"> · {{ session.name }}</span>
                         </span>
 
@@ -90,7 +90,7 @@
         </div>
 
         <!-- Create dialog -->
-        <CreateMonitoringSessionDialog v-if="showCreateDialog" :dive-sites="diveSites" :initial-dive-site-id="selectedSession?.diveSite.id
+        <CreateMonitoringSessionDialog v-if="showCreateDialog" :dive-sites="diveSites" :initial-dive-site-id="selectedSession?.diveSite
             " @cancel="showCreateDialog = false" @create="createSession" />
     </div>
 </template>
@@ -108,7 +108,6 @@ import monitoringSessionService from "../../services/monitoringSessionService";
 import { MonitoringSession } from "../../types/monitoringSession"
 import CreateMonitoringSessionDialog from "./CreateMonitoringSessionDialog.vue";
 import diveSiteService from "../../services/diveSiteService"
-import { DiveSite } from "../../types/diveSite"
 import { useNotificationStore } from "../../stores/notification";
 import { useCoralDataStore } from "../../stores/coral";
 import { format } from "date-fns";
@@ -133,7 +132,7 @@ const loading = ref(false);
 const error = ref("");
 const showCreateDialog = ref(false);
 const sessions = ref<MonitoringSession[]>([]);
-const diveSites = ref<DiveSite[]>([]);
+const diveSites = ref<string[]>([]);
 const selectedSession = computed(() => props.modelValue);
 const notificationStore = useNotificationStore();
 const coralDataStore = useCoralDataStore();
@@ -216,10 +215,10 @@ const createSession = async (payload: MonitoringSession) => {
 
 const sessionLabel = (session: MonitoringSession) => {
     if (session.name) {
-        return `${formatDate(session.timestamp)} · ${session.name} · ${session.diveSite.name}`;
+        return `${formatDate(session.timestamp)} · ${session.name} · ${session.diveSite}`;
     }
 
-    return `${formatDate(session.timestamp)} · ${session.diveSite.name}`;
+    return `${formatDate(session.timestamp)} · ${session.diveSite}`;
 };
 
 const formatDate = (timestamp: string) => {

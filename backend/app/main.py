@@ -10,7 +10,7 @@ from app.persistence.storage import decode_image_stream
 from app.persistence.monitoring_session_repository import MonitoringSessionRepository
 from app.persistence.observation_repository import ObservationRepository
 from app.api.serialization import parse_identify_request, serialize_observation_candidates, serialize_image_upload_response, parse_confirm_request, parse_monitoring_session, serialize_monitoring_sessions
-from app.api.models import DiveSiteResponse, MonitoringSessionResponse, ObservationSummary
+from app.api.models import MonitoringSessionResponse, ObservationSummary
 from app.domain.monitoring_session import MonitoringSession
 
 logger = logging.getLogger(__name__)
@@ -99,10 +99,7 @@ def process_coral_upload(request: Request):
                     id=session.id,
                     name=session.name,
                     timestamp=session.timestamp,
-                    dive_site=DiveSiteResponse(
-                        id=session.dive_site,
-                        name=session.dive_site,
-                    ),
+                    dive_site=session.dive_site,
                     observation_count=monitoring_observation_counts.get(str(session.id), 0),
                 ).model_dump(by_alias=True)
                 for session in sessions
@@ -126,5 +123,3 @@ def process_coral_upload(request: Request):
     except Exception as ex:
         logger.exception(ex)
         return add_cors_headers({"error": "Internal server error."}, 500)
-
-    

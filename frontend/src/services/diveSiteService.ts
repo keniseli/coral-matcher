@@ -1,11 +1,6 @@
-import type { DiveSite } from '@/types/diveSite';
+const diveSites: string[] = ["Isla Larga", "Olohuita"];
 
-const diveSites: DiveSite[] = [
-    { id: "islalarga", name: "Isla Larga" },
-    { id: "olohuita", name: "Olohuita" }
-];
-
-async function getAll(): Promise<DiveSite[]> {
+async function getAll(): Promise<string[]> {
     return diveSites;
 }
 
