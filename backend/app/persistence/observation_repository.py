@@ -3,6 +3,8 @@ import uuid
 
 from app.domain.observation import Observation
 from app.domain.models import ObservationCandidate
+from app.api.models import ObservationSummary, DiveSiteResponse
+from app.domain.monitoring_session import MonitoringSession
 from .database import get_session
 
 class ObservationRepository:
@@ -53,3 +55,31 @@ class ObservationRepository:
             str(session_id): count
             for session_id, count in observations_per_session
         }
+    
+    def find_all_summaries(self) -> list[ObservationSummary]:
+        statement = (
+            select(
+                Observation.id,
+                Observation.coral_name,
+                Observation.dive_site,
+                MonitoringSession.timestamp.label("observed_at"),
+                Observation.cropped_image_path.label("image_path"),
+                func.concat(MonitoringSession.timestamp, " ", MonitoringSession.name).label("monitoring_session_name")
+            )
+            .join(MonitoringSession)
+            .order_by(Observation.coral_name)
+        )
+        
+        db_rows = get_session().exec(statement).all()
+        # TODO: get rid of divesiteresponse and use return get_session().exec(statement).all()
+        return [
+            ObservationSummary(
+                id=row.id,
+                coral_name=row.coral_name,
+                dive_site=DiveSiteResponse(id=row.dive_site, name=row.dive_site), 
+                observed_at=row.observed_at,
+                image_path=row.image_path,
+                monitoring_session_name=row.monitoring_session_name
+            )
+            for row in db_rows
+        ]

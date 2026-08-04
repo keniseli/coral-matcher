@@ -73,9 +73,6 @@ def build_context(image_a, image_b):
             Metric.AREA_PIXELS.value:
                 "Number of pixels classified as belonging to the coral area. Useful for tracking changes in visible coral size, but affected by cropping, camera distance and perspective.",
 
-            Metric.LAPLACIAN_VARIANCE.value:
-                "Measures variation in the Laplacian response, which captures fine intensity changes. Higher values usually indicate more small-scale structural detail or texture. Also subject to sharpness of coral image.",
-
             Metric.MEAN_L.value:
                 "'Overall, is this coral becoming lighter or darker?': Average LAB L value of the coral area. The L channel represents perceived brightness, making this useful for detecting overall lightness changes. 0=Black, 255=white",
 
@@ -135,6 +132,9 @@ def build_context(image_a, image_b):
 
             Metric.SOBEL_STD.value:
                 "Standard deviation of Sobel gradient magnitude. Measures how variable the structural complexity is across the coral surface. Low values=smooth overall. High values=Lots of textural changes",
+            
+            Metric.LAPLACIAN_VARIANCE.value:
+                "Measures variation in the Laplacian response, which captures fine intensity changes. Higher values usually indicate more small-scale structural detail or texture. Also subject to sharpness of coral image.",
         }
     }
 

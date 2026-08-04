@@ -26,3 +26,30 @@ class MonitoringSessionResponse(SQLModel):
     observation_count: int = Field(
         serialization_alias="observationCount"
     )
+
+
+class ObservationSummary(SQLModel):
+    model_config = ConfigDict(
+        from_attributes=True,
+        populate_by_name=True,
+    )
+    
+    id: UUID;
+    
+    coral_name: str = Field(
+        serialization_alias="coralName")
+    
+    monitoring_session_name: str = Field(
+        serialization_alias="monitoringSessionSummary")
+    
+    dive_site: DiveSiteResponse = Field(
+        serialization_alias="diveSite"
+    )
+        
+    observed_at: datetime = Field(
+        serialization_alias="observedAt"
+    )
+    
+    image_path: str = Field(
+        serialization_alias="imagePath"
+    )

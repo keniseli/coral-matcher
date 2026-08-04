@@ -10,7 +10,7 @@ from app.persistence.storage import decode_image_stream
 from app.persistence.monitoring_session_repository import MonitoringSessionRepository
 from app.persistence.observation_repository import ObservationRepository
 from app.api.serialization import parse_identify_request, serialize_observation_candidates, serialize_image_upload_response, parse_confirm_request, parse_monitoring_session, serialize_monitoring_sessions
-from app.api.models import DiveSiteResponse, MonitoringSessionResponse
+from app.api.models import DiveSiteResponse, MonitoringSessionResponse, ObservationSummary
 from app.domain.monitoring_session import MonitoringSession
 
 logger = logging.getLogger(__name__)
@@ -94,7 +94,6 @@ def process_coral_upload(request: Request):
         if request.path == "/api/monitoring-sessions" and request.method == "GET":
             sessions = monitoring_session_repository.find_all()
             monitoring_observation_counts = observation_repository.find_amount_per_session()
-            logger.info(monitoring_observation_counts)
             response = [
                 MonitoringSessionResponse(
                     id=session.id,
@@ -107,6 +106,14 @@ def process_coral_upload(request: Request):
                     observation_count=monitoring_observation_counts.get(str(session.id), 0),
                 ).model_dump(by_alias=True)
                 for session in sessions
+            ]
+            return add_cors_headers(response)
+        
+        if request.path == "/api/observation-summaries" and request.method == "GET":
+            summaries = observation_repository.find_all_summaries()
+            response = [
+                summary.model_dump(by_alias=True)
+                for summary in summaries
             ]
             return add_cors_headers(response)
         

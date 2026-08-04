@@ -40,7 +40,7 @@ async function confirmCoral(request: ConfirmCoralRequest): Promise<void> {
 async function getObservationSummaries(): Promise<ObservationSummary[]> {
     const url = apiBase ? `${apiBase}/api/observation-summaries` : '/api/observation-summaries'
     const res = await fetch(url, { method: 'GET' })
-    if (!res.ok) throw new Error('Segmentation request failed.')
+    if (!res.ok) throw new Error('Observation summaries request failed.')
     return await res.json();
 
 }
