@@ -1,22 +1,16 @@
 <template>
 
-    <div v-if="metricSeries.size > 0" class="w-max border-collapse text-xs">
+    <div v-if="metricsSeries.length > 0" class="w-full">
+        <div class="flex text-xs">
 
-        <table>
-            <tr v-for="[key, metrics] in metricSeries" :key="key">
-                <td class="w-monitoring-metric-label-column">
-                    {{ getLabel(key) }}
-                </td>
-                <td class="w-monitoring-metric-value-column" v-for="metric in metrics">
-                    {{ metric.changePercentage }}
-                </td>
-            </tr>
-        </table>
-        <VChart :option="chartOption" />
+            <div class="w-monitoring-metric-label-column shrink-0" />
+
+            <div class="shrink-0" :style="{ width: `${metricsSeries[0].observations.length * 240}px` }">
+                <VChart :option="chartOption" class="w-full h-60"
+                    :key="metricsSeries[0]?.observations.length" />
+            </div>
+        </div>
     </div>
-    <span v-else>
-        Select metrics
-    </span>
 </template>
 
 <script setup lang="ts">
@@ -24,49 +18,43 @@ import { computed } from "vue";
 
 import VChart from "vue-echarts";
 import type { EChartsOption } from "echarts";
+import { format } from "date-fns";
 
-import { Metric, MetricDefinition, metricDefinitions } from '@/types/monitoring';
+import { MetricDefinition, metricDefinitions, MetricSeries } from '@/types/monitoring';
 
 const props = defineProps<{
-    metricSeries: Map<string, Metric[]>;
+    metricsSeries: MetricSeries[];
     metricDefinitions: MetricDefinition[];
 }>();
 
-
-/*const props = defineProps<{
-    graphSeries: {
-        name: string;
-        values: number[];
-    }[];
-    observationLabels: string[];
-}>();
-*/
-
 const chartOption = computed<EChartsOption>(() => ({
     animation: false,
-    
+
     tooltip: {
         trigger: "axis",
     },
-    
+
     legend: {
-        top: 0,
+        type: "scroll",
+        bottom: 10,
     },
-    
+
     grid: {
         left: 60,
         right: 20,
-        top: 40,
-        bottom: 30,
+        top: 20,
+        bottom: 40,
     },
-    
+
     xAxis: {
         type: "category",
         boundaryGap: false,
-        data: ["first", "second", "third"],
-//        data: props.observationLabels,
+        data: props.metricsSeries.reduce(_ => _).observations.map(comparison => comparison.observation.observedAt),
+        axisLabel: {
+            formatter: _ => ""
+        }
     },
-    
+
     yAxis: {
         type: "value",
         axisLabel: {
@@ -74,13 +62,13 @@ const chartOption = computed<EChartsOption>(() => ({
         },
     },
 
-    series: Array.from(props.metricSeries, ([metricId, metrics]) => ({
-        name: metricId,
+    series: props.metricsSeries.map(metricSeries => ({
+        name: metricDefinitions.find(definition => definition.id == metricSeries.metricId)?.label,
         type: "line",
         smooth: false,
         symbol: "circle",
         symbolSize: 6,
-        data: metrics,
+        data: metricSeries.metrics.map((metric) => metric.changePercentage),
     })),
 }));
 

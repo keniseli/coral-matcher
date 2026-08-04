@@ -45,6 +45,7 @@
                     ]">
                     <td class="w-monitoring-metric-label-column px-6 py-3 text-coral-primary-text">
                         {{ metricDefinition.label }}
+                        <span class="text-coral-secondary-text">{{ metricDefinition.unit }}</span>
                     </td>
 
                     <td v-for="observationComparison in observationComparisons"
@@ -58,7 +59,8 @@
                         <span v-if="observationComparison.baselineObservation" :class="metric && Math.abs(metric.changePercentage) >= 20
                             ? 'text-coral-attention'
                             : 'text-coral-secondary-text'">
-                            ({{ metric?.changePercentage.toFixed(3) }}%)
+                            (<span v-if="Math.sign(metric?.changePercentage | 0) > 0">+</span>{{
+                                metric?.changePercentage.toFixed(3) }}%)
                         </span>
 
                     </td>

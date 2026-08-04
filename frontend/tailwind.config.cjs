@@ -31,7 +31,7 @@ module.exports = {
         },
       },
       width: {
-        "monitoring-metric-label-column": "280px",
+        "monitoring-metric-label-column": "250px",
         "monitoring-metric-value-column": "240px",
       },
     },

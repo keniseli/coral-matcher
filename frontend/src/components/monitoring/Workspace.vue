@@ -4,7 +4,7 @@
 
         <ObservationSummaryRow :observations="observations" />
 
-        <MetricGraph :metric-series="metricsSeries" :metric-definitions="metricDefinitions" />
+        <MetricGraph :metrics-series="metricsSeries" :metric-definitions="metricDefinitions" />
 
         <MetricGrid :observationComparisons :metric-definitions="metricDefinitions"
             v-model:selectedMetricIds="selectedMetricIds" />
@@ -28,7 +28,7 @@ import MetricGrid from './MetricGrid.vue';
 
 import { ObservationSummary } from '@/types/observationSummary';
 import { produceComparisonMocks } from '@/types/observationComparison.js';
-import { metricDefinitions, Metric } from '@/types/monitoring';
+import { metricDefinitions, Metric, MetricSeries } from '@/types/monitoring';
 import MetricGraph from './MetricGraph.vue';
 
 const props = defineProps<{
@@ -42,6 +42,7 @@ const observationComparisons = computed(() =>
 );
 
 const metricsSeries = computed(() => {
+    const metricsSeries: MetricSeries[] = [];
     const series: Map<string, Metric[]> = new Map();
     observationComparisons.value.forEach(comparison => {
         comparison.metrics
@@ -52,8 +53,16 @@ const metricsSeries = computed(() => {
                 }
                 series.get(metric.id)?.push(metric);
             });
+        })
+
+        series.forEach((metrics, metricId) =>{
+            metricsSeries.push({
+                "observations" : observationComparisons.value,
+                "metricId": metricId,
+                "metrics": metrics,
+        });
     });
-    return series;
+    return metricsSeries;
 });
 
 </script>

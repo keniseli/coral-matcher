@@ -48,7 +48,7 @@ export const mockObservations: ObservationSummary[] = [
   }, {
     id: "2",
     coralName: "Bongo",
-    monitoringSessionSummary: "07. July 2026 at 10:30 AM · Isla Larga · Anne's Monitoring",
+    monitoringSessionSummary: "21. July 2026 at 10:30 AM · Isla Larga · Anne's Monitoring",
     diveSite: { id: "islalarga", name: "Isla Larga" },
     observedAt: "2026-07-21",
   }, {
