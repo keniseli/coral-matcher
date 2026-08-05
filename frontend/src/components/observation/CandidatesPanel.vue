@@ -89,7 +89,7 @@
                             </p>
 
                             <p class="text-coral-secondary-text">
-                                {{ formatDate(candidate.monitoringSessionDate) }}
+                                <Date :timestamp="candidate.monitoringSessionDate" />
                             </p>
                         </div>
                     </div>
@@ -106,6 +106,7 @@ import type { CoralCandidate, CoralObservations} from "../../types/api";
 import { MonitoringSession } from "../../types/monitoringSession";
 import { format } from "date-fns";
 import Spinner from "../utils/Spinner.vue";
+import Date from "../utils/Date.vue";
 
 type Props = {
     imageUrl: string;
@@ -114,7 +115,7 @@ type Props = {
     loadingSegment: boolean;
     loadingIdentify: boolean;
     loadingConfirm: boolean;
-    selectedMonitoringSession: MonitoringSession
+    selectedMonitoringSession: MonitoringSession | null;
 };
 
 const props = defineProps<Props>();
@@ -142,11 +143,6 @@ const active = computed(() =>
             coralObservation.coralName === activeId.value,
     ),
 );
-
-const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return format(date, "dd. MMM yyyy 'at' p");
-}
 
 const selectCandidate = (coralName: string) => {
     if (activeId.value === coralName) {

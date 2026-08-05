@@ -8,8 +8,8 @@
             @click="toggleDropdown">
             <div class="grid grid-cols-[3fr_1fr] w-full text-xs text-coral-primary-text font-semibold m-1">
                 <span v-if="selectedSession">
-                    <span class="text-coral-secondary-text font-normal">Monitoring Session</span>
-                    {{ formatDate(selectedSession.timestamp) }} · {{ selectedSession.diveSite }}
+                    <span class="text-coral-secondary-text font-normal">Monitoring Session </span>
+                        <Date :timestamp="selectedSession.timestamp" /> · {{ selectedSession.diveSite }}
                     <span v-if="selectedSession.name"> · {{ selectedSession.name }}</span>
                 </span>
 
@@ -60,8 +60,8 @@
                         " @click="selectSession(session)">
                     <div class="grid grid-cols-[3fr_1fr] w-full text-xs text-coral-primary-text font-semibold m-1">
                         <span v-if="selectedSession">
-                            <span class="text-coral-secondary-text font-normal">Monitoring Session</span>
-                            {{ formatDate(session.timestamp) }} · {{ session.diveSite }}
+                            <span class="text-coral-secondary-text font-normal">Monitoring Session </span>
+                            <Date :timestamp="session.timestamp" /> · {{ session.diveSite }}
                             <span v-if="session.name"> · {{ session.name }}</span>
                         </span>
 
@@ -110,6 +110,7 @@ import CreateMonitoringSessionDialog from "./CreateMonitoringSessionDialog.vue";
 import diveSiteService from "../../services/diveSiteService"
 import { useNotificationStore } from "../../stores/notification";
 import { useCoralDataStore } from "../../stores/coral";
+import Date from "../utils/Date.vue";
 import { format } from "date-fns";
 
 type Props = {
@@ -212,19 +213,6 @@ const createSession = async (payload: MonitoringSession) => {
         loading.value = false;
     }
 };
-
-const sessionLabel = (session: MonitoringSession) => {
-    if (session.name) {
-        return `${formatDate(session.timestamp)} · ${session.name} · ${session.diveSite}`;
-    }
-
-    return `${formatDate(session.timestamp)} · ${session.diveSite}`;
-};
-
-const formatDate = (timestamp: string) => {
-    const date = new Date(timestamp);
-    return format(date, "dd. MMM yyyy 'at' p");
-}
 
 const handleClickOutside = (event: MouseEvent) => {
     if (container.value &&

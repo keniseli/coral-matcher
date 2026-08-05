@@ -11,8 +11,15 @@ const props = defineProps<{
 }>();
 
 const formatDate = (timestamp: string | number | Date) => {
-    const date = new Date(timestamp);
-    return format(date, "dd. MMM yyyy 'at' p");
+    if (!timestamp) {
+        return "";
+    }
+    try {
+        const date = new Date(timestamp);
+        return format(date, "dd. MMM yyyy 'at' p");
+    } catch (_) {
+        return "";
+    }
 }
 
 
