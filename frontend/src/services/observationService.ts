@@ -50,6 +50,7 @@ export const mockObservations: ObservationSummary[] = [
     id: "1",
     coralName: "C001",
     monitoringSessionSummary: "07. July 2026 at 9:30 AM",
+    monitoringSessionId: "session-id-" + Math.random(),
     diveSite: "Isla Larga",
     observedAt: "2026-07-07",
     imagePath: "https://storage.googleapis.com/coral-matcher-media/Isla larga/c004/cropped_2026-07-24 20:28:02.795031",
@@ -57,6 +58,7 @@ export const mockObservations: ObservationSummary[] = [
     id: "2",
     coralName: "Bongo",
     monitoringSessionSummary: "21. July 2026 at 10:30 AM · Anne's Monitoring",
+    monitoringSessionId: "session-id-" + Math.random(),
     diveSite: "Isla Larga",
     observedAt: "2026-07-21",
     
@@ -65,6 +67,7 @@ export const mockObservations: ObservationSummary[] = [
     id: "3",
     coralName: "C002",
     monitoringSessionSummary: "21. July 2026 at 9:30 AM",
+    monitoringSessionId: "session-id-" + Math.random(),
     diveSite: "Olohuita",
     observedAt: "2026-07-21",
     
@@ -73,6 +76,7 @@ export const mockObservations: ObservationSummary[] = [
     id: "4",
     coralName: "C003",
     monitoringSessionSummary: "21. July 2026 at 9:30 AM",
+    monitoringSessionId: "session-id-" + Math.random(),
     diveSite: "Olohuita",
     observedAt: "2026-07-21",
     
@@ -81,6 +85,7 @@ export const mockObservations: ObservationSummary[] = [
     id: "5",
     coralName: "C004",
     monitoringSessionSummary: "07. July 2026 at 9:30 AM",
+    monitoringSessionId: "session-id-" + Math.random(),
     diveSite: "Isla Larga",
     observedAt: "2026-07-07",
     
@@ -89,6 +94,7 @@ export const mockObservations: ObservationSummary[] = [
     id: "6",
     coralName: "Love",
     monitoringSessionSummary: "21. July 2026 at 9:30 AM",
+    monitoringSessionId: "session-id-" + Math.random(),
     diveSite: "Olohuita",
     observedAt: "2026-07-21",
     
@@ -97,6 +103,7 @@ export const mockObservations: ObservationSummary[] = [
     id: "7",
     coralName: "Twins",
     monitoringSessionSummary: "07. July 2026 at 10:30 AM · Anne's Monitoring",
+    monitoringSessionId: "session-id-" + Math.random(),
     diveSite: "Isla Larga",
     observedAt: "2026-07-21",
     

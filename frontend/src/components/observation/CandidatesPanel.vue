@@ -37,14 +37,7 @@
 
         <!-- Candidate list -->
         <div class="min-h-0 flex-1 overflow-y-auto p-3">
-            <div v-if="loadingSegment || loadingIdentify"
-                class="flex h-full min-h-[180px] flex-col items-center justify-center text-xs text-coral-secondary-text">
-                <i class="h-5 w-5 rounded-full border-2 border-teal-300 border-t-transparent animate-spin"></i>
-
-                <p class="mt-3">
-                    Calculating possible matches...
-                </p>
-            </div>
+            <Spinner v-if="loadingSegment || loadingIdentify" text="Calculating possible matches..." />
 
             <p v-else-if="!imageUrl" class="h-full flex justify-center items-center text-xs text-coral-secondary-text">
                 Upload an image to begin comparison.
@@ -112,6 +105,7 @@ import { useNotificationStore } from "../../stores/notification";
 import type { CoralCandidate, CoralObservations} from "../../types/api";
 import { MonitoringSession } from "../../types/monitoringSession";
 import { format } from "date-fns";
+import Spinner from "../utils/Spinner.vue";
 
 type Props = {
     imageUrl: string;

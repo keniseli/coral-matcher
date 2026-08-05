@@ -64,7 +64,8 @@ class ObservationRepository:
                 Observation.dive_site,
                 MonitoringSession.timestamp.label("observed_at"),
                 Observation.cropped_image_path.label("image_path"),
-                func.concat(MonitoringSession.timestamp, " ", MonitoringSession.name).label("monitoring_session_name")
+                func.concat(MonitoringSession.timestamp, " ", MonitoringSession.name).label("monitoring_session_name"),
+                Observation.monitoring_session_id
             )
             .join(MonitoringSession)
             .order_by(Observation.coral_name)

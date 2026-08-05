@@ -36,6 +36,10 @@ class ObservationSummary(SQLModel):
     monitoring_session_name: str = Field(
         serialization_alias="monitoringSessionSummary")
     
+    monitoring_session_id: UUID = Field(
+        serialization_alias="monitoringSessionId"
+    )
+    
     dive_site: str = Field(
         serialization_alias="diveSite"
     )

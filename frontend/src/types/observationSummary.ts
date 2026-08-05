@@ -7,6 +7,7 @@ export interface ObservationSummary {
     coralName: string;
 
     monitoringSessionSummary: string;
+    monitoringSessionId: string;
 
     diveSite: string;
 
