@@ -1,4 +1,4 @@
-import { ObservationComparison } from "./observationComparison";
+import { ObservationSummary } from "./observationSummary";
 
 export interface MetricDefinition {
     id: string;
@@ -19,6 +19,12 @@ export interface MetricSeries {
     metricId: string;
     metrics: Metric[];
     observations: ObservationComparison[];
+}
+
+export interface ObservationComparison {
+    observation: ObservationSummary;
+    metrics: Metric[];
+    baselineObservation: ObservationSummary | undefined;
 }
 
 export const metricDefinitions = [

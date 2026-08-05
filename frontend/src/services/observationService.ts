@@ -1,6 +1,5 @@
 import type { IdentifyApiResponse } from '../types/api'
 import type { Segment } from '../types/segment'
-import monitoringSessionService from './monitoringSessionService'
 import type { ObservationSummary } from "../types/observationSummary";
 
 const apiBase = import.meta.env.VITE_API_BASE as string
@@ -42,7 +41,6 @@ async function getObservationSummaries(): Promise<ObservationSummary[]> {
     const res = await fetch(url, { method: 'GET' })
     if (!res.ok) throw new Error('Observation summaries request failed.')
     return await res.json();
-
 }
 
 export const mockObservations: ObservationSummary[] = [

@@ -22,12 +22,12 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-
+import { computedAsync } from '@vueuse/core'
 import ObservationSummaryRow from './ObservationSummaryRow.vue';
 import MetricGrid from './MetricGrid.vue';
 
 import { ObservationSummary } from '@/types/observationSummary';
-import { produceComparisonMocks } from '@/types/observationComparison.js';
+import observationComparisonService from '@/services/observationComparisonService';
 import { metricDefinitions, Metric, MetricSeries } from '@/types/monitoring';
 import MetricGraph from './MetricGraph.vue';
 
@@ -37,8 +37,11 @@ const props = defineProps<{
 
 const selectedMetricIds = ref<string[]>([]);
 
-const observationComparisons = computed(() =>
-    produceComparisonMocks(props.observations)
+const observationComparisons = computedAsync(
+    async () => {
+        if (!props.observations.length || props.observations.length < 2) return [];
+        return await observationComparisonService.compareObservations(props.observations);
+    }, []
 );
 
 const metricsSeries = computed(() => {
@@ -53,13 +56,13 @@ const metricsSeries = computed(() => {
                 }
                 series.get(metric.id)?.push(metric);
             });
-        })
+    })
 
-        series.forEach((metrics, metricId) =>{
-            metricsSeries.push({
-                "observations" : observationComparisons.value,
-                "metricId": metricId,
-                "metrics": metrics,
+    series.forEach((metrics, metricId) => {
+        metricsSeries.push({
+            "observations": observationComparisons.value,
+            "metricId": metricId,
+            "metrics": metrics,
         });
     });
     return metricsSeries;

@@ -77,7 +77,7 @@
 import { computed, ref } from 'vue';
 
 import { Metric, MetricDefinition } from '@/types/monitoring';
-import { ObservationComparison } from '@/types/observationComparison';
+import { ObservationComparison } from '@/services/observationComparisonService';
 
 // this is solely for use in the template
 var metric: Metric | undefined
