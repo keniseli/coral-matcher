@@ -33,13 +33,13 @@ export const metricDefinitions = [
         "label": "Mean LAB Lightness",
         "unit": "[1-100]",
         "group": "Brightness",
-        "explanation": "'Overall, is this coral becoming lighter or darker?': Average LAB L value of the coral area. The L channel represents perceived brightness, making this useful for detecting overall lightness changes. 0=Black, 255=white",
+        "explanation": "'Overall, is this coral becoming lighter or darker?': Average LAB L value of the coral area. The L channel represents perceived brightness, making this useful for detecting overall lightness changes. 0=Black, 100=white",
     }, {
         "id": "MEDIAN_L",
         "label": "Median LAB Lightness",
         "unit": "[1-100]",
         "group": "Brightness",
-        "explanation": "'Ignoring a few unusually bright or dark spots, what does most of the coral look like?': Middle LAB L brightness value of the coral area. Less affected by extreme bright or dark pixels than the mean and often provides a more robust brightness estimate. 0=Black, 255=white",
+        "explanation": "'Ignoring a few unusually bright or dark spots, what does most of the coral look like?': Middle LAB L brightness value of the coral area. Less affected by extreme bright or dark pixels than the mean and often provides a more robust brightness estimate. 0=Black, 100=white",
     }, {
         "id": "STD_L",
         "label": "Standard Deviation LAB Lightness",

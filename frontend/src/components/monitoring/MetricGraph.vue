@@ -33,6 +33,13 @@ const chartOption = computed<EChartsOption>(() => ({
     tooltip: {
         trigger: "axis",
         valueFormatter: (value: number) => value && value.toFixed(3) + "%",
+        backgroundColor: "#0b181e",
+        borderColor: "#334155",
+        textStyle: {
+            color: "#cbd5e1",
+            fontFamily: "ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji",
+            fontSize: "14px",
+        },
     },
 
     legend: {

@@ -43,7 +43,8 @@
                             ? 'bg-coral-primary-bg hover:bg-coral-overlay'
                             : 'hover:bg-coral-primary-bg'
                     ]">
-                    <td class="w-monitoring-metric-label-column px-6 py-3 text-coral-primary-text">
+                    <td class="w-monitoring-metric-label-column px-6 py-3 text-coral-primary-text metric-tooltip"
+                        :data-tooltip="metricDefinition.explanation">
                         {{ metricDefinition.label }}
                         <span class="text-coral-secondary-text">{{ metricDefinition.unit }}</span>
                     </td>
@@ -139,3 +140,37 @@ function isGroupCollapsed(group: string): boolean {
 }
 
 </script>
+<style lang="css" scoped>
+
+.metric-tooltip {
+    position: relative;
+    cursor: help;
+}
+
+.metric-tooltip:hover::after {
+    content: attr(data-tooltip);
+
+    position: absolute;
+    z-index: 50;
+
+    left: 5%;
+    top: 110%;
+
+    width: auto;
+    min-width: 35vw;
+    max-width: 80vw;
+
+    background: #0b181e;
+    color: #cbd5e1;
+
+    border: 1px solid #334155;
+    border-radius: 4px;
+
+    padding: 0.75rem;
+
+    font-size: 13px;
+    line-height: 1.5;
+
+    box-shadow: 0 20px 20px #071116;
+}
+</style>
