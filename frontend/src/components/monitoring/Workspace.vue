@@ -2,19 +2,24 @@
 
     <section class="flex-1 min-w-0 min-h-0 flex flex-col bg-coral-bg overflow-auto">
 
-        <ObservationSummaryRow :observations="observations" />
+        <div v-if="!comparisonLoading">
 
-        <MetricGraph :metrics-series="metricsSeries" :metric-definitions="metricDefinitions" />
+            <ObservationSummaryRow :observations="observations" />
 
-        <MetricGrid :observationComparisons :metric-definitions="metricDefinitions"
-            v-model:selectedMetricIds="selectedMetricIds" />
+            <MetricGraph :metrics-series="metricsSeries" :metric-definitions="metricDefinitions" />
 
-        <div class="min-h-0 shrink-0 overflow-auto p-6">
-            <h2 class="mb-4 text-lg font-semibold">
-                Visualizations
-            </h2>
-            Visualization placeholder
+            <MetricGrid :observationComparisons :metric-definitions="metricDefinitions"
+                v-model:selectedMetricIds="selectedMetricIds" />
+
+            <div class="min-h-0 shrink-0 overflow-auto p-6">
+                <h2 class="mb-4 text-lg font-semibold">
+                    Visualizations
+                </h2>
+                Visualization placeholder
+            </div>
         </div>
+        <Spinner v-else-if="comparisonLoading && observations"
+            text="Metrics calculation & comparison in progress..." />
 
     </section>
 
@@ -30,17 +35,21 @@ import { ObservationSummary } from '@/types/observationSummary';
 import observationComparisonService from '@/services/observationComparisonService';
 import { metricDefinitions, Metric, MetricSeries } from '@/types/monitoring';
 import MetricGraph from './MetricGraph.vue';
+import Spinner from '../utils/Spinner.vue';
 
 const props = defineProps<{
     observations: ObservationSummary[];
 }>();
 
 const selectedMetricIds = ref<string[]>([]);
+const comparisonLoading = ref<boolean>(false);
 
 const observationComparisons = computedAsync(
     async () => {
-        if (!props.observations.length || props.observations.length < 2) return [];
+        if (!props.observations.length) return [];
+        comparisonLoading.value = true;
         const comparisons = await observationComparisonService.compareObservations(props.observations);
+        comparisonLoading.value = false;
         return comparisons;
     }, []
 );

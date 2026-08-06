@@ -32,6 +32,7 @@ const chartOption = computed<EChartsOption>(() => ({
 
     tooltip: {
         trigger: "axis",
+        valueFormatter: (value: number) => value && value.toFixed(3) + "%",
     },
 
     legend: {
