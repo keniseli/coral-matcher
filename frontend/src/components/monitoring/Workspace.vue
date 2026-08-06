@@ -2,7 +2,7 @@
 
     <section class="flex-1 min-w-0 min-h-0 flex flex-col bg-coral-bg overflow-auto">
 
-        <div v-if="!comparisonLoading">
+        <div v-if="!comparisonLoading && observations.length > 0">
 
             <ObservationSummaryRow :observations="observations" />
 
@@ -18,8 +18,15 @@
                 Visualization placeholder
             </div>
         </div>
-        <Spinner v-else-if="comparisonLoading && observations"
-            text="Metrics calculation & comparison in progress..." />
+
+        <Spinner v-else-if="comparisonLoading && observations.length > 0" text="Metrics calculation & comparison in progress..." />
+
+        <div v-else-if="!observations || observations.length == 0"
+            class="flex h-full flex-col items-center justify-center text-xs text-coral-secondary-text">
+            <p class="mt-3">
+                Select Observations to start
+            </p>
+        </div>
 
     </section>
 
