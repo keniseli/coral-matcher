@@ -82,9 +82,10 @@ import { MonitoringSession } from "@/types/monitoringSession";
 import monitoringSessionService from "@/services/monitoringSessionService.js";
 import { useNotificationStore } from '@/stores/notification';
 import diveSiteService from '@/services/diveSiteService';
-import { format } from 'date-fns';
+import { compareDesc, format } from 'date-fns';
 import Spinner from '../utils/Spinner.vue';
 import Date from '../utils/Date.vue';
+import ObservationSummaryRow from './ObservationSummaryRow.vue';
 
 
 const props = defineProps<{
@@ -119,7 +120,13 @@ const filteredObservations = computed<ObservationSummary[]>(() => {
             || selectedSessionId.value == "All Monitoring Sessions"
         ).filter(summary =>
             summary.coralName.toLocaleLowerCase().includes(coralNameSearchTerm.value ? coralNameSearchTerm.value.toLowerCase() : "")
-        );
+        ).sort((a, b) => {
+            const nameCompare = a.coralName.toLowerCase().localeCompare(b.coralName.toLocaleLowerCase());
+            if (nameCompare == 0) {
+                return compareDesc(a.observedAt, b.observedAt);
+            }
+            return nameCompare;
+        });
 });
 
 function toggleObservation(id: string) {
