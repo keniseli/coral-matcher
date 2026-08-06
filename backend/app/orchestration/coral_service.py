@@ -28,8 +28,6 @@ from app.utils.performance_profiler import log_memory, performance_stage
 class CoralService:
     """
     Business logic for coral segmentation and identification.
-
-    The HTTP layer should only call this service.
     """
     
     EMBEDDING_VECTOR_DISTANCE_THRESHOLD = float(os.environ.get("EMBEDDING_VECTOR_DISTANCE_THRESHOLD", "0.2"))

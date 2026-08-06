@@ -10,7 +10,7 @@
                 class="mb-3 rounded object-cover" />
 
             <div class="font-semibold text-xs text-center">
-                {{ observation.monitoringSessionSummary }}
+                <Date :timestamp="observation.observedAt" />
             </div>
             
             <div class="text-xs text-coral-secondary-text text-center">
@@ -23,6 +23,7 @@
 
 <script setup lang="ts">
 import { ObservationSummary } from '../../types/observationSummary';
+import Date from '../utils/Date.vue';
 
 const props = defineProps<{
     observations: ObservationSummary[];

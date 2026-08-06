@@ -10,8 +10,8 @@
 
                 <th v-for="observationComparison in observationComparisons"
                     class="w-monitoring-metric-value-column px-4 py-3 text-center font-medium text-coral-secondary-text">
-                    {{ observationComparison.observation.observedAt }}
-                    {{ observationComparison.observation.coralName }}
+                    <p>{{ observationComparison.observation.coralName }} on</p>
+                    <Date :timestamp="observationComparison.observation.observedAt" />
                 </th>
 
             </tr>
@@ -56,11 +56,11 @@
                         <span class="text-coral-primary-text">
                             {{ metric?.value.toFixed(3) }}
                         </span>
-                        <span v-if="observationComparison.baselineObservation" :class="metric && Math.abs(metric.changePercentage) >= 20
+                        <span v-if="observationComparison.baseline" :class="metric && Math.abs(metric.changePercentage) >= 20
                             ? 'text-coral-attention'
                             : 'text-coral-secondary-text'">
-                            (<span v-if="metric?.changePercentage && (Math.sign(metric?.changePercentage | 0) > 0)">+</span>{{
-                                metric?.changePercentage.toFixed(3) }}%)
+                            (<span v-if="metric?.changePercentage && (Math.sign(metric?.changePercentage | 0) > 0)">+</span>
+                            {{ metric?.changePercentage.toFixed(3) }}%)
                         </span>
 
                     </td>
@@ -76,8 +76,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 
-import { Metric, MetricDefinition } from '@/types/monitoring';
-import { ObservationComparison } from '@/services/observationComparisonService';
+import { Metric, MetricDefinition, ObservationComparison } from '@/types/monitoring';
+import Date from "@/components/utils/Date.vue"
 
 // this is solely for use in the template
 var metric: Metric | undefined

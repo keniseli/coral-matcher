@@ -2,6 +2,10 @@ import os
 import cv2
 import numpy as np
 from google.cloud import storage
+import requests
+from PIL import Image
+from io import BytesIO
+
 
 BUCKET_NAME = os.environ.get("BUCKET_NAME", "coral-mvp-media")
 GCP_PROJECT = os.environ.get("GOOGLE_CLOUD_PROJECT", "coral-matcher")
@@ -39,3 +43,8 @@ def upload_image_to_bucket(image: np.ndarray, destination_path: str, image_forma
 
 def save_debug_image(image: np.ndarray, destination_path: str) -> None:
     cv2.imwrite(destination_path, image)
+
+def load_image(url: str) -> np.ndarray:
+    response = requests.get(url)
+    img = Image.open(BytesIO(response.content))
+    return np.array(img)

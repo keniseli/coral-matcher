@@ -26,7 +26,7 @@ export function produceComparisonMocks(observations: ObservationSummary[]) {
     observations.forEach(observation => {
         mocks.push({
             "observation": observation,
-            "baselineObservation": baselineObservation,
+            "baseline": baselineObservation,
             "metrics": createMetrics()
         });
         baselineObservation = observation;

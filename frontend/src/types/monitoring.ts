@@ -24,7 +24,7 @@ export interface MetricSeries {
 export interface ObservationComparison {
     observation: ObservationSummary;
     metrics: Metric[];
-    baselineObservation: ObservationSummary | undefined;
+    baseline: ObservationSummary | undefined;
 }
 
 export const metricDefinitions = [

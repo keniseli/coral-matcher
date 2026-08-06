@@ -40,7 +40,8 @@ const selectedMetricIds = ref<string[]>([]);
 const observationComparisons = computedAsync(
     async () => {
         if (!props.observations.length || props.observations.length < 2) return [];
-        return await observationComparisonService.compareObservations(props.observations);
+        const comparisons = await observationComparisonService.compareObservations(props.observations);
+        return comparisons;
     }, []
 );
 

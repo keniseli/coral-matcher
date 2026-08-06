@@ -1,10 +1,8 @@
 from app.domain.models import BoundingBox, Point, Segment
 from app.orchestration.models import IdentifyResult
-import numpy as np
 from flask import Request
 import json
-import base64
-import cv2
+from uuid import UUID
 
 from app.persistence.storage import decode_image_stream
 from app.segmentation.models import SegmentationResult
@@ -140,7 +138,7 @@ def parse_monitoring_session(request: Request) -> MonitoringSession:
     body = request.json
     monitoring_session = MonitoringSession(name=body["name"], timestamp=body["timestamp"], dive_site=body["diveSite"])
     return monitoring_session
-            
+
 def serialize_monitoring_sessions(sessions: list[MonitoringSession]):
     return {
         "sessions": [
@@ -153,3 +151,7 @@ def serialize_monitoring_sessions(sessions: list[MonitoringSession]):
             for session in sessions
         ]
     }
+    
+def parse_observation_comparison_ids(request: Request) -> list[UUID]:
+    body = request.json
+    return [UUID(id) for id in body["observationIds"]]

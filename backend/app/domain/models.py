@@ -47,3 +47,9 @@ class ObservationCandidate:
     observation: Observation
     distance: float
     similarity: float
+
+@dataclass(slots=True)
+class Metric:
+    id: str
+    value: float
+    changePercentage: float | None

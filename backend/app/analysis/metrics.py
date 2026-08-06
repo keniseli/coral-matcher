@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 from enum import Enum
 
-class Metric(str, Enum):
+class Metric(Enum):
     AREA_PIXELS = "Pixel Area"
     MEAN_L = "Mean LAB Lightness value [1-100]"
     MEDIAN_L = "Median LAB Lightness value [1-100]"
@@ -54,16 +54,16 @@ def brightness_metrics(image: np.ndarray) -> dict:
     pixels = valid_pixels(L, mask)
 
     metrics = {
-        Metric.MEAN_L.value: float(np.mean(pixels)),
-        Metric.MEDIAN_L.value: float(np.median(pixels)),
-        Metric.STD_L.value: float(np.std(pixels)),
+        Metric.MEAN_L.name: float(np.mean(pixels)),
+        Metric.MEDIAN_L.name: float(np.median(pixels)),
+        Metric.STD_L.name: float(np.std(pixels)),
     }
 
     for p in [5, 10, 15, 25, 75, 85, 90, 95]:
-        metrics[Metric[f"P{p}_L"].value] = float(np.percentile(pixels, p))
+        metrics[Metric[f"P{p}_L"].name] = float(np.percentile(pixels, p))
 
-    metrics[Metric.DYNAMIC_RANGE_L.value] = (
-        metrics[Metric.P95_L.value] - metrics[Metric.P5_L.value]
+    metrics[Metric.DYNAMIC_RANGE_L.name] = (
+        metrics[Metric.P95_L.name] - metrics[Metric.P5_L.name]
     )
 
     return metrics
@@ -98,10 +98,10 @@ def color_metrics(image: np.ndarray):
     B = lab[:, :, 2].astype(np.float32) - 128
 
     return {
-        Metric.MEAN_A.value: float(np.mean(A)),
-        Metric.MEAN_B.value: float(np.mean(B)),
-        Metric.STD_A.value: float(np.std(A)),
-        Metric.STD_B.value: float(np.std(B)),
+        Metric.MEAN_A.name: float(np.mean(A)),
+        Metric.MEAN_B.name: float(np.mean(B)),
+        Metric.STD_A.name: float(np.std(A)),
+        Metric.STD_B.name: float(np.std(B)),
     }
 
 
@@ -125,10 +125,10 @@ def sobel_metrics(image):
     pixels = sobel[sobel > 0]
 
     return {
-        Metric.SOBEL_MEAN.value: float(np.mean(pixels)),
-        Metric.SOBEL_STD.value: float(np.std(pixels)),
-        Metric.SOBEL_MEDIAN.value: float(np.median(pixels)),
-        Metric.SOBEL_P95.value: float(np.percentile(pixels, 95)),
+        Metric.SOBEL_MEAN.name: float(np.mean(pixels)),
+        Metric.SOBEL_STD.name: float(np.std(pixels)),
+        Metric.SOBEL_MEDIAN.name: float(np.median(pixels)),
+        Metric.SOBEL_P95.name: float(np.percentile(pixels, 95)),
     }
 
 
@@ -150,7 +150,7 @@ def laplacian_metrics(image):
     pixels = lap[lap != 0]
 
     return {
-        Metric.LAPLACIAN_VARIANCE.value: float(np.var(pixels))
+        Metric.LAPLACIAN_VARIANCE.name: float(np.var(pixels))
     }
 
 
@@ -158,7 +158,7 @@ def shape_metrics(image):
     mask = coral_mask(image)
 
     return {
-        Metric.AREA_PIXELS.value: int(np.count_nonzero(mask))
+        Metric.AREA_PIXELS.name: int(np.count_nonzero(mask))
     }
 
 

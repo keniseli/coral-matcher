@@ -6,10 +6,11 @@ import numpy as np
 from functools import reduce
 
 from app.orchestration.coral_service import CoralService
+from app.orchestration.comparison_service import ComparisonService
 from app.persistence.storage import decode_image_stream
 from app.persistence.monitoring_session_repository import MonitoringSessionRepository
 from app.persistence.observation_repository import ObservationRepository
-from app.api.serialization import parse_identify_request, serialize_observation_candidates, serialize_image_upload_response, parse_confirm_request, parse_monitoring_session, serialize_monitoring_sessions
+from app.api.serialization import parse_identify_request, serialize_observation_candidates, serialize_image_upload_response, parse_confirm_request, parse_monitoring_session, serialize_monitoring_sessions, parse_observation_comparison_ids
 from app.api.models import MonitoringSessionResponse, ObservationSummary
 from app.domain.monitoring_session import MonitoringSession
 
@@ -22,7 +23,8 @@ logging.basicConfig(
         force=True,
     )
 
-service = CoralService()
+coral_service = CoralService()
+comparison_service = ComparisonService()
 monitoring_session_repository = MonitoringSessionRepository()
 observation_repository = ObservationRepository()
 
@@ -51,7 +53,7 @@ def process_coral_upload(request: Request):
         if request.path == "/api/upload-coral-image":
             uploaded_file = extract_file_from_request(request, "image")
             image: np.ndarray = decode_image_stream(uploaded_file)
-            segmentation = service.segment_image(
+            segmentation = coral_service.segment_image(
                 image=image,
                 filename=uploaded_file.filename or "uploaded.jpg"
             )
@@ -62,7 +64,7 @@ def process_coral_upload(request: Request):
                     lambda segment, other: segment if segment.score() > other.score() else other,
                     segmentation.segments
                 )
-                candidates = service.find_similar_observations(image, [segment])
+                candidates = coral_service.find_similar_observations(image, [segment])
                 response = serialize_image_upload_response(segmentation, candidates)
             else:
                 logger.warning(f"Segments are empty {segmentation} for {uploaded_file.filename}")
@@ -70,14 +72,14 @@ def process_coral_upload(request: Request):
 
         if request.path == "/api/identify-by-segments":
             identify_request = parse_identify_request(request)
-            observationCandidates = service.find_similar_observations(identify_request.image, identify_request.selected_segments)
+            observationCandidates = coral_service.find_similar_observations(identify_request.image, identify_request.selected_segments)
             
             response = serialize_observation_candidates(observationCandidates)
             return add_cors_headers(response)
         
         if request.path == "/api/confirm-coral":
             confirm_request = parse_confirm_request(request)
-            observation = service.confirm_observation(
+            observation = coral_service.confirm_observation(
                 confirm_request.image,
                 confirm_request.selected_segments,
                 confirm_request.dive_site,
@@ -113,6 +115,14 @@ def process_coral_upload(request: Request):
                 for summary in summaries
             ]
             return add_cors_headers(response)
+        
+        if request.path == "/api/observations/comparisons" and request.method == "POST":
+            ids = parse_observation_comparison_ids(request)
+            response = [
+                comparison.model_dump(by_alias=True)
+                for comparison in comparison_service.compare_observations(ids)
+                ]
+            return add_cors_headers(response);
         
         return add_cors_headers({"error": "Unknown endpoint."}, 404)
 
