@@ -1,5 +1,3 @@
-// stores/coral.ts
-
 import { MonitoringSession } from "../types/monitoringSession";
 import { defineStore } from "pinia";
 

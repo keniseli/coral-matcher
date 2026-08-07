@@ -27,6 +27,16 @@ export interface ObservationComparison {
     baseline: ObservationSummary | undefined;
 }
 
+export interface ObservationVisualization {
+    observation: ObservationSummary;
+    
+    // base64
+    sobelGradient: string;
+    
+    // base64
+    laplaceResponse: string;
+}
+
 export const metricDefinitions = [
     {
         "id": "MEAN_L",

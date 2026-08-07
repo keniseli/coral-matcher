@@ -11,12 +11,7 @@
             <MetricGrid :observationComparisons :metric-definitions="metricDefinitions"
                 v-model:selectedMetricIds="selectedMetricIds" />
 
-            <div class="min-h-0 shrink-0 overflow-auto p-6">
-                <h2 class="mb-4 text-lg font-semibold">
-                    Visualizations
-                </h2>
-                Visualization placeholder
-            </div>
+            <ObservationVisualizations :observations="observations" />
         </div>
 
         <Spinner v-else-if="comparisonLoading && observations.length > 0" text="Metrics calculation & comparison in progress..." />
@@ -39,10 +34,11 @@ import ObservationSummaryRow from './ObservationSummaryRow.vue';
 import MetricGrid from './MetricGrid.vue';
 
 import { ObservationSummary } from '@/types/observationSummary';
-import observationComparisonService from '@/services/observationComparisonService';
+import observationComparisonService from '@/services/observationMonitoringService';
 import { metricDefinitions, Metric, MetricSeries } from '@/types/monitoring';
 import MetricGraph from './MetricGraph.vue';
 import Spinner from '../utils/Spinner.vue';
+import ObservationVisualizations from './ObservationVisualizations.vue';
 
 const props = defineProps<{
     observations: ObservationSummary[];

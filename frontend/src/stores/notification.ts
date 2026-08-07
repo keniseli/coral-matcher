@@ -1,5 +1,3 @@
-// stores/notification.ts
-
 import { defineStore } from "pinia";
 
 export type NotificationType =
