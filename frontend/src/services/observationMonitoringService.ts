@@ -26,8 +26,8 @@ async function loadVisualizations(observationId: string): Promise<ObservationVis
 
     const visualization: ObservationVisualization = {
         observation: data.observation,
-        sobelGradient: data.sobelGradient,
-        laplaceResponse: data.laplaceResponse,
+        sobelGradient: data.sobel,
+        laplaceResponse: data.laplacian,
     };
 
     return visualization;

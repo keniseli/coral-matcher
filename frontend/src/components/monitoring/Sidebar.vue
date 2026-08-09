@@ -48,7 +48,7 @@
 
                     <input type="checkbox" :checked="props.selectedObservationIds.includes(observationSummary.id)"
                         @change="toggleObservation(observationSummary.id)"
-                        class="h-4 w-4 accent-coral-primary focus:ring-0" />
+                        class="h-4 w-4 accent-coral-primary focus:ring-0 hidden" />
 
                     <div>
                         <div :class="[

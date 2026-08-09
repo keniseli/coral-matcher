@@ -38,9 +38,9 @@ class ObservationRepository:
             for observation, distance in rows
         ]
 
-    def find_by_id(self, id: str) -> Observation:
+    def find_by_id(self, id: UUID) -> Observation:
         session = get_session()
-        return session.get(Observation, UUID(id))
+        return session.get(Observation, id)
     
     def find_amount_per_session(self) -> dict[str, int]:
         statement = (

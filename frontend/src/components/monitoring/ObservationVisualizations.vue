@@ -7,6 +7,9 @@
             shrink-0 flex-col p-3">
 
             <img :src="visualization.sobelGradient" class="mb-3 rounded object-cover" />
+            
+            <img :src="visualization.laplaceResponse" class="mb-3 rounded object-cover" />
+            
 
             <div class="text-xs text-coral-secondary-text text-center">
                 {{ visualization.observation.coralName }}
@@ -34,7 +37,9 @@ const imageCache = useImageCache();
 const visualizations = computedAsync(async () => {
     const visualizations = [];
     for(const observation of props.observations) {
-        visualizations.push(await imageCache.getOrFetchVisualizations(observation.id))
+        const observationsVisuals = await imageCache.getOrFetchVisualizations(observation.id);
+        observationsVisuals.observation = observation
+        visualizations.push(observationsVisuals)
     }
     return visualizations;
 });

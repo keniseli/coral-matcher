@@ -4,7 +4,7 @@ import logging
 
 from app.domain.observation_comparison import ObservationComparison
 from app.persistence.observation_repository import ObservationRepository, ObservationSummary
-from app.analysis.metrics import compute_metrics
+from app.analysis.metrics import compute_metrics, sobel_image
 from app.persistence.storage import load_image
 from app.domain.models import Metric
 

@@ -2,6 +2,7 @@ from pathlib import Path
 
 import cv2
 import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
 import numpy as np
 
 from .metrics import (
@@ -13,7 +14,7 @@ from .metrics import (
 )
 
 
-def _save(fig, filename: Path):
+def _save(fig: Figure, filename: Path):
     fig.tight_layout()
     fig.savefig(filename,
                 dpi=200,
@@ -173,10 +174,7 @@ def save_lab_scatter(
 
     _save(fig, filename)
 
-def save_sobel(
-    image: np.ndarray,
-    filename: Path,
-):
+def sobel(image: np.ndarray) -> Figure:
 
     sobel = sobel_image(image)
 
@@ -185,7 +183,8 @@ def save_sobel(
     if len(pixels) == 0:
         vmax = 1
     else:
-        vmax = np.percentile(pixels, 99)
+# TODO: potentially control this as env var
+        vmax= 60
 
     fig, ax = plt.subplots(figsize=(6, 6), 
     facecolor="#071116")
@@ -194,12 +193,11 @@ def save_sobel(
 
     im = ax.imshow(
         sobel,
-        cmap="turbo",
+        cmap="cividis",
         vmin=0,
         vmax=vmax,
     )
 
-    ax.set_title("Sobel Gradient Magnitude")
     ax.axis("off")
 
     cbar = fig.colorbar(
@@ -211,13 +209,10 @@ def save_sobel(
     
     style_colorbar(cbar)
 
-    _save(fig, filename)
+    return fig
 
 
-def save_laplacian(
-    image: np.ndarray,
-    filename: Path,
-):
+def laplacian(image: np.ndarray) -> Figure:
 
     lap = laplacian_image(image)
 
@@ -227,6 +222,7 @@ def save_laplacian(
         vmax = 1
     else:
         vmax = np.percentile(pixels, 99)
+        vmax = 40
 
     fig, ax = plt.subplots(figsize=(6, 6), 
     facecolor="#071116")
@@ -252,7 +248,7 @@ def save_laplacian(
     
     style_colorbar(cbar)
 
-    _save(fig, filename)
+    return fig
 
 
 def save_brightness_difference(
@@ -444,24 +440,20 @@ def generate_all_figures(
         output_dir / "lab_scatter.png",
     )
 
-    save_sobel(
+    sobel(
         image_a,
-        output_dir / "sobel_before.png",
     )
 
-    save_sobel(
+    sobel(
         image_b,
-        output_dir / "sobel_after.png",
     )
 
-    save_laplacian(
+    laplacian(
         image_a,
-        output_dir / "laplacian_before.png",
     )
 
-    save_laplacian(
+    laplacian(
         image_b,
-        output_dir / "laplacian_after.png",
     )
 
     save_brightness_difference(

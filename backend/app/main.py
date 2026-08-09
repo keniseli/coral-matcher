@@ -4,6 +4,8 @@ import functions_framework
 from flask import Request
 import numpy as np
 from functools import reduce
+import re
+from uuid import UUID
 
 from app.orchestration.coral_service import CoralService
 from app.orchestration.comparison_service import ComparisonService
@@ -13,6 +15,7 @@ from app.persistence.observation_repository import ObservationRepository
 from app.api.serialization import parse_identify_request, serialize_observation_candidates, serialize_image_upload_response, parse_confirm_request, parse_monitoring_session, serialize_monitoring_sessions, parse_observation_comparison_ids
 from app.api.models import MonitoringSessionResponse, ObservationSummary
 from app.domain.monitoring_session import MonitoringSession
+from app.orchestration.analysis_service import AnalysisService
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +30,7 @@ coral_service = CoralService()
 comparison_service = ComparisonService()
 monitoring_session_repository = MonitoringSessionRepository()
 observation_repository = ObservationRepository()
+analysis_service = AnalysisService()
 
 def add_cors_headers(body, status=200):
     headers = {
@@ -123,6 +127,13 @@ def process_coral_upload(request: Request):
                 for comparison in comparison_service.compare_observations(ids)
                 ]
             return add_cors_headers(response);
+        
+        pattern = r"^/api/observations/([^/]+)/metrics/visualizations/?$"
+        match = re.match(pattern, request.path)
+        if match and request.method == "GET":
+            observation_id = UUID(match.group(1))
+            visualizations = analysis_service.analyse_visually(observation_id)
+            return add_cors_headers(visualizations);
         
         return add_cors_headers({"error": "Unknown endpoint."}, 404)
 

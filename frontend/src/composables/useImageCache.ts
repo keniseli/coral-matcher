@@ -6,7 +6,6 @@ import ObservationPage from '@/pages/ObservationPage.vue';
 
 // Module-level cache so it survives component unmounts
 const imageCache = new Map<string, ObservationVisualization>();
-const notificationStore = useNotificationStore();
 
 export function useImageCache() {
     const getOrFetchVisualizations = async (observationId: string): Promise<ObservationVisualization> => {
