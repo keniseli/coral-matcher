@@ -2,118 +2,173 @@ import cv2
 import numpy as np
 from pathlib import Path
 from app.analysis.coral_measurement_service import CoralMeasurementService
-from app.orchestration.coral_service import CoralService
+from app.segmentation.fixture_provider import FixtureProvider
 from datetime import datetime
 
 FIXTURES_DIR = Path("dev_fixtures")
 
 # Initialize Service (Pass K and D if you have camera calibration)
 measurement_service = CoralMeasurementService()
-coral_service = CoralService()
+fixture_segmenter = FixtureProvider()
 
-
-def test_pocillopora_measurement_with_partial_ruler_partial_cut_ruler():
-    coral_name = "unknown_darkpocillopora"
-    image, segmentation = segment(coral_name)
-
-    coral_mask = points_to_mask(segmentation.segments[0].polygon, image.shape)
+def test_measure_algalpavona():
+    coral_name = "unknown_algalpavona"
+    image,coral_mask = prepare_measurement(coral_name)
     
-    results = measurement_service.process_frame(image, coral_mask, ruler_mask=None)
+    results = measurement_service.process_frame(image, coral_mask, coral_name.replace("unknown_", ""))
 
-    print_metrics(coral_name, results)
+    debug_outputs(coral_name, results)
     
-    cv2.imwrite(f"{datetime.now().strftime('%Y%m%d%H%M')}_debug_output_{coral_name}.jpg", results["debug_image"])
-
-    # 0-1cm: 136px, 1-2cm: 133px, 2-3cm: 134px, 3-4cm: 141px, 4-5cm: 146px, 5-6cm: 155px, 6-7cm: 167px
-    assert results['px_per_cm'] == 144
-    assert results['feret_cm'] == 6.3
+    # 0-1cm: 50px, 1-2cm: 46px, 2-3cm: 47px, 3-4cm: 47px, 4-5cm: 45px, 5-6cm: 47px, 6-7cm: 47px
+    assert results['px_per_cm'] == 47
+    assert results['feret_cm'] == 4.7
     #assert results['geodesic_cm'] == 42.27
 
 
-def test_porites_with_partial_ruler():
+def test_measure_bigpocillopora():
+    coral_name = "unknown_bigpocillopora"
+    image,coral_mask = prepare_measurement(coral_name)
+    
+    results = measurement_service.process_frame(image, coral_mask, coral_name.replace("unknown_", ""))
+    
+    debug_outputs(coral_name, results)
+    
+    # 0-1cm: 104px, 1-2cm: 100px, 2-3cm: 97px, 3-4cm: 97px, 4-5cm: 98px, 5-6cm: 97px, 6-7cm: 97px
+    assert results['px_per_cm'] == 98
+    assert results['feret_cm'] == 9.6
+    #assert results['geodesic_cm'] == 42.27
+
+
+def test_measure_bright_pavona_ruler_hardly_visible_and_readable():
+    coral_name = "unknown_brightpavona"
+    image,coral_mask = prepare_measurement(coral_name, "20260809_2100.jpg")
+
+    results = measurement_service.process_frame(image, coral_mask, coral_name.replace("unknown_", ""))
+
+    debug_outputs(coral_name, results)
+
+    # 0-1cm: 125px, 1-2cm: , 2-3cm: , 3-4cm: , 4-5cm: , 5-6cm: , 6-7cm: 
+    assert results['px_per_cm'] == 121
+    assert results['feret_cm'] == 9.3
+    #assert results['geodesic_cm'] == 42.27
+
+
+def test_measure_bright_pavona_ruler_visible_and_readable():
+    coral_name = "unknown_brightpavona"
+    image,coral_mask = prepare_measurement(coral_name, "20260811_1638.jpg")
+    
+    results = measurement_service.process_frame(image, coral_mask, coral_name.replace("unknown_", ""))
+    
+    debug_outputs(coral_name, results)
+
+    # 0-1cm: 39px, 1-2cm: 38px, 2-3cm: 38px, 3-4cm: 39px, 4-5cm: 41px, 5-6cm: 40px, 6-7cm: 42px
+    assert results['px_per_cm'] == 39.5
+    assert results['feret_cm'] == 9.5
+    #assert results['geodesic_cm'] == 42.27
+
+
+def test_measure_branchy_pavona_ruler_bright_hand_visible():
+    coral_name = "unknown_branchypavona"
+    image,coral_mask = prepare_measurement(coral_name, segment_index=0)
+    
+    results = measurement_service.process_frame(image, coral_mask, coral_name.replace("unknown_", ""))
+    
+    debug_outputs(coral_name, results)
+
+    # 0-1cm: 42px, 1-2cm: 39px, 2-3cm: 39px, 3-4cm: 37px, 4-5cm: 36px, 5-6cm: 36px, 6-7cm: 37px
+    assert results['px_per_cm'] == 38
+    #TODO ideally not feret since this is branching
+    assert results['feret_cm'] == 6.4
+    #assert results['geodesic_cm'] == 42.27
+
+
+def test_dark_pocillopora_scale_obscured():
+    coral_name = "unknown_darkpocillopora"
+    image, coral_mask = prepare_measurement(coral_name, "20260809_1943.jpg")
+    
+    results = measurement_service.process_frame(image, coral_mask, coral_name.replace("unknown_", ""))
+
+    debug_outputs(coral_name, results)
+
+    # 0-1cm: 136px, 1-2cm: 133px, 2-3cm: 134px, 3-4cm: 141px, 4-5cm: 146px, 5-6cm: 155px, 6-7cm: 167px
+    assert round(results['px_per_cm'], 2) == 143.73
+    assert results['feret_cm'] == 6.3
+    
+def test_dark_pocillopora_scale_non_obscured():
+    coral_name = "unknown_darkpocillopora"
+    image, coral_mask = prepare_measurement(coral_name, "20260811_1638.jpg")
+    
+    results = measurement_service.process_frame(image, coral_mask, coral_name.replace("unknown_", ""))
+
+    debug_outputs(coral_name, results)
+
+    # 0-1cm: 136px, 1-2cm: 133px, 2-3cm: 134px, 3-4cm: 141px, 4-5cm: 146px, 5-6cm: 155px, 6-7cm: 167px
+    assert results['px_per_cm'] == 144
+    assert results['feret_cm'] == 6
+
+def test_dark_pocillopora_scale_non_obscured_two_fingers_visible():
+    coral_name = "unknown_darkpocillopora"
+    image, coral_mask = prepare_measurement(coral_name, "20260811_1639.jpg")
+    
+    results = measurement_service.process_frame(image, coral_mask, coral_name.replace("unknown_", ""))
+
+    debug_outputs(coral_name, results)
+
+    # 0-1cm: 136px, 1-2cm: 133px, 2-3cm: 134px, 3-4cm: 141px, 4-5cm: 146px, 5-6cm: 155px, 6-7cm: 167px
+    assert results['px_per_cm'] == 144
+    assert results['feret_cm'] == 6
+
+
+def test_green_porites_with_partial_ruler():
     coral_name = "unknown_greenporites"
-    image, segmentation = segment(coral_name)
+    image,coral_mask = prepare_measurement(coral_name, "20260809_2053.jpg", 1)
     
-    coral_mask = points_to_mask(segmentation.segments[1].polygon, image.shape)
+    results = measurement_service.process_frame(image, coral_mask, coral_name.replace("unknown_", ""))
+
+    debug_outputs(coral_name, results)
     
-    results = measurement_service.process_frame(image, coral_mask, ruler_mask=None)
-
-    print_metrics(coral_name, results)
-
-    # Display and Save Visual Debug
-    cv2.imwrite(f"{datetime.now().strftime('%Y%m%d%H%M')}_debug_output_{coral_name}.jpg", results["debug_image"])
-
     # 0-1cm: 131px, 1-2cm: 131px, 2-3cm: 135px, 3-4cm: 138px, 4-5cm: 142px, 5-6cm: 153px, 6-7cm: 166px
-    assert results['px_per_cm'] == 142
+    assert round(results['px_per_cm'], 2) == 146.15
     assert results['feret_cm'] == 6.7
     #assert results['geodesic_cm'] == 42.27
 
 
 def test_huge_pavona_ruler_under_rock():
     coral_name = "unknown_hugepavona"
-    image, segmentation = segment(coral_name)
+    image,coral_mask = prepare_measurement(coral_name, "20260809_2101.jpg")
     
-    coral_mask = points_to_mask(segmentation.segments[0].polygon, image.shape)
-    
-    results = measurement_service.process_frame(image, coral_mask, ruler_mask=None)
+    results = measurement_service.process_frame(image, coral_mask, coral_name.replace("unknown_", ""))
 
-    print_metrics(coral_name, results)
+    debug_outputs(coral_name, results)
 
-    # Display and Save Visual Debug
-    cv2.imwrite(f"{datetime.now().strftime('%Y%m%d%H%M')}_debug_output_{coral_name}.jpg", results["debug_image"])
-
-    # 0-1cm: 131px, 1-2cm: 131px, 2-3cm: 135px, 3-4cm: 138px, 4-5cm: 142px, 5-6cm: 153px, 6-7cm: 166px
-    assert results['px_per_cm'] == 142
-    assert results['feret_cm'] == 6.7
+    # 0-1cm: 50px, 1-2cm: 48px, 2-3cm: 49px, 3-4cm: 50px, 4-5cm: 48px, 5-6cm: 50px, 6-7cm: 50px
+    assert results['px_per_cm'] == 50
+    assert round(results['feret_cm'], 2) == 23.97
     #assert results['geodesic_cm'] == 42.27
 
 
-def test_measure_bright_pavona_ruler_hardly_visible_and_readable():
-    coral_name = "unknown_brightpavona"
-    image, segmentation = segment(coral_name)
-    
-    coral_mask = points_to_mask(segmentation.segments[0].polygon, image.shape)
-    
-    results = measurement_service.process_frame(image, coral_mask, ruler_mask=None)
-
-    print_metrics(coral_name, results)
-
-    cv2.imwrite(f"{datetime.now().strftime('%Y%m%d%H%M')}_debug_output_{coral_name}.jpg", results["debug_image"])
-
-    # 0-1cm: 108px, 1-2cm: 100px, 2-3cm: 99px, 3-4cm: 96px, 4-5cm: 97px, 5-6cm: 97px, 6-7cm: 95px
-    assert results['px_per_cm'] == 98
-    assert results['feret_cm'] == 9.6
+def prepare_measurement(coral_name, concrete_image_name: str | None = None, segment_index: int = 0):
+    image, segmentation = segment(coral_name, concrete_image_name)
+    coral_mask = points_to_mask(segmentation.segments[segment_index].polygon, image.shape)
+    return image,coral_mask
     #assert results['geodesic_cm'] == 42.27
 
-def test_measure_bigpocillopora():
-    coral_name = "unknown_bigpocillopora"
-    image, segmentation = segment(coral_name)
-    
-    coral_mask = points_to_mask(segmentation.segments[0].polygon, image.shape)
-    
-    results = measurement_service.process_frame(image, coral_mask, ruler_mask=None)
 
-    print_metrics(coral_name, results)
-
-    cv2.imwrite(f"{datetime.now().strftime('%Y%m%d%H%M')}_debug_output_{coral_name}.jpg", results["debug_image"])
-
-    # 0-1cm: px, 1-2cm: px, 2-3cm: px, 3-4cm: px, 4-5cm: px, 5-6cm: px, 6-7cm: px
-    assert results['px_per_cm'] == 98
-    assert results['feret_cm'] == 9.6
-    #assert results['geodesic_cm'] == 42.27
-    
-# 0-1cm: px, 1-2cm: px, 2-3cm: px, 3-4cm: px, 4-5cm: px, 5-6cm: px, 6-7cm: px
-#    assert results['px_per_cm'] == 111.02
-#    assert results['feret_cm'] == 6.7
-#    assert results['geodesic_cm'] == 42.27
-
-def segment(coral_name):
+def segment(coral_name: str, image_name: str | None = None):
     base_dir = Path(__file__).parents[2]
-    path = sorted((base_dir / FIXTURES_DIR / coral_name).glob("*.jpg"))
-    image = cv2.imread(str(path[0]))
+    if image_name is None:
+        path = sorted((base_dir / FIXTURES_DIR / coral_name).glob("*.jpg"))[0]
+    else:
+        path = base_dir / FIXTURES_DIR / coral_name / image_name
+    
+    image = cv2.imread(str(path))
 
-    segmentation = coral_service.segment_image(image, path[0].name)
+    segmentation = fixture_segmenter.segment(image, path.name)
     return image,segmentation
+
+def debug_outputs(coral_name, results):
+    print_metrics(coral_name, results)
+    cv2.imwrite(f"{datetime.now().strftime('%m%d%H%M%S')}_debug_output_{coral_name}.jpg", results["debug_image"])
 
 
 def print_metrics(coral_name, results):

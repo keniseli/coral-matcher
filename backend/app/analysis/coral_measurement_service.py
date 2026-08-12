@@ -4,11 +4,13 @@ from scipy.optimize import minimize
 from scipy.spatial.distance import cdist
 import skimage.morphology as morph
 from datetime import datetime
+from .zero_shot_ruler_segmentation_service import ZeroShotRulerSegmentationService
 
 class CoralMeasurementService:
     def __init__(self, camera_matrix=None, dist_coeffs=None):
         self.K = camera_matrix
         self.D = dist_coeffs
+        self.ruler_segmenter = ZeroShotRulerSegmentationService()
 
     # -------------------------------------------------------------------------
     # AUTOMATIC RULER SEGMENTATION (HSV + Geometry Filter)
@@ -226,83 +228,130 @@ class CoralMeasurementService:
     # -------------------------------------------------------------------------
     # STAGE 2: Extract Metric Scale
     # -------------------------------------------------------------------------
-    def estimate_ruler_scale(self, img: np.ndarray, ruler_mask: np.ndarray) -> float:
+    def estimate_ruler_scale(self, img: np.ndarray, ruler_mask: np.ndarray, name_for_debug: str = "") -> float:
+        """
+        Scale estimator with geometric straightening, edge-only tick cropping,
+        and multi-harmonic peak voting (1mm / 5mm / 10mm).
+        """
+        h, w = img.shape[:2]
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        ruler_roi = cv2.bitwise_and(gray, gray, mask=ruler_mask)
-        
-        # 1. Morphological Top-Hat to isolate thin tick lines from background & large numbers
-        # A small rectangular kernel aligned with ticks highlights lines and suppresses wide numbers
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 9))
-        top_hat = cv2.morphologyEx(ruler_roi, cv2.MORPH_TOPHAT, kernel)
-        
-        edges = cv2.Canny(top_hat, 30, 100)
-        
-        # 2. Extract edge point coordinates
-        nonzeros = np.where(edges > 0)
-        points = np.column_stack((nonzeros[1], nonzeros[0])) # [x, y]
-        
-        if len(points) < 20:
-            raise ValueError("Insufficient tick edges found on ruler ROI.")
 
-        # 3. Determine primary orientation via Principal Component Analysis (PCA)
-        # PCA avoids OpenCV's minAreaRect 90-degree angle-swap bugs
-        mean = np.mean(points, axis=0)
-        pts_centered = points - mean
-        cov = np.cov(pts_centered.T)
-        evals, evecs = np.linalg.eig(cov)
+        # 1. Straighten ruler geometrically via minAreaRect
+        contours, _ = cv2.findContours(ruler_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        if not contours:
+            raise ValueError("Empty ruler mask passed to scale estimator.")
         
-        # Major eigenvector corresponds to the ruler's long axis
-        major_axis = evecs[:, np.argmax(evals)]
+        cnt = max(contours, key=cv2.contourArea)
+        rect = cv2.minAreaRect(cnt)
+        (cx, cy), (rw, rh), angle = rect
+
+        if rw > rh:
+            angle += 90
+            rect_w, rect_h = rh, rw
+        else:
+            rect_w, rect_h = rw, rh
+
+        # Warp image so ruler stands vertically
+        M = cv2.getRotationMatrix2D((cx, cy), angle, 1.0)
+        rotated_gray = cv2.warpAffine(gray, M, (w, h), flags=cv2.INTER_CUBIC)
+        rotated_mask = cv2.warpAffine(ruler_mask, M, (w, h), flags=cv2.INTER_NEAREST)
+
+        # Crop rotated ROI
+        ymin, ymax = max(0, int(cy - rect_h / 2)), min(h, int(cy + rect_h / 2))
+        xmin, xmax = max(0, int(cx - rect_w / 2)), min(w, int(cx + rect_w / 2))
+
+        roi_gray = rotated_gray[ymin:ymax, xmin:xmax]
+        if roi_gray.size == 0 or roi_gray.shape[0] < 40 or roi_gray.shape[1] < 15:
+            raise ValueError("Rotated ROI too small for processing.")
+
+        # 2. Isolate strict tick edge (Outer 20% strip on metric side)
+        # This avoids digit numbers ('1', '2', '3') and the pink inch boundary
+        roi_w = roi_gray.shape[1]
+        left_strip = roi_gray[:, :int(roi_w * 0.22)]
+        right_strip = roi_gray[:, int(roi_w * 0.78):]
         
-        # 4. Project 2D edge points onto the 1D major axis
-        projections = np.dot(pts_centered, major_axis)
+        left_score = np.std(cv2.Sobel(left_strip, cv2.CV_64F, 0, 1, ksize=3))
+        right_score = np.std(cv2.Sobel(right_strip, cv2.CV_64F, 0, 1, ksize=3))
+
+        tick_strip = left_strip if left_score > right_score else right_strip
+
+        # 3. Enhanced Vertical Gradient (Sobel Y)
+        clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
+        tick_strip_enhanced = clahe.apply(tick_strip)
+        sobel_y = np.abs(cv2.Sobel(tick_strip_enhanced, cv2.CV_64F, 0, 1, ksize=3))
+
+        # 1D signal along vertical ruler length
+        signal = np.mean(sobel_y, axis=1)
+        signal = signal - np.mean(signal)
+        norm = np.sum(signal**2)
+        if norm == 0:
+            raise ValueError("Flat gradient signal along tick strip.")
+
+        # 4. Autocorrelation
+        autocorr = np.correlate(signal, signal, mode='full')
+        autocorr = autocorr[len(signal) - 1:] / norm
+
+        # 5. Peak Detection & Sub-Pixel Interpolation
+        min_lag = 5   # Ignore < 5px
+        max_lag = min(len(autocorr) - 2, 300)
         
-        # 5. Dynamic 1-Pixel Bin Resolution Histogram
-        min_p, max_p = np.min(projections), np.max(projections)
-        num_bins = int(np.ceil(max_p - min_p))  # Exactly 1 pixel per bin!
-        
-        hist, bin_edges = np.histogram(projections, bins=num_bins)
-        
-        # Smooth histogram signal using 1D Gaussian filter
-        kernel_size = 5
-        smoothed_hist = np.convolve(hist, np.ones(kernel_size)/kernel_size, mode='same')
-        
-        # 6. Find density peaks (tick mark positions along the 1D axis)
-        threshold = np.mean(smoothed_hist) + 0.5 * np.std(smoothed_hist)
-        peak_indices = np.where(smoothed_hist > threshold)[0]
-        
-        if len(peak_indices) < 2:
-            raise ValueError("Could not resolve clear tick mark peaks.")
+        valid_autocorr = autocorr[min_lag:max_lag]
+        if len(valid_autocorr) < 10:
+            raise ValueError("Autocorrelation signal too short.")
+
+        # Collect all prominent local peaks
+        all_peaks = []
+        for i in range(1, len(valid_autocorr) - 1):
+            if valid_autocorr[i] > valid_autocorr[i-1] and valid_autocorr[i] > valid_autocorr[i+1]:
+                if valid_autocorr[i] > 0.08:
+                    lag_idx = i + min_lag
+                    all_peaks.append((lag_idx, valid_autocorr[i]))
+
+        if not all_peaks:
+            best_lag = float(np.argmax(valid_autocorr) + min_lag)
+            all_peaks = [(int(best_lag), valid_autocorr[int(best_lag) - min_lag])]
+
+        # Sub-pixel parabolic interpolation helper
+        def get_subpixel_lag(k):
+            if k <= 0 or k >= len(autocorr) - 1:
+                return float(k)
+            y0, y1, y2 = autocorr[k - 1], autocorr[k], autocorr[k + 1]
+            denom = (y0 - 2 * y1 + y2)
+            delta = (y0 - y2) / (2.0 * denom) if denom != 0 else 0
+            return float(k) + delta
+
+        # Sort peaks by correlation strength
+        all_peaks.sort(key=lambda x: x[1], reverse=True)
+
+        print("Detected Autocorrelation Peaks (Lag, Score):", [(lag, round(score, 3)) for lag, score in all_peaks[:5]])
+
+        # 6. Multi-Harmonic Voting Logic
+        # Test top candidates to determine if lag corresponds to 1mm, 5mm, or 10mm pitch
+        px_per_cm_candidates = []
+
+        for lag_idx, score in all_peaks[:4]:
+            sub_lag = get_subpixel_lag(lag_idx)
             
-        peak_positions = bin_edges[peak_indices]
-        peak_spacings = np.diff(peak_positions)
-        
-        # 7. Dynamic mm Tick Measurement
-        # Peak spacings represent adjacent tick marks (1 mm apart)
+            # Classify lag range based on standard underwater resolution ranges
+            if sub_lag < 25.0:
+                # 1mm tick pitch
+                px_per_cm_candidates.append(sub_lag * 10.0)
+            elif 25.0 <= sub_lag < 75.0:
+                # 5mm tick pitch
+                px_per_cm_candidates.append(sub_lag * 2.0)
+            else:
+                # 10mm (1cm) tick pitch
+                px_per_cm_candidates.append(sub_lag * 1.0)
 
-        # Filter out 0 or 1-pixel noise (peaks detected on the exact same tick line)
-        valid_spacings = peak_spacings[peak_spacings >= 2.0]
-        
-        if len(valid_spacings) == 0:
-            raise ValueError("Could not resolve clear tick spacing.")
-
-        # The dominant/smallest repeating interval is the millimeter spacing
-        # Using a low percentile (or median of the lower half) isolates 1mm ticks 
-        # and ignores occasional gaps caused by missing/occluded ticks
-        px_per_mm = float(np.median(valid_spacings[valid_spacings < np.percentile(valid_spacings, 60)]))
-        
-        # Calculate final cm scale dynamically
-        px_per_cm = px_per_mm * 10.0
-        
+        # Return primary candidate
+        px_per_cm = px_per_cm_candidates[0]
         return px_per_cm
 
     # -------------------------------------------------------------------------
     # FULL PROCESS PIPELINE
     # -------------------------------------------------------------------------
-    def process_frame(self, img: np.ndarray, coral_mask: np.ndarray, ruler_mask: np.ndarray | None = None):
-        # Auto-detect ruler if mask not explicitly passed
-        if ruler_mask is None:
-            ruler_mask = self.detect_ruler_mask(img)        
+    def process_frame(self, img: np.ndarray, coral_mask: np.ndarray, name_for_debug: str = ""):
+        ruler_mask = self.ruler_segmenter.predict_ruler_mask(img, "a white measuring ruler . white scale slate")
 
         # 1. Undistort
         img_rect = self.undistort_image(img)
@@ -310,7 +359,7 @@ class CoralMeasurementService:
         ruler_rect = self.undistort_image(ruler_mask, reference_color_img=img)
         
         # 2. Scale
-        px_per_cm = self.estimate_ruler_scale(img_rect, ruler_rect)
+        px_per_cm = self.estimate_ruler_scale(img_rect, ruler_rect, name_for_debug)
         
         # 3. Measures
         binary_mask = (coral_rect > 0).astype(np.uint8)

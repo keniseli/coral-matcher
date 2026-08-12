@@ -10,7 +10,6 @@ def process_directory(input_dir: Path, output_dir: Path):
     output_dir.mkdir(parents=True, exist_ok=True)
 
     coral_service = CoralService()
-    vision_service = VisionService()
 
     supported_extensions = {
         ".jpg",
