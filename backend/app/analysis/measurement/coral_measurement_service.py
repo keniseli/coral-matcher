@@ -2,6 +2,7 @@ import numpy as np
 
 from .ruler_detection import RulerDetection
 from .ruler_rotation import RulerRotation
+from .tick_detection import TickDetection
 
 class CoralMeasurementService:
     """
@@ -38,13 +39,15 @@ class CoralMeasurementService:
     ) -> None:
         self.ruler_detection = RulerDetection()
         self.ruler_rotation = RulerRotation()
+        self.tick_detection = TickDetection()
         
     def measure_coral(self, image: np.ndarray):
         self.estimate_px_per_cm(image)
 
 
     def estimate_px_per_cm(self, image: np.ndarray):
-        geometry = self.ruler_detection.detect_ruler(image)
-        rotation = self.ruler_rotation.rotate_ruler(image, geometry.mask, geometry)
+        ruler_geometry = self.ruler_detection.detect_ruler(image)
+        rotated_ruler = self.ruler_rotation.rotate_ruler(image, ruler_geometry.mask, ruler_geometry)
+        tick_signals = self.tick_detection.detect_ticks(rotated_ruler)
 
 

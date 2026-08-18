@@ -32,7 +32,7 @@ class RotatedRuler:
 
 
 @dataclass(frozen=True)
-class TickDetection:
+class TickSignals:
     signal: np.ndarray
     threshold: float
     top_signal: np.ndarray

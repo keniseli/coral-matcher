@@ -1,4 +1,4 @@
-from .models import RotatedRuler, TickDetection
+from .models import RotatedRuler, TickSignals
 
 class TickDetection:
     """
@@ -15,5 +15,6 @@ class TickDetection:
     def detect_ticks(
         self,
         rotated_ruler: RotatedRuler,
-    ) -> TickDetection:
+        name_for_debug: str | None = None,
+    ) -> TickSignals:
         ...
