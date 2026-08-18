@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 from pathlib import Path
 from functools import reduce
+import logging
 
 from .models import RulerGeometry
 from .zero_shot_ruler_segmentation_service import ZeroShotRulerSegmentationService
@@ -14,21 +15,22 @@ class RulerDetection:
     <br />
     Produces a debug image with:
     <ul>
-    <li>ruler contour</li>
-    <li>center point</li>
-    <li>long axis drawn through the ruler</li>
-    <li>angle displayed</li>
-    <li>bounding box</li>
+        <li>ruler contour</li>
+        <li>center point</li>
+        <li>long axis drawn through the ruler</li>
+        <li>angle displayed</li>
+        <li>bounding box</li>
     </ul>
     """    
     
     def __init__(self, *args, **kwargs):
         self.ruler_segmenter = ZeroShotRulerSegmentationService()
+        self.logger = logging.getLogger(__name__)
         
     def detect_ruler(
             self,
             image: np.ndarray,
-            name_for_debug: str | None,
+            name_for_debug: str | None = None,
         ) -> RulerGeometry:
         """
         Detects the ruler and derives its rough geometry.
@@ -37,7 +39,7 @@ class RulerDetection:
             RulerGeometry containing the binary ruler mask and the geometry
             of its minimum-area bounding rectangle.
         """
-        
+
         if image is None or image.size == 0:
             raise ValueError("Empty image passed to ruler detection.")
 
@@ -77,30 +79,28 @@ class RulerDetection:
         # result in a poor bounding box and angle. Visual inspections showed
         # that the ruler is the largest segment.
         ruler_contour = max(contours, key=cv2.contourArea)
-
         if len(ruler_contour) < 3:
             raise ValueError("Ruler contour contains too few points.")
 
-        rotated_rect = cv2.minAreaRect(ruler_contour)
+        (center_x, center_y), (rect_width, rect_height), rect_angle = (
+            cv2.minAreaRect(ruler_contour)
+        )
 
-        (center_x, center_y), (rect_width, rect_height), angle = rotated_rect
-
-        # minAreaRect describes the orientation of one of its sides.
-        # Normalize the representation so that:
-        #
-        #   width  = long axis of the ruler
-        #   height = short axis of the ruler
-        #
-        # When width/height are swapped, the corresponding angle must also
-        # be rotated by 90 degrees to describe the exact same rectangle.
-        if rect_width < rect_height:
-            width = rect_height
-            height = rect_width
-            angle_degrees = angle + 90.0
-        else:
+        # minAreaRect gives us one rectangle side's orientation.
+        # We want angle_degrees to always describe the LONG axis.
+        if rect_width >= rect_height:
             width = rect_width
             height = rect_height
-            angle_degrees = angle
+            angle_degrees = rect_angle
+        else:
+            width = rect_height
+            height = rect_width
+            angle_degrees = rect_angle + 90.0
+
+        # Normalize the long-axis orientation: A ruler has no meaningful direction:
+        # ---->   and   <---- represent the same physical orientation.
+        # Therefore 180° differences are irrelevant.
+        angle_degrees = ((angle_degrees + 90.0) % 180.0) - 90.0
 
         geometry = RulerGeometry(
             center=(float(center_x), float(center_y)),
@@ -108,6 +108,14 @@ class RulerDetection:
             width=float(width),
             height=float(height),
             mask=mask,
+        )
+        
+        self.logger.info(
+            f"minAreaRect: "
+            f"w={rect_width:.1f}, "
+            f"h={rect_height:.1f}, "
+            f"angle={rect_angle:.1f} "
+            f"-> long-axis angle={angle_degrees:.1f}"
         )
 
         if name_for_debug:
@@ -168,6 +176,14 @@ class RulerDetection:
                 (0, 0, 255),
                 2,
             )
+            cv2.putText(debug,
+                f"angle: {geometry.angle_degrees}",
+                (100, 100),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                1.0,
+                (0, 0, 255),
+                2
+            )
 
         rect = (
             geometry.center,
@@ -199,7 +215,7 @@ class RulerDetection:
                 f"Failed to write ruler detection debug image: {output_path}"
             )
 
-        print(
+        self.logger.info(
             "[RULER DETECTION]"
             f" center={geometry.center}"
             f" angle={geometry.angle_degrees:.2f}°"
@@ -207,4 +223,4 @@ class RulerDetection:
             f" height={geometry.height:.1f}px"
             f" mask_pixels={np.count_nonzero(geometry.mask)}"
         )
-        print(f"[RULER DETECTION] debug image: {output_path}")
+        self.logger.info(f"[RULER DETECTION] debug image: {output_path}")
