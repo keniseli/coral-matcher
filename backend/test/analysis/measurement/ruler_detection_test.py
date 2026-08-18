@@ -7,11 +7,11 @@ import app.utils.fixtures as fixtures
 FIXTURES_DIR = Path("dev_fixtures")
 
 ruler_detection = RulerDetection()
-save_pickles = True
+save_pickles = False
 
 def measure_for(coral_name, instance):
     image = load_image(coral_name, f"{instance}.jpg")
-    results = ruler_detection.detect_ruler(image, coral_name.replace("unknown_", ""))
+    results = ruler_detection.detect_ruler(image, f"{coral_name.replace('unknown_', '')}_{instance}")
     debug_outputs(results)
     if save_pickles: fixtures.save_pickle(coral_name, f"ruler_geometry_{instance}", results)
 
