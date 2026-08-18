@@ -13,6 +13,19 @@ class RulerGeometry:
 
 @dataclass(frozen=True)
 class RotatedRuler:
+    """
+    Result of rotating and cropping a detected ruler.
+
+    image:
+        Cropped original image with the ruler's long axis horizontal.
+
+    mask:
+        Cropped binary ruler mask in the same coordinate system as image.
+
+    crop:
+        Crop rectangle in the rotated full-image coordinate system:
+        (x, y, width, height).
+    """
     image: np.ndarray
     mask: np.ndarray
     crop: tuple[int, int, int, int]

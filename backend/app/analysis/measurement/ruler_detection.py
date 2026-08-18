@@ -26,10 +26,10 @@ class RulerDetection:
         self.ruler_segmenter = ZeroShotRulerSegmentationService()
         
     def detect_ruler(
-        self,
-        image: np.ndarray,
-        name_for_debug: str | None,
-    ) -> RulerGeometry:
+            self,
+            image: np.ndarray,
+            name_for_debug: str | None,
+        ) -> RulerGeometry:
         """
         Detects the ruler and derives its rough geometry.
 
@@ -37,6 +37,7 @@ class RulerDetection:
             RulerGeometry containing the binary ruler mask and the geometry
             of its minimum-area bounding rectangle.
         """
+        
         if image is None or image.size == 0:
             raise ValueError("Empty image passed to ruler detection.")
 
@@ -60,19 +61,21 @@ class RulerDetection:
 
         mask = np.where(mask > 0, 255, 0).astype(np.uint8)
 
+        mask = self.find_largest_connected_component(mask)
+
         contours, _ = cv2.findContours(
             mask,
             cv2.RETR_EXTERNAL,
             cv2.CHAIN_APPROX_SIMPLE,
         )
-        
+
         if not contours:
             raise ValueError("No ruler contour detected.")
 
-        # find the largest segment because the segmenter sometimes
+        # Find the largest segment because the segmenter sometimes
         # returns false positives. Including these in the bounding box will
         # result in a poor bounding box and angle. Visual inspections showed
-        # that the ruler is the largest segment
+        # that the ruler is the largest segment.
         ruler_contour = max(contours, key=cv2.contourArea)
 
         if len(ruler_contour) < 3:
@@ -82,9 +85,14 @@ class RulerDetection:
 
         (center_x, center_y), (rect_width, rect_height), angle = rotated_rect
 
-        # OpenCV's rectangle angle convention is awkward. Normalize it so
-        # angle_degrees describes the long axis rather than the rectangle's
-        # arbitrary side.
+        # minAreaRect describes the orientation of one of its sides.
+        # Normalize the representation so that:
+        #
+        #   width  = long axis of the ruler
+        #   height = short axis of the ruler
+        #
+        # When width/height are swapped, the corresponding angle must also
+        # be rotated by 90 degrees to describe the exact same rectangle.
         if rect_width < rect_height:
             width = rect_height
             height = rect_width
@@ -111,6 +119,32 @@ class RulerDetection:
 
         return geometry
 
+
+    def find_largest_connected_component(self, mask: np.ndarray) -> np.ndarray:
+        """
+        Find the largest connected foreground component in a binary mask.
+
+        Args:
+            mask: Binary mask where foreground is non-zero.
+
+        Returns:
+            Binary mask containing only the largest connected component.
+        """
+        binary_mask = (mask > 0).astype(np.uint8)
+
+        num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(
+            binary_mask,
+            connectivity=8,
+        )
+
+        # Label 0 is the background.
+        if num_labels <= 1:
+            return np.zeros_like(binary_mask)
+
+        # Ignore background and find largest foreground component.
+        largest_label = 1 + np.argmax(stats[1:, cv2.CC_STAT_AREA])
+
+        return (labels == largest_label).astype(np.uint8) * 255
 
     def _save_ruler_detection_debug_image(
         self,
