@@ -35,9 +35,13 @@ class RotatedRuler:
 class TickSignals:
     signal: np.ndarray
     threshold: float
-    top_signal: np.ndarray
-    bottom_signal: np.ndarray
 
+# Probably only for internal use in tick_detection
+@dataclass(frozen=True)
+class TickSignalScore:
+    score: float
+    peak_count: int
+    coefficient_of_variation: float
 
 @dataclass(frozen=True)
 class TickPositions:
