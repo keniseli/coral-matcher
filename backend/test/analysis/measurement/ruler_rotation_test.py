@@ -7,7 +7,7 @@ import app.utils.fixtures as fixtures
 FIXTURES_DIR = Path("dev_fixtures")
 
 ruler_rotation = RulerRotation()
-save_pickles = True
+save_pickles = False
 
 def test_measure_algalpavona():
     coral_name = "unknown_algalpavona"

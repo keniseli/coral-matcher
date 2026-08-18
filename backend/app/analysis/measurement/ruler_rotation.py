@@ -109,16 +109,11 @@ class RulerRotation:
             crop=crop,
         )
         
-        #result = RotatedRuler(
-        #    image=rotated_image,
-        #    mask=rotated_mask,
-        #    crop=crop,
-        #)
-        
-        self._save_debug_image(
-            result=result,
-            name=name_for_debug,
-        )
+        if name_for_debug:
+            self._save_debug_image(
+                result=result,
+                name=name_for_debug,
+            )
 
         return result
 
