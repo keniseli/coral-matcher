@@ -39,7 +39,7 @@ class CoralMeasurementService:
     ) -> None:
         self.ruler_detection = RulerDetection()
         self.ruler_rotation = RulerRotation()
-        self.tick_detection = TickDetection()
+        self.tick_detection = TickDetection(threshold_percentile=90)
         
     def measure_coral(self, image: np.ndarray):
         self.estimate_px_per_cm(image)

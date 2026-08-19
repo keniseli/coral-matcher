@@ -11,12 +11,13 @@ class TickDetection:
     Summary
         Detects the ticks on the given ruler. Does not qualify
         units, just identifies signals (in 1D) representing the strength of
-        tick-like structures along the horizontal ruler axis.
-        Produces a debug image visualizing the detected signal. This stage achieves detecting
-        * in/sufficient contrast
-        * hand/finger/coral occlusion
-        * duplicate edges
-        * false peaks
+        tick-like structures along the horizontal ruler axis. 
+        Technically, the following question is asked: How much brightness change exists at each x-position along the ruler?
+        And it is answered as follows:
+        1. Calculate sobel of every x-column on an image containing the masked ruler
+        2. Apply a function to all sobel values (by default median)
+        3. Pick the strongest of these values using a threshold (by default 85th percentile)
+
     Args:
         sobel_kernel_size (int, optional): Small numbers are more sensitive to small artifacts.
             Larger numbers allow for more smoothing (e.g in case of lot of noise). Must be odd. Defaults to 3.
@@ -144,12 +145,13 @@ class TickDetection:
         bottom_gradient[bottom_mask == 0] = 0
 
         # ---------------------------------------------------------
-        # 6. Collapse each half into a 1D signal
+        # 6. Collapse each bottom and top third into a 1D signal
         # ---------------------------------------------------------
         #
-        # We use the median rather than the sum so that the signal
+        # Defaults to median so that the signal
         # does not simply become stronger when more ruler pixels are
-        # present in a column.
+        # present in a column. Can be controlled by passing signal_aggregation
+        # in constructor
         #
         # The median is also reasonably resistant to isolated noise.
 
@@ -188,15 +190,14 @@ class TickDetection:
         # We intentionally do not combine the two signals.
         #
         # Only one of the top/bottom thirds contains the metric
-        # tick marks. The other third contains mostly ruler text
-        # and other visual structure.
+        # tick marks. The middle third contains mostly ruler text
+        # and other visual structure and is particularily uninteresting.
         #
         # We therefore score both signals based on:
         #
         #   1. number of candidate peaks
         #   2. regularity of the spacing between those peaks
         #
-        # We do not yet distinguish 1 mm / 5 mm / 10 mm ticks.
 
         top_threshold = self._calculate_tick_threshold(
             top_signal
@@ -290,7 +291,6 @@ class TickDetection:
             values = gradient[:, x][mask[:, x] > 0]
 
             if values.size > 0:
-                #signal[x] = np.median(values)
                 signal[x] = self.signal_aggregation(values)
 
         return signal

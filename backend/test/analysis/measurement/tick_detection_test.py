@@ -3,11 +3,14 @@ from pathlib import Path
 from app.analysis.measurement.tick_detection import TickDetection
 from app.analysis.measurement.models import TickSignals
 import app.utils.fixtures as fixtures
+from functools import partial
+import numpy as np
 
 FIXTURES_DIR = Path("dev_fixtures")
 
 tick_detection = TickDetection(
-    threshold_percentile=60,
+    threshold_percentile=90,
+    signal_aggregation=np.median,
     sobel_kernel_size=3
 )
 save_pickles = True
