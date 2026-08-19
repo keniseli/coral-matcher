@@ -6,7 +6,10 @@ import app.utils.fixtures as fixtures
 
 FIXTURES_DIR = Path("dev_fixtures")
 
-tick_detection = TickDetection()
+tick_detection = TickDetection(
+    threshold_percentile=60,
+    sobel_kernel_size=3
+)
 save_pickles = True
 
 def test_detect_ticks_algalpavona():
@@ -110,7 +113,7 @@ def detect_ticks_for(coral_name: str, instance: str):
     rotation = fixtures.load_pickle(coral_name, f"ruler_rotation_{instance}")
     debug_name = f"{coral_name}_{instance}"
     
-    results = tick_detection.detect_ticks(rotation, debug_name)
+    results = tick_detection.detect_ticks(rotated_ruler=rotation, name_for_debug=debug_name)
     
     debug_outputs(results)
     if save_pickles: fixtures.save_pickle(coral_name, f"tick_detection_{instance}", results)

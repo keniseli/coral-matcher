@@ -2,28 +2,49 @@ import cv2
 import numpy as np
 from pathlib import Path
 import matplotlib.pyplot as plt
+from collections.abc import Callable
 
 from .models import RotatedRuler, TickSignals, TickSignalScore
 
 class TickDetection:
     """
-    Detects the ticks on the given ruler. Does not qualify
-    units, just identifies signals (in 1D) representing the strength of
-    tick-like structures along the horizontal ruler axis.
-    <br />
-    <br />
-    Produces a debug image visualizing the detected signal. This stage achieves detecting
-    * in/sufficient contrast
-    * hand/finger/coral occlusion
-    * duplicate edges
-    * false peaks
+    Summary
+        Detects the ticks on the given ruler. Does not qualify
+        units, just identifies signals (in 1D) representing the strength of
+        tick-like structures along the horizontal ruler axis.
+        Produces a debug image visualizing the detected signal. This stage achieves detecting
+        * in/sufficient contrast
+        * hand/finger/coral occlusion
+        * duplicate edges
+        * false peaks
+    Args:
+        sobel_kernel_size (int, optional): Small numbers are more sensitive to small artifacts.
+            Larger numbers allow for more smoothing (e.g in case of lot of noise). Must be odd. Defaults to 3.
+        threshold_percentile (float, optional): Threshold of when to count a signal to be strong 
+            enough to become a tick candidate. Range: (0, 100). Defaults to 85.0
+        maximum_tick_width (int, optional): Threshold of how wide a tick can be in pixels. Defaults to 20
+        signal_aggregation: The function to be used to aggregate signals (must take one argument np.ndarray). E.g. to use percentile:
+            functools.partial(np.percentile, q=75). Defaults to np.median
+        name_for_debug (str | None, optional): _description_. Defaults to None.
     """
+    
+    def __init__(self,
+        sobel_kernel_size: int = 3,
+        threshold_percentile: float = 85.0,
+        maximum_tick_width: int = 20,
+        signal_aggregation: Callable[[np.ndarray], float] = np.median,
+    ):
+        self.sobel_kernel_size = sobel_kernel_size
+        self.threshold_percentile = threshold_percentile
+        self.maximum_tick_width = maximum_tick_width
+        self.signal_aggregation = signal_aggregation
+    
+    
     def detect_ticks(
         self,
         rotated_ruler: RotatedRuler,
         name_for_debug: str | None = None,
     ) -> TickSignals:
-
         if rotated_ruler.image is None or rotated_ruler.image.size == 0:
             raise ValueError("Rotated ruler contains an empty image.")
 
@@ -101,7 +122,7 @@ class TickDetection:
             cv2.CV_32F,
             dx=1,
             dy=0,
-            ksize=3,
+            ksize=self.sobel_kernel_size,
         )
 
         bottom_gradient = cv2.Sobel(
@@ -109,7 +130,7 @@ class TickDetection:
             cv2.CV_32F,
             dx=1,
             dy=0,
-            ksize=3,
+            ksize=self.sobel_kernel_size,
         )
 
         top_gradient = np.abs(top_gradient)
@@ -269,7 +290,8 @@ class TickDetection:
             values = gradient[:, x][mask[:, x] > 0]
 
             if values.size > 0:
-                signal[x] = np.median(values)
+                #signal[x] = np.median(values)
+                signal[x] = self.signal_aggregation(values)
 
         return signal
     
@@ -321,7 +343,7 @@ class TickDetection:
         return float(
             np.percentile(
                 positive,
-                85.0,
+                self.threshold_percentile,
             )
         )
         
@@ -393,6 +415,9 @@ class TickDetection:
         for start, end in zip(starts, ends):
             if end <= start:
                 continue
+            
+            #if end - start > self.maximum_tick_width:
+            #    continue
 
             peak_offset = int(
                 np.argmax(
@@ -486,9 +511,11 @@ class TickDetection:
         peak_count_score = np.log1p(
             peak_count
         )
-
+        
+        score=float(peak_count_score * regularity_score)
+        
         return TickSignalScore(
-            score=float(peak_count_score * regularity_score),
+            score=score,
             peak_count=peak_count,
             coefficient_of_variation=coefficient_of_variation
         )
@@ -659,8 +686,8 @@ class TickDetection:
 
         ax_signal = axes[2]
         ax_signal.text(
-            0.01,
-            0.95,
+            0.0,
+            -0.1,
             (
                 f"selected: {selected_region} | "
                 f"top score: {top_score:.3f} | "

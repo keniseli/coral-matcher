@@ -48,6 +48,6 @@ class CoralMeasurementService:
     def estimate_px_per_cm(self, image: np.ndarray):
         ruler_geometry = self.ruler_detection.detect_ruler(image)
         rotated_ruler = self.ruler_rotation.rotate_ruler(image, ruler_geometry.mask, ruler_geometry)
-        tick_signals = self.tick_detection.detect_ticks(rotated_ruler)
+        tick_signals = self.tick_detection.detect_ticks(rotated_ruler=rotated_ruler)
 
 
