@@ -39,15 +39,18 @@ class CoralMeasurementService:
     ) -> None:
         self.ruler_detection = RulerDetection()
         self.ruler_rotation = RulerRotation()
-        self.tick_detection = TickDetection(threshold_percentile=90)
+        self.tick_detection = TickDetection(threshold_percentile=95)
         
-    def measure_coral(self, image: np.ndarray):
-        self.estimate_px_per_cm(image)
+    def measure_coral(self, image: np.ndarray, name_for_debug: str | None = None):
+        self.estimate_px_per_cm(image, name_for_debug)
+        # determine feret diameter and geodesic skeleton segments
+        # calculate length
+        # put together image and stats result
 
 
-    def estimate_px_per_cm(self, image: np.ndarray):
-        ruler_geometry = self.ruler_detection.detect_ruler(image)
-        rotated_ruler = self.ruler_rotation.rotate_ruler(image, ruler_geometry.mask, ruler_geometry)
-        tick_signals = self.tick_detection.detect_ticks(rotated_ruler=rotated_ruler)
+    def estimate_px_per_cm(self, image: np.ndarray, name_for_debug: str | None = None):
+        ruler_geometry = self.ruler_detection.detect_ruler(image, name_for_debug=name_for_debug)
+        rotated_ruler = self.ruler_rotation.rotate_ruler(image, ruler_geometry.mask, ruler_geometry, name_for_debug=name_for_debug)
+        tick_signals = self.tick_detection.detect_ticks(rotated_ruler=rotated_ruler, name_for_debug=name_for_debug)
 
 

@@ -14,7 +14,7 @@ def export_segmentation_fixture(image: np.ndarray, image_filename: str, masks: l
     output_dir = base_dir / "dev_fixtures"
     output_dir.mkdir(parents=True, exist_ok=True)
     print(image_filename)
-    match = re.search(r"(?:CR_)?([A-Za-z]+)(?:_T\d+)?_([A-Za-z0-9]+)(_[A-Za-z0-9]+)?\.(?:jpe?g|png|bmp|tif|tiff|JPE?G|PNG|BMP|TIFF?)", image_filename, re.I)
+    match = re.search(r"(?:CR_)?([A-Za-z0-9]+)(?:_T\d+)?_([A-Za-z0-9]+)(_[A-Za-z0-9]+)?\.(?:jpe?g|png|bmp|tif|tiff|JPE?G|PNG|BMP|TIFF?)", image_filename, re.I)
     print(match)
     site = match.group(1).lower() if match else "default"
     coral_id = f"{match.group(2)}" if match else "default"
