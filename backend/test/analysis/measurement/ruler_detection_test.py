@@ -7,7 +7,7 @@ import app.utils.fixtures as fixtures
 FIXTURES_DIR = Path("dev_fixtures")
 
 ruler_detection = RulerDetection()
-save_pickles = False
+save_pickles = True
 
 def measure_for(coral_name, instance):
     image = load_image(coral_name, f"{instance}.jpg")
@@ -111,6 +111,10 @@ def test_spongy_pocillopora():
     specific = "20260811_1645"
     measure_for(coral_name, specific)
 
+def test_snuggly_porites_high_def_image():
+    coral_name = "unknown_snugglyporites"
+    instance_name = "20260819_1813"
+    measure_for(coral_name, instance_name)
 
 def load_image(coral_name: str, image_name: str | None = None):
     base_dir = Path(__file__).parents[3]

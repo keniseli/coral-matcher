@@ -7,7 +7,7 @@ import app.utils.fixtures as fixtures
 FIXTURES_DIR = Path("dev_fixtures")
 
 ruler_rotation = RulerRotation()
-save_pickles = False
+save_pickles = True
 
 def test_measure_algalpavona():
     coral_name = "unknown_algalpavona"
@@ -101,6 +101,12 @@ def test_darth_porites():
 def test_spongy_pocillopora():
     coral_name = "unknown_spongypocillopora"
     specific = "20260811_1645"
+    rotate_for(coral_name, specific)
+
+
+def test_measure_snuggly_porites():
+    coral_name = "unknown_snugglyporites"
+    specific = "20260819_1813"
     rotate_for(coral_name, specific)
 
 

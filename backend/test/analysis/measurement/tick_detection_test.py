@@ -19,6 +19,7 @@ def test_detect_ticks_algalpavona():
     coral_name = "unknown_algalpavona"
     specific = "20260811_1636"
     detect_ticks_for(coral_name, specific)
+    
 
 def test_detect_ticks_bigpocillopora():
     coral_name = "unknown_bigpocillopora"
@@ -111,6 +112,12 @@ def test_detect_ticks_spongy_pocillopora():
     specific = "20260811_1645"
     detect_ticks_for(coral_name, specific)
 
+
+def test_measure_snuggly_porites():
+    coral_name = "unknown_snugglyporites"
+    specific = "20260819_1813"
+    detect_ticks_for(coral_name, specific)
+    
 
 def detect_ticks_for(coral_name: str, instance: str):
     rotation = fixtures.load_pickle(coral_name, f"ruler_rotation_{instance}")
