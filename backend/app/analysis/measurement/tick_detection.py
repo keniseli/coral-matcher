@@ -15,7 +15,7 @@ class TickDetection:
         Technically, the following question is asked: How much brightness change exists at each x-position along the ruler?
         And it is answered as follows:
         1. Calculate sobel of every x-column on an image containing the masked ruler
-        2. Apply a function to all sobel values (by default median)
+        2. Apply a function to all sobel values to reduce x-columns into single values (by default median)
         3. Pick the strongest of these values using a threshold (by default 85th percentile)
 
     Args:
@@ -24,7 +24,7 @@ class TickDetection:
         threshold_percentile (float, optional): Threshold of when to count a signal to be strong 
             enough to become a tick candidate. Range: (0, 100). Defaults to 85.0
         maximum_tick_width (int, optional): Threshold of how wide a tick can be in pixels. Defaults to 20
-        signal_aggregation: The function to be used to aggregate signals (must take one argument np.ndarray). E.g. to use percentile:
+        signal_aggregation: The function to be used to aggregate vertical signals (must take one argument np.ndarray). E.g. to use percentile:
             functools.partial(np.percentile, q=75). Defaults to np.median
         name_for_debug (str | None, optional): _description_. Defaults to None.
     """
@@ -416,8 +416,8 @@ class TickDetection:
             if end <= start:
                 continue
             
-            #if end - start > self.maximum_tick_width:
-            #    continue
+            if end - start > self.maximum_tick_width:
+                continue
 
             peak_offset = int(
                 np.argmax(
