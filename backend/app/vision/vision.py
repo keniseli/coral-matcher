@@ -129,3 +129,58 @@ class VisionService:
             return rgba
 
         return rgb_balanced
+
+    def draw_mask(
+        self,
+        image: np.ndarray,
+        mask: np.ndarray,
+        alpha: float = 0.7,
+    ) -> np.ndarray:
+        """
+        Overlay a binary mask in red onto an image.
+
+        Args:
+            image: Grayscale or BGR image.
+            mask: Binary mask with shape (H, W).
+            alpha: Opacity of the red overlay.
+
+        Returns:
+            BGR image with masked pixels highlighted in red.
+        """
+
+        if image.ndim == 2:
+            result = cv2.cvtColor(
+                image,
+                cv2.COLOR_GRAY2BGR,
+            )
+        elif image.ndim == 3 and image.shape[2] == 3:
+            result = image.copy()
+        else:
+            raise ValueError(
+                "Image must have shape (H, W) or (H, W, 3)."
+            )
+
+        if mask.shape != image.shape[:2]:
+            raise ValueError(
+                "Mask dimensions must match image dimensions."
+            )
+
+        if not 0.0 <= alpha <= 1.0:
+            raise ValueError(
+                "Alpha must be between 0 and 1."
+            )
+
+        mask_bool = mask > 0
+
+        red = np.zeros_like(result)
+        red[:, :] = (0, 0, 255)  # BGR
+
+        result[mask_bool] = cv2.addWeighted(
+            result[mask_bool],
+            1.0 - alpha,
+            red[mask_bool],
+            alpha,
+            0,
+        )
+
+        return result
