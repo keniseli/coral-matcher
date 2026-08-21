@@ -41,9 +41,6 @@ class CoralService:
         self.vision_service = VisionService()
         self.observation_repository = ObservationRepository()
         self.logger = logging.getLogger(__name__)
-        self.logger.info(f"CPU count: {os.cpu_count()}")
-        self.logger.info(f"PyTorch threads: {torch.get_num_threads()}")
-        self.logger.info(f"PyTorch interop threads: {torch.get_num_interop_threads()}")
 
     def segment_image(self, image: np.ndarray, filename: str) -> SegmentationResult :
         """
@@ -86,11 +83,7 @@ class CoralService:
             raise ValueError("No segments selected.")
 
         mask_result = self.vision_service.mask(image=image, segments=segments)
-        print(mask_result.masked_image.shape)
-        print(mask_result.masked_image.dtype)
         crop_result = self.cropper.crop(image=mask_result.masked_image, segments=segments)
-        print(crop_result.crop.shape)
-        print(crop_result.crop.dtype)
         original_embedding = self.embedding_service.generate_vector_embedding(crop_result.crop)
 
         return IdentifyResult(
