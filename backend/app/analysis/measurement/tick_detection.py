@@ -578,7 +578,7 @@ class TickDetection:
             exist_ok=True,
         )
 
-        output_path = debug_dir / f"tick_detection_{name}.png"
+        output_path = debug_dir / f"{name}_stage_3_tick_detection.png"
 
         # ---------------------------------------------------------
         # Prepare ruler visualization
@@ -866,8 +866,3 @@ class TickDetection:
         )
 
         plt.close(fig)
-
-        print(
-            f"[TICK DETECTION] "
-            f"debug image: {output_path}"
-        )

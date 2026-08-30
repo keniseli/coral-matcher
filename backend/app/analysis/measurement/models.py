@@ -36,7 +36,7 @@ class TickSignals:
     signal: np.ndarray
     threshold: float
 
-# Probably only for internal use in tick_detection
+# Only for internal use in tick_detection
 @dataclass(frozen=True)
 class TickSignalScore:
     score: float
@@ -48,6 +48,14 @@ class TickPositions:
     positions: np.ndarray
     strengths: np.ndarray
 
+# Only for internal use in scale estimation
+@dataclass(frozen=True)
+class ScaleFit:
+    pixels_per_mm: float
+    intercept: float
+    supporting_ticks: np.ndarray
+    derived_ticks: np.ndarray
+    residual: float
 
 @dataclass(frozen=True)
 class RulerScale:
@@ -55,3 +63,11 @@ class RulerScale:
     confidence: float
     supporting_ticks: np.ndarray
     spacing_residual: float
+
+    
+@dataclass(frozen=True)
+class CoralMeasurement:
+    feret_cm: float
+    geodesic_cm: float
+    px_per_cm: float
+    

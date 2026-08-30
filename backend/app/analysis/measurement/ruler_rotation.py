@@ -206,7 +206,7 @@ class RulerRotation:
 
         output_path = (
             Path("test/analysis/measurement/debug")
-            / f"ruler_rotation_{name}.png"
+            / f"{name}_stage_2_ruler_rotation.png"
         )
         output_path.parent.mkdir(
             parents=True,
@@ -220,12 +220,3 @@ class RulerRotation:
             raise IOError(
                 f"Failed to write ruler rotation debug image: {output_path}"
             )
-
-        print(
-            "[RULER ROTATION]"
-            f" crop={result.crop}"
-            f" size={result.image.shape[1]}x{result.image.shape[0]}"
-        )
-        print(
-            f"[RULER ROTATION] debug image: {output_path}"
-        )

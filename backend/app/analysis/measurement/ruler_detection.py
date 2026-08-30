@@ -203,7 +203,7 @@ class RulerDetection:
 
         output_path = (
             Path("test/analysis/measurement/debug")
-            / f"ruler_detection_{name}.png"
+            / f"{name}_stage_1_ruler_detection.png"
         )
         output_path.parent.mkdir(
             parents=True,

@@ -1,9 +1,12 @@
-from .models import TickSignals, TickPositions
+from .models import TickSignals, TickPositions, RotatedRuler
 from dataclasses import dataclass
 from collections.abc import Sequence
 
 import cv2
 import numpy as np
+from pathlib import Path
+import matplotlib.pyplot as plt
+
 
 
 class TickPositioning:
@@ -11,7 +14,8 @@ class TickPositioning:
     def find_tick_positions(
         self,
         detection: TickSignals,
-        name_for_debug: str | None = None
+        name_for_debug: str | None = None,
+        rotated_ruler_for_debug: RotatedRuler | None = None,
     ) -> TickPositions:
         """
         Converts the 1D tick signal into ordered tick positions.
@@ -89,11 +93,16 @@ class TickPositioning:
             strengths=candidate_strengths,
             expected_spacing=spacing,
         )
-
-        return TickPositions(
+        
+        positions = TickPositions(
             positions=positions.astype(np.float32),
             strengths=strengths.astype(np.float32),
         )
+        
+        if name_for_debug and rotated_ruler_for_debug:
+            self.save_tick_positioning_debug_image(rotated_ruler_for_debug, detection, positions, name_for_debug)
+
+        return positions
 
     # ------------------------------------------------------------------
     # Candidate detection
@@ -276,3 +285,220 @@ class TickPositioning:
             np.asarray(kept_positions, dtype=np.int32),
             np.asarray(kept_strengths, dtype=np.float32),
         )
+        
+    def save_tick_positioning_debug_image(
+        self,
+        rotated_ruler: RotatedRuler,
+        signals: TickSignals,
+        positions: TickPositions,
+        name: str,
+    ) -> None:
+        """
+        Saves a debug visualization of tick detection and positioning.
+
+        Top:
+            Rotated ruler with candidate peaks and final tick positions.
+
+        Bottom:
+            1D tick signal with threshold and candidate/final positions.
+
+        Candidate peaks and final positions are intentionally shown separately
+        so that positioning decisions can be visually inspected.
+        """
+
+        debug_dir = Path(
+            "test/analysis/measurement/debug"
+        )
+
+        debug_dir.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        output_path = (
+            debug_dir
+            / f"{name}_stage_4_tick_positioning.png"
+        )
+
+        image = rotated_ruler.image
+
+        # ------------------------------------------------------------
+        # Prepare image for matplotlib
+        # ------------------------------------------------------------
+
+        if image.ndim == 3:
+            # OpenCV image is BGR, matplotlib expects RGB.
+            display_image = image[:, :, ::-1]
+        else:
+            display_image = image
+
+        signal = np.asarray(
+            signals.signal,
+            dtype=np.float32,
+        )
+
+        final_positions = np.asarray(
+            positions.positions,
+            dtype=np.float32,
+        )
+
+        strengths = np.asarray(
+            positions.strengths,
+            dtype=np.float32,
+        )
+
+        # ------------------------------------------------------------
+        # Create figure
+        # ------------------------------------------------------------
+
+        fig, (image_ax, signal_ax) = plt.subplots(
+            2,
+            1,
+            figsize=(16, 8),
+            gridspec_kw={
+                "height_ratios": [2, 1],
+            },
+        )
+
+        # ============================================================
+        # TOP: ruler image
+        # ============================================================
+
+        image_ax.imshow(display_image)
+
+        image_ax.set_title(
+            "Tick positioning"
+        )
+
+        image_ax.set_xlim(
+            0,
+            image.shape[1],
+        )
+
+        image_ax.set_ylim(
+            image.shape[0],
+            0,
+        )
+
+        # Final positions
+        for x, strength in zip(
+            final_positions,
+            strengths,
+        ):
+            image_ax.axvline(
+                x=float(x),
+                linestyle="-",
+                linewidth=2.0,
+                alpha=0.9,
+                label="positioned tick",
+            )
+
+            image_ax.text(
+                float(x),
+                10,
+                f"{strength:.2f}",
+                rotation=90,
+                verticalalignment="top",
+                horizontalalignment="right",
+                fontsize=8,
+            )
+
+        # Avoid duplicate legend entries from every line.
+        handles, labels = image_ax.get_legend_handles_labels()
+
+        unique = dict(
+            zip(labels, handles)
+        )
+
+        image_ax.legend(
+            unique.values(),
+            unique.keys(),
+            loc="upper right",
+        )
+
+        image_ax.set_xlabel(
+            "x position [px]"
+        )
+
+        image_ax.set_ylabel(
+            "y position [px]"
+        )
+
+        # ============================================================
+        # BOTTOM: signal
+        # ============================================================
+
+        x = np.arange(
+            signal.size
+        )
+
+        signal_ax.plot(
+            x,
+            signal,
+            linewidth=1.5,
+            label="signal",
+        )
+
+        signal_ax.axhline(
+            y=signals.threshold,
+            linestyle="--",
+            linewidth=1.5,
+            label=f"threshold ({signals.threshold:.2f})",
+        )
+
+        # Final positions
+        if final_positions.size > 0:
+            # Positions are currently integer-like, but keeping this robust
+            # also makes the visualization work if we later infer subpixel
+            # positions.
+            valid = (
+                (final_positions >= 0)
+                & (final_positions < signal.size)
+            )
+
+            final_x = final_positions[valid]
+
+            final_y = np.interp(
+                final_x,
+                x,
+                signal,
+            )
+
+            signal_ax.scatter(
+                final_x,
+                final_y,
+                s=60,
+                marker="x",
+                linewidths=2,
+                label="positioned ticks",
+                zorder=4,
+            )
+
+        signal_ax.set_title(
+            "Tick signal"
+        )
+
+        signal_ax.set_xlabel(
+            "x position [px]"
+        )
+
+        signal_ax.set_ylabel(
+            "signal strength"
+        )
+
+        signal_ax.set_xlim(
+            0,
+            signal.size - 1,
+        )
+
+        signal_ax.legend()
+
+        fig.tight_layout()
+
+        fig.savefig(
+            output_path,
+            dpi=150,
+            bbox_inches="tight",
+        )
+
+        plt.close(fig)

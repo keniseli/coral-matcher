@@ -59,7 +59,7 @@ class FixtureProvider(SegmentationProvider):
         with json_file.open("r", encoding="utf-8") as handle:
             payload = json.load(handle)
 
-        image_payload = payload.get("image", {})
+        
         segments_payload = payload.get("segments", [])
 
         segments: List[Segment] = []
@@ -95,7 +95,9 @@ class FixtureProvider(SegmentationProvider):
                     ),
                 )
             )
-
+            
+        image_payload = payload.get("image", {})
+        
         return SegmentationResult(
             image_width=int(image_payload.get("width", 0)),
             image_height=int(image_payload.get("height", 0)),
