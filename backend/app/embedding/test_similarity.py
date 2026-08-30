@@ -13,7 +13,7 @@ from app.domain.models import (
     Segment,
 )
 from app.embedding.embedding import EmbeddingService
-from app.vision.vision import VisionService
+from app.vision.vision_service import VisionService
 from app.cropping.cropper import BoundingBoxCropper
 
 

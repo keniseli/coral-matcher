@@ -1,16 +1,12 @@
 from __future__ import annotations
 
-from typing import List
 import uuid
-from app.orchestration.models import IdentifyRequest, IdentifyResult
+from app.orchestration.models import IdentifyResult
 import numpy as np
 import os
-import torch
 from sqlalchemy.dialects.postgresql import JSONB
 from dataclasses import asdict
 import logging
-import time
-import resource
 
 from app.cropping.cropper import BoundingBoxCropper
 from app.embedding.embedding import EmbeddingService
@@ -21,7 +17,7 @@ from app.orchestration.models import ConfirmResult
 from app.persistence.observation_repository import ObservationRepository
 from app.domain.models import Segment, ObservationCandidate
 from app.persistence.storage import upload_image_to_bucket
-from app.vision.vision import VisionService
+from app.vision.vision_service import VisionService
 from app.utils.performance_profiler import log_memory, performance_stage
 
 

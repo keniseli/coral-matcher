@@ -184,3 +184,57 @@ class VisionService:
         )
 
         return result
+
+
+    def find_feret_diameter(self, polygon: np.ndarray):
+        hull = cv2.convexHull(
+            polygon
+        )
+
+        hull_points = (
+            hull[:, 0, :]
+            .astype(np.float64)
+        )
+
+        if len(hull_points) < 2:
+            raise ValueError(
+                "Coral polygon has an invalid convex hull."
+            )
+
+        # ---------------------------------------------------------
+        # Find the two hull points with the greatest distance.
+        # ---------------------------------------------------------
+
+        differences = (
+            hull_points[:, np.newaxis, :]
+            - hull_points[np.newaxis, :, :]
+        )
+
+        squared_distances = np.sum(
+            differences ** 2,
+            axis=2,
+        )
+
+        point_indices = np.unravel_index(
+            np.argmax(
+                squared_distances
+            ),
+            squared_distances.shape,
+        )
+
+        point_a = hull_points[
+            point_indices[0]
+        ]
+
+        point_b = hull_points[
+            point_indices[1]
+        ]
+
+        feret_diameter_pixels = float(
+            np.sqrt(
+                squared_distances[
+                    point_indices
+                ]
+            )
+        )
+        return hull_points, point_a, point_b, feret_diameter_pixels

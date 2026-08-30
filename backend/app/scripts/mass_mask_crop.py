@@ -4,7 +4,7 @@ from pathlib import Path
 import cv2
 
 from app.orchestration.coral_service import CoralService
-from app.vision.vision import VisionService
+from app.vision.vision_service import VisionService
 
 def process_directory(input_dir: Path, output_dir: Path):
     output_dir.mkdir(parents=True, exist_ok=True)
