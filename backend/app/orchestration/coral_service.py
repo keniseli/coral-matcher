@@ -1,16 +1,12 @@
 from __future__ import annotations
 
-from typing import List
 import uuid
-from app.orchestration.models import IdentifyRequest, IdentifyResult
+from app.orchestration.models import IdentifyResult
 import numpy as np
 import os
-import torch
 from sqlalchemy.dialects.postgresql import JSONB
 from dataclasses import asdict
 import logging
-import time
-import resource
 
 from app.cropping.cropper import BoundingBoxCropper
 from app.embedding.embedding import EmbeddingService
@@ -21,7 +17,7 @@ from app.orchestration.models import ConfirmResult
 from app.persistence.observation_repository import ObservationRepository
 from app.domain.models import Segment, ObservationCandidate
 from app.persistence.storage import upload_image_to_bucket
-from app.vision.vision import VisionService
+from app.vision.vision_service import VisionService
 from app.utils.performance_profiler import log_memory, performance_stage
 
 
@@ -41,9 +37,6 @@ class CoralService:
         self.vision_service = VisionService()
         self.observation_repository = ObservationRepository()
         self.logger = logging.getLogger(__name__)
-        self.logger.info(f"CPU count: {os.cpu_count()}")
-        self.logger.info(f"PyTorch threads: {torch.get_num_threads()}")
-        self.logger.info(f"PyTorch interop threads: {torch.get_num_interop_threads()}")
 
     def segment_image(self, image: np.ndarray, filename: str) -> SegmentationResult :
         """
@@ -86,11 +79,7 @@ class CoralService:
             raise ValueError("No segments selected.")
 
         mask_result = self.vision_service.mask(image=image, segments=segments)
-        print(mask_result.masked_image.shape)
-        print(mask_result.masked_image.dtype)
         crop_result = self.cropper.crop(image=mask_result.masked_image, segments=segments)
-        print(crop_result.crop.shape)
-        print(crop_result.crop.dtype)
         original_embedding = self.embedding_service.generate_vector_embedding(crop_result.crop)
 
         return IdentifyResult(
