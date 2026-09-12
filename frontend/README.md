@@ -1,6 +1,6 @@
-# Coral Matcher Frontend
+# Coral Companion Frontend
 
-Development and build instructions for the Coral Matcher interactive UI.
+Development and build instructions for the Coral Companion interactive UI.
 
 ## Local development
 

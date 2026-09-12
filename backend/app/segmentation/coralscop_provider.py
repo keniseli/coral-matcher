@@ -48,7 +48,7 @@ class CoralScopProvider(SegmentationProvider):
                 crop_n_layers=0,
                 crop_n_points_downscale_factor=2,
                 min_mask_region_area=100,
-                points_per_batch=64
+                points_per_batch=32
             )
 
     def segment(self, image: np.ndarray | None, image_filename: str) -> SegmentationResult:

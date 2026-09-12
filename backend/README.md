@@ -1,6 +1,6 @@
-# Coral Matcher Backend
+# Coral Companion Backend
 
-Development and build instructions for the Coral Matcher backend.
+Development and build instructions for the Coral Companion backend.
 
 ## Prerequisites
 
