@@ -4,7 +4,7 @@ CoralSCOP
 Copyright © the CoralSCOP authors
 
 Repository:
-https://github.com/<repository>
+https://github.com/zhengziqiang/CoralSCOP
 
 License:
 Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International
