@@ -44,10 +44,14 @@ $ alembic revision --autogenerate -m "Initial schema"
 $ alembic upgrade head
 
 ```
-# Example to run tests
-$ pytest -s test_vision.py
 
-# Run app (from backend/)
+### Example to run tests
+```
+$ pytest -s test_vision.py
+```
+
+### Run app (from backend/)
+```
 $ cd backend
 $ functions-framework --target process_coral_upload --debug
 ``` 
