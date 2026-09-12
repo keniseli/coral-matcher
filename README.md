@@ -1,9 +1,31 @@
+# Philosophy
+
+> To make coral restoration monitoring accessible so that we can save the world’s reefs step by step, coral by coral
+
+Monitoring restored individual coral colonies often involves taking photographs in the field and then manually identifying, measuring, and comparing colonies across monitoring sessions. This is very time-consuming and certain approaches require high technical saviness. Coral Companion aims to tackle these issues.
+
+
 # Overview
-This project aims to simplify monitoring of coral colonies in the context of marine conservation. Users can upload photos taken of a coral colony. The application will identify which part of the image contains a coral colony and let the user decide whether it has guessed right. At the same time the application uses embedding to find out whether it has seen this colony before and if so, show all the pictures history-style so that users can identify and compare the colony's development with ease.
+A typical workflow is:
+1. Practitioner uploads one or many coral photograph(s)
+1. Coral Companion detects and segments coral colonies
+1. Practitioner reviews the detected segments and assigns the relevant colony to previous observations (or to a new coral colony)
+1. Practitioner can review the colony's history across monitoring sessions and compare observations over time to help understand changes in the colony
 
-## Acknowledgements
 
-### CoralSCOP
+## Roadmap
+The long-term objective is to build a persistent history for individual coral colonies. This can support monitoring of metrics such as:
+* colony growth
+* survival and mortality
+* partial tissue loss
+* bleaching
+* disease or other visible conditions
+* changes in colony structure
+
+
+# Acknowledgements
+
+## CoralSCOP
 This project uses CoralSCOP, developed by Wong et al., for coral segmentation. It has proven to be extremely helpful for this project. CoralSCOP has been cloned and its code is accessed under backend/third_party.
 
 CoralSCOP:
