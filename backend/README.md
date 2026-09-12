@@ -18,6 +18,7 @@ Development and build instructions for the Coral Matcher backend.
     * variable ```GCP_PROJECT_ID``` the id of the google cloud project
     * variable ```GCP_STATIC_WEB_BUCKET_NAME``` the name of the google cloud storage bucket where the frontend is going to be deployed 
     * variable ```SUPABASE_URL``` the url to the supabase database
+    * variable ```SEGMENTATION_PROVIDER``` either one of "coralscop" or "fixture". Set it to "fixture" if you want segmentation to only use the pre-segmented fixtures from the directory dev_fixtures (for testing and demonstration purposes). Use the images within dev_fixtures for such testing.
 
 
 ## Run Locally
@@ -47,6 +48,6 @@ $ alembic upgrade head
 $ pytest -s test_vision.py
 
 # Run app (from backend/)
-$ cd backend 
+$ cd backend
 $ functions-framework --target process_coral_upload --debug
 ``` 
